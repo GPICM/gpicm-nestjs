@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, UseInterceptors } from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
+import { CacheInterceptor } from "@nestjs/cache-manager";
 
 @Controller("stations")
 export class StationController {
   constructor(private readonly stationRepository: StationsRepository) {}
 
   @Get()
-  async getHello(): Promise<any> {
+  @UseInterceptors(CacheInterceptor)
+  async finalAll(): Promise<any> {
     const stations = await this.stationRepository.listAll();
     return stations;
   }
