@@ -1,17 +1,18 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  output        = "./generated/spy-client"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("READ_DATABASE_URL")
+  url      = env("SPY_DATABASE_URL")
 }
 
 model Leitura {
-  id               BigInt    @id @default(autoincrement()) @map("id")
+  id               Int       @id @default(autoincrement()) @map("id")
   datahora         DateTime  @map("datahora")
-  estacaoId        BigInt    @map("estacao_id")
+  estacaoId        Int       @map("estacao_id")
   temperatura      Float?    @map("temperatura")
   umidadeAr        Float?    @map("umidade_ar")
   velocidadeVento  Float?    @map("velocidade_vento")
@@ -22,16 +23,7 @@ model Leitura {
   payload          String?   @map("payload") @db.Text
   datahoraCadastro DateTime? @map("datahora_cadastro")
 
-  estacao Estacao @relation(fields: [estacaoId], references: [id])
-
   @@index([estacaoId], name: "fk_leitura_estacao1_idx")
   @@index([datahora])
   @@map("leitura")
-}
-
-model Estacao {
-  id       BigInt    @id @default(autoincrement()) @map("id")
-  leituras Leitura[]
-
-  @@map("estacao")
 }
