@@ -1,11 +1,13 @@
 import { Controller, Get } from "@nestjs/common";
+import { SpyPrismaReadService } from "./modules/shared/services/spy-prisma-services";
 
 @Controller()
 export class AppController {
-  constructor() {}
+  constructor(readonly prisma: SpyPrismaReadService) {}
 
   @Get()
-  getHello(): any {
-    return "OK";
+  async getHello(): Promise<any> {
+    const leitura = await this.prisma.leitura.findFirst();
+    return leitura;
   }
 }
