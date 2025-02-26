@@ -1,0 +1,43 @@
+version: '3'
+
+networks:
+  gpicm-development:
+    name: 'gpicm-development'
+
+services:
+
+  db:
+    container_name: db
+    image: 'mariadb:10.5'
+    environment:   
+      MARIADB_USER: lucas
+      MARIADB_PASSWORD: 12345678
+      MARIADB_ROOT_PASSWORD: mariadbrootPW
+      MARIADB_DATABASE: anselmo_telemetria_react
+    volumes:
+      - 'mariadb-data:/var/lib/mysql'
+    ports:
+      - 3306:3306
+    networks:
+      - gpicm-development
+
+  read-db:
+    container_name: read-db
+    image: 'mariadb:10.5'
+    environment:   
+      MARIADB_USER: lucas
+      MARIADB_PASSWORD: 12345678
+      MARIADB_ROOT_PASSWORD: mariadbrootPW
+      MARIADB_DATABASE: anselmo_telemetria_readonly
+    volumes:
+      - 'mariadb-data-readonly:/var/lib/mysql'
+    ports:
+      - 3307:3306
+    networks:
+      - gpicm-development
+
+volumes:
+  mariadb-data:
+    name: gpicm-dev-db
+  mariadb-data-readonly:
+    name: gpicm-readonly-dev-db
