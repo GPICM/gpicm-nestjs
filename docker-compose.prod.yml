@@ -1,0 +1,39 @@
+version: '3'
+
+networks:
+  gcipm-production:
+    name: 'gcipm-production'
+
+services:
+
+  web: 
+    container_name: "weather-web-app-prod"
+    image: fonsecabarreto/weather-react-app:latest
+    mem_limit: 128m
+    hostname: web
+    ports:
+      - 3000:8080
+    networks:
+      - gcipm-production
+
+  redis:
+    image: redis
+    container_name: weather-redis
+    command: ["redis-server", "--appendonly", "no", "--save", "", "--dir", "/data"]
+    restart: always
+    ports:
+      - 6333:6379
+    networks:
+      - gpicm-production
+
+  app:
+    image: fonsecabarreto/gpicm-nestjs-app:latest
+    container_name: gpcim-nestjs-app-prod
+    env_file:
+      - .env.local
+    ports:
+      - '9000:9000'
+    networks:
+      - gpicm-production
+
+      
