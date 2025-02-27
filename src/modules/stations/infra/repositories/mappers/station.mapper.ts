@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { Station } from "@/modules/stations/domain/Station";
-import { Prisma } from "prisma/generated/spy-client";
+import { Prisma } from "#prisma/generated/spy-client";
 
 export const stationInclude = Prisma.validator<Prisma.EstacaoInclude>()({});
 
@@ -12,7 +14,7 @@ type PrismaJoinModel = Prisma.EstacaoGetPayload<{
 
 class StationMapper {
   public static fromPrisma(
-    prismaData?: PrismaJoinModel | null
+    prismaData?: PrismaJoinModel | null,
   ): Station | null {
     if (!prismaData) return null;
 
@@ -21,7 +23,7 @@ class StationMapper {
       try {
         geoPosition = new GeoPosition(
           prismaData.latitude,
-          prismaData.longitude
+          prismaData.longitude,
         );
       } catch (error: unknown) {
         console.error("Invalid geo position", { error });

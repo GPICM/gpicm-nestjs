@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Controller, Get, UseInterceptors } from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
 import { CacheInterceptor } from "@nestjs/cache-manager";

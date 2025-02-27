@@ -8,17 +8,17 @@ export class GeoPosition {
     latitude: number,
     longitude: number,
     altitude?: number,
-    accuracy?: number
+    accuracy?: number,
   ) {
     if (!GeoPosition.isValidLatitude(latitude)) {
       throw new Error(
-        `Invalid latitude: ${latitude}. Latitude must be between -90 and 90.`
+        `Invalid latitude: ${latitude}. Latitude must be between -90 and 90.`,
       );
     }
 
     if (!GeoPosition.isValidLongitude(longitude)) {
       throw new Error(
-        `Invalid longitude: ${longitude}. Longitude must be between -180 and 180.`
+        `Invalid longitude: ${longitude}. Longitude must be between -180 and 180.`,
       );
     }
 
@@ -50,7 +50,7 @@ export class GeoPosition {
       json.latitude,
       json.longitude,
       json.altitude,
-      json.accuracy
+      json.accuracy,
     );
   }
 }
