@@ -26,11 +26,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-
       - name: Install OpenVPN
         run: |
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
+
+      - name: Setup VPN config
+        run: |
+          echo "${{ secrets.OVPN_CA }}" > ca.crt
+          echo "${{ secrets.OVPN_CERT }}" > user.crt
 
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v2
@@ -39,6 +43,9 @@ jobs:
           username: ${{ secrets.OVPN_USERNAME }}
           password: ${{ secrets.OVPN_PASSWORD }}
           client_key: ${{ secrets.OVPN_CLIENT_KEY }}
+
+      - name: something
+        run: echo "Done"
 
       - name: Execute remote commands via SSH
         uses: appleboy/ssh-action@master
@@ -64,3 +71,8 @@ jobs:
             docker compose --env-file ./.env -f /opt/app/docker-compose.prod.yml up --build -d
 
             echo "Deploy concluído com sucesso!"
+
+      - name: Kill VPN connection
+        if: always()
+        run: |
+          sudo killall openvpn          
