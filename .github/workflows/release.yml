@@ -36,13 +36,13 @@ jobs:
           echo "${{ secrets.OVPN_CA }}" > ca.crt
           echo "${{ secrets.OVPN_CERT }}" > user.crt
 
-      - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v2
-        with:
-          config_file: .github/workflows/client.ovpn
-          username: ${{ secrets.OVPN_USERNAME }}
-          password: ${{ secrets.OVPN_PASSWORD }}
-          client_key: ${{ secrets.OVPN_CLIENT_KEY }}
+      - name: Establish VPN connection
+        run: |
+            echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
+            echo "${{ secrets.OVPN_USERNAME }}" > vpn-credentials.txt
+            echo "${{ secrets.OVPN_PASSWORD }}" >> vpn-credentials.txt
+            sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-credentials.txt --daemon
+            sleep 15
 
       - name: something
         run: echo "Done"
