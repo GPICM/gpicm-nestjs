@@ -6,6 +6,23 @@ networks:
 
 services:
 
+  app:
+    container_name: gpcim-nestjs-app
+    restart: always
+    command: sh -c "yarn run prisma:generate && yarn run start:dev"
+    build:
+      context: .
+      target: development
+    env_file:
+      - .env.local
+    volumes:
+      - ./:/usr/src/app
+      - node_modules:/usr/src/app/node_modules
+    ports:
+      - '9000:9000'
+    networks:
+      - gpicm-development
+
   db:
     container_name: db
     image: 'mariadb:10.5'
@@ -51,3 +68,5 @@ volumes:
     name: gpicm-dev-db
   mariadb-data-readonly:
     name: gpicm-readonly-dev-db
+  node_modules:
+    name: "gpicm-node-modules"
