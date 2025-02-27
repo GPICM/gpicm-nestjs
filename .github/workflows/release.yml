@@ -21,4 +21,45 @@ jobs:
     - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
     - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
    
- 
+
+  deploy:
+    needs: pushToDockerHub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install OpenVPN
+        run: |
+          sudo apt update
+          sudo apt install -y openvpn openvpn-systemd-resolved
+
+      - name: Connect to VPN
+        uses: "kota65535/github-openvpn-connect-action@v2"
+        with:
+          config_file: .github/workflows/client.ovpn
+          username: ${{ secrets.OVPN_USERNAME }}
+          password: ${{ secrets.OVPN_PASSWORD }}
+          client_key: ${{ secrets.OVPN_CLIENT_KEY }}
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@master
+        with:
+          PORT: 22
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.HOST_USERNAME }}
+          KEY: ${{ secrets.SSHKEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, {{secrets.DOCKERHUB_PASSWORD}}, {{secrets.DOCKERHUB_USERNAME}}, {{secrets.APP_ENVS}}
+          script: |
+            rm -f .env &&
+            echo "${{secrets.APP_ENVS}}" | base64 -d > .env
+            echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
+            docker compose -f /opt/app/docker-compose.prod.yml down &&
+            docker image prune -f &&
+            docker compose -f /opt/app/docker-compose.prod.yml pull &&
+            docker compose --env-file ./.env -f /opt/app/docker-compose.prod.yml up --build -d
+
+
