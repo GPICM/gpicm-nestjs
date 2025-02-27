@@ -52,25 +52,11 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.HOST_USERNAME }}
-          key: ${{ secrets.SSHKEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          password: ${{ secrets.HOST_PASSWORD }}
           port: 22
-          envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, DOCKERHUB_PASSWORD, DOCKERHUB_USERNAME, APP_ENVS
           script: |
-            # Criar .env a partir de variáveis secretas
-            rm -f .env
-            echo "${{ secrets.APP_ENVS }}" | base64 -d > .env
-
-            # Login no Docker Hub
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin --quiet
-
-            # Parar e atualizar containers
-            docker compose -f /opt/app/docker-compose.prod.yml down
-            docker image prune -f
-            docker compose -f /opt/app/docker-compose.prod.yml pull
-            docker compose --env-file ./.env -f /opt/app/docker-compose.prod.yml up --build -d
-
-            echo "Deploy concluído com sucesso!"
+            whoami
+            ls -al
 
       - name: Kill VPN connection
         if: always()
