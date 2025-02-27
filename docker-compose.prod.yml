@@ -2,7 +2,7 @@ version: '3'
 
 networks:
   gpicm-production:
-    name: 'gcipm-production'
+    name: 'gpicm-production'
 
 services:
 
@@ -35,5 +35,4 @@ services:
       - '9000:9000'
     networks:
       - gpicm-production
-
       
