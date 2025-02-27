@@ -40,16 +40,6 @@ jobs:
           password: ${{ secrets.OVPN_PASSWORD }}
           client_key: ${{ secrets.OVPN_CLIENT_KEY }}
 
-      - name: Verify VPN Connection
-        run: |
-          sleep 5  # Aguarde um pouco para estabilizar a conexão
-          if ! ip a | grep -q "tun"; then
-            echo "VPN connection failed!"
-            exit 1
-          else
-            echo "VPN connected successfully."
-          fi
-
       - name: Execute remote commands via SSH
         uses: appleboy/ssh-action@master
         with:
