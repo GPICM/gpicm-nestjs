@@ -44,8 +44,13 @@ jobs:
             sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-credentials.txt --daemon
             sleep 15
 
-      - name: something
-        run: echo "Done"
+      - name: Check VPN connection
+        run: |
+          if ip addr show | grep -q "tun0"; then
+            echo "VPN connected"
+          else
+            echo "VPN not connected" && exit 1
+          fi
 
       - name: Execute remote commands via SSH
         uses: appleboy/ssh-action@master
