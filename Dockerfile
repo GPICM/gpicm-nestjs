@@ -26,7 +26,7 @@ COPY --chown=node:node . .
 
 RUN yarn build
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 RUN yarn install --frozen-lockfile --production && yarn cache clean
 

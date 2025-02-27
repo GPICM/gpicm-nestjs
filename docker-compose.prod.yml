@@ -1,7 +1,7 @@
 version: '3'
 
 networks:
-  gcipm-production:
+  gpicm-production:
     name: 'gcipm-production'
 
 services:
@@ -14,7 +14,7 @@ services:
     ports:
       - 3000:8080
     networks:
-      - gcipm-production
+      - gpicm-production
 
   redis:
     image: redis
@@ -30,7 +30,7 @@ services:
     image: fonsecabarreto/gpicm-nestjs-app:latest
     container_name: gpcim-nestjs-app-prod
     env_file:
-      - .env.local
+      - .env
     ports:
       - '9000:9000'
     networks:
