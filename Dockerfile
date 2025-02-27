@@ -24,14 +24,14 @@ COPY --chown=node:node package.json yarn.lock ./
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node . .
 
+COPY --chown=node:node prisma ./prisma
+RUN yarn run prisma:generate
+
 RUN yarn build
 
 ENV NODE_ENV=production
 
 RUN yarn install --frozen-lockfile --production && yarn cache clean
-
-COPY --chown=node:node prisma ./prisma
-RUN yarn run prisma:generate
 
 RUN rm -rf node_modules/.prisma/client/libquery_engine-* \
     node_modules/.prisma/client/libquery_engine-rhel-* \
