@@ -36,3 +36,12 @@ services:
     networks:
       - gpicm-production
       
+  worker1:
+    image: fonsecabarreto/gpicm-metrics-computation:latest
+    container_name: gpcim-gpicm-metrics-computation
+    env_file:
+      - .env
+    ports:
+      - '3001:3001'
+    networks:
+      - gpicm-production
