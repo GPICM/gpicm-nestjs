@@ -47,11 +47,7 @@ jobs:
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
 
-        - name: Connect Manual
-          run: openvpn connect --config .github/vpn/config.ovpn --daemon
 
-        - name: Check Connect VPN
-          run: echo ${{ steps.connect_vpn.outputs.STATUS }}
 
         - name: Connect to VPN
           uses: "kota65535/github-openvpn-connect-action@v2"
