@@ -1,11 +1,10 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
-import { StationMetricsReport } from "./StationMetricsReport";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 
 export class Station {
-  id: number;
+  internalId: number;
 
-  internalId: string;
+  slug: string;
 
   address: string;
 
@@ -21,18 +20,19 @@ export class Station {
 
   isOnline: boolean;
 
-  latestMetrics: StationMetricsReport | null;
+  latestMetrics: Record<string, unknown> | null = null;
 
-  constructor(
-    props: NonFunctionProperties<Station>,
-    latestMetrics?: StationMetricsReport,
-  ) {
+  constructor(props: NonFunctionProperties<Station>) {
     Object.assign(this, props);
-    this.latestMetrics = latestMetrics ?? null;
     this.evaluateOnlineStatus();
   }
 
   private evaluateOnlineStatus() {
     this.isOnline = this.latestMetrics?.isOnline === true;
+  }
+
+  public toJSON() {
+    const { latestMetrics, geoPosition, ...rest } = this;
+    return { ...rest, geoPosition, latestMetrics };
   }
 }

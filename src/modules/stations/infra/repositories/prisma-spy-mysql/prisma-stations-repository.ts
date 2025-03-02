@@ -1,16 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Station } from "../../domain/Station";
-import { StationsRepository } from "../../interfaces/stations-repository";
-import { SpyPrismaReadService } from "@/modules/shared/services/spy-prisma-services";
 import { stationInclude, StationMapper } from "./mappers/station.mapper";
 import { Inject } from "@nestjs/common";
+import { StationsRepository } from "@/modules/stations/interfaces/stations-repository";
+import { Station } from "@/modules/stations/domain/Station";
+import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 export class PrismaStationsRepository implements StationsRepository {
   constructor(
-    @Inject(SpyPrismaReadService)
-    private readonly prisma: SpyPrismaReadService,
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService
   ) {}
 
   public async findById(stationId: number): Promise<Station | null> {

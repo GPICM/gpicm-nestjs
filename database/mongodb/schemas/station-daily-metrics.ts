@@ -1,6 +1,6 @@
-import { Db, ObjectId } from 'mongodb';
+import { ObjectId } from "mongodb";
 
-export const STATION_DAILY_METRICS_COLLECTION_NAME = 'station_daily_metrics';
+export const STATION_DAILY_METRICS_COLLECTION_NAME = "station_daily_metrics";
 
 export interface MongoStationDailyMetrics {
   _id: ObjectId;

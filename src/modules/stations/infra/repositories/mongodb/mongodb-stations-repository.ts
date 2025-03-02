@@ -1,0 +1,80 @@
+import { MongodbService } from "@/modules/shared/services/mongodb-service";
+import { Station } from "../../../domain/Station";
+import { StationsRepository } from "../../../interfaces/stations-repository";
+import { Inject } from "@nestjs/common";
+import { Db } from "mongodb";
+import {
+  MongoDbStationMapper,
+  MongoStationProjection,
+} from "./mappers/mongodb-station.mapper";
+import { STATION_DAILY_METRICS_COLLECTION_NAME } from "#databasemongodb/schemas/station-daily-metrics";
+
+export class MongoDbStationsRepository implements StationsRepository {
+  private db: Db;
+
+  constructor(
+    @Inject(MongodbService)
+    private readonly mongoService: MongodbService,
+  ) {}
+
+  public async findById(stationId: number): Promise<Station | null> {
+    try {
+      this.db = this.mongoService.getDatabase();
+      const collection = this.db.collection("stations");
+
+      const result = await collection.findOne<MongoStationProjection>({
+        internalId: stationId,
+      });
+
+      return MongoDbStationMapper.fromMongo(result);
+    } catch (error: unknown) {
+      console.error("Failed to find station", { error });
+      throw new Error("Failed to find station by id");
+    }
+  }
+
+  public async listAll(): Promise<Station[]> {
+    try {
+      this.db = this.mongoService.getDatabase();
+      const collection = this.db.collection("stations");
+
+      const result = await collection
+        .aggregate<MongoStationProjection>([
+          {
+            $lookup: {
+              from: STATION_DAILY_METRICS_COLLECTION_NAME,
+              let: { stationSlug: "$slug" },
+              pipeline: [
+                {
+                  $match: { $expr: { $eq: ["$stationSlug", "$$stationSlug"] } }
+                },
+                { $sort: { date: -1 } },
+                { $limit: 1 },
+              ],
+              as: "latestMetrics",
+            },
+          },
+          {
+            $unwind: {
+              path: "$latestMetrics",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ])
+        .toArray();
+
+      const stations: Station[] = [];
+
+      for (const data of result) {
+        const station = MongoDbStationMapper.fromMongo(data);
+        if (station) {
+          stations.push(station);
+        }
+      }
+      return stations;
+    } catch (error: unknown) {
+      console.error("Failed to find list stations", { error });
+      throw new Error("Failed to lists stations");
+    }
+  }
+}
