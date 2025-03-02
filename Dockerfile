@@ -33,11 +33,6 @@ ENV NODE_ENV=production
 
 RUN yarn install --frozen-lockfile --production && yarn cache clean
 
-RUN rm -rf node_modules/.prisma/client/libquery_engine-* \
-    node_modules/.prisma/client/libquery_engine-rhel-* \
-    node_modules/prisma/libquery_engine-* \
-    node_modules/@prisma/engines/**
-
 USER node
 
 FROM node:20-alpine AS production
