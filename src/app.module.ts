@@ -4,6 +4,7 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { AppController } from "./app.controller";
 import { SharedModule } from "./modules/shared/shared.module";
 import { StationsModule } from "./modules/stations/stations.module";
+import { ReportsModule } from "./modules/reports/reports.module";
 
 @Module({
   controllers: [AppController],
@@ -15,6 +16,7 @@ import { StationsModule } from "./modules/stations/stations.module";
     }),
     SharedModule,
     StationsModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

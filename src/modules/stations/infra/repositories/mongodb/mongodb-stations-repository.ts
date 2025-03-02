@@ -1,20 +1,22 @@
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
 import { Station } from "../../../domain/Station";
 import { StationsRepository } from "../../../interfaces/stations-repository";
-import { Inject } from "@nestjs/common";
+import { Inject, Logger } from "@nestjs/common";
 import { Db } from "mongodb";
 import {
   MongoDbStationMapper,
   MongoStationProjection,
 } from "./mappers/mongodb-station.mapper";
-import { STATION_DAILY_METRICS_COLLECTION_NAME } from "#databasemongodb/schemas/station-daily-metrics";
+import { STATION_DAILY_METRICS_COLLECTION_NAME } from "#database/mongodb/schemas/station-daily-metrics";
 
 export class MongoDbStationsRepository implements StationsRepository {
+  private readonly logger = new Logger(MongoDbStationsRepository.name);
+
   private db: Db;
 
   constructor(
     @Inject(MongodbService)
-    private readonly mongoService: MongodbService,
+    private readonly mongoService: MongodbService
   ) {}
 
   public async findById(stationId: number): Promise<Station | null> {
@@ -46,7 +48,7 @@ export class MongoDbStationsRepository implements StationsRepository {
               let: { stationSlug: "$slug" },
               pipeline: [
                 {
-                  $match: { $expr: { $eq: ["$stationSlug", "$$stationSlug"] } }
+                  $match: { $expr: { $eq: ["$stationSlug", "$$stationSlug"] } },
                 },
                 { $sort: { date: -1 } },
                 { $limit: 1 },
