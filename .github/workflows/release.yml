@@ -23,46 +23,49 @@ jobs:
 
   deploy:
     #needs: pushToDockerHub
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+        - name: Checkout
+          uses: actions/checkout@v3
 
-      - name: Enable debug logging
-        run: echo "DEBUG=true" >> $GITHUB_ENV
+        - name: Enable debug logging
+          run: echo "DEBUG=true" >> $GITHUB_ENV
 
-      - name: Create .ovpn file from secrets
-        run: echo "$CLIENT_OVPN" > .github/vpn/config.ovpn
-        env:
-          CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
+        - name: Install OpenVPN
+          run: |
+            sudo apt update
+            sudo apt install -y openvpn openvpn-systemd-resolved
 
-      - name: Set permissions for config.ovpn
-        run: chmod 644 .github/vpn/config.ovpn
+        - name: Create .ovpn file from secrets
+          run: echo "$CLIENT_OVPN" > .github/vpn/config.ovpn
+          env:
+            CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
 
-      - name: Display client.ovpn contents
-        run: cat .github/workflows/client.ovpn
+        - name: Set permissions for config.ovpn
+          run: chmod 644 .github/vpn/config.ovpn
 
-      - name: Install OpenVPN
-        run: |
-          sudo apt update
-          sudo apt install -y openvpn openvpn-systemd-resolved
+        - name: Display client.ovpn contents
+          run: cat .github/vpn/config.ovpn
 
-      - name: Connect VPN
-        uses: golfzaptw/action-connect-ovpn@master
-        id: connect_vpn
-        with: 
-          PING_URL: '10.77.0.99'
-          FILE_OVPN: '.github/vpn/config.ovpn'
-          TLS_KEY: ${{ secrets.TLS_KEY }}
-          #SECRET: ${{ secrets.SECRET_USERNAME_PASSWORD }}
-        env:
-          CA_CRT: ${{ secrets.OVPN_CA}}
-          USER_CRT: ${{ secrets.OVPN_CERT }}
-          USER_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
-      - name: Check Connect VPN
-        run: echo ${{ steps.connect_vpn.outputs.STATUS }}
-      - name: kill vpn
-        if: always()
-        run: sudo killall openvpn
+        - name: Connect VPN
+          uses: golfzaptw/action-connect-ovpn@master
+          id: connect_vpn
+          with: 
+            PING_URL: '10.77.0.99'
+            FILE_OVPN: '.github/vpn/config.ovpn'
+            TLS_KEY: ${{ secrets.TLS_KEY }}
+            #SECRET: ${{ secrets.SECRET_USERNAME_PASSWORD }}
+          env:
+            CA_CRT: ${{ secrets.OVPN_CA}}
+            USER_CRT: ${{ secrets.OVPN_CERT }}
+            USER_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+
+        - name: Check Connect VPN
+          run: echo ${{ steps.connect_vpn.outputs.STATUS }}
+
+        - name: kill vpn
+          if: always()
+          run: sudo killall openvpn
 
      
       #- name: Execute remote commands via SSH
