@@ -11,32 +11,40 @@ env:
   IMAGE_NAME: gpicm-nestjs-app
 
 jobs:
-  pushToDockerHub:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: true
-    - run: docker build -f ./Dockerfile --target production --tag $REGISTRY_NAME/$IMAGE_NAME ./
-    - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
-    - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
+  #pushToDockerHub:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v3
+  #    with:
+  #      submodules: true
+  #  - run: docker build -f ./Dockerfile --target production --tag $REGISTRY_NAME/$IMAGE_NAME ./
+  #  - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
+  #  - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
 
   deploy:
-    needs: pushToDockerHub
+    #needs: pushToDockerHub
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+
+      - name: Enable debug logging
+        run: echo "DEBUG=true" >> $GITHUB_ENV
+
+      - name: Create .ovpn file from secrets
+        run: echo "$CLIENT_OVPN" > .github/vpn/config.ovpn
+        env:
+          CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
+
+      - name: Set permissions for config.ovpn
+        run: chmod 644 .github/vpn/config.ovpn
+
+      - name: Display client.ovpn contents
+        run: cat .github/workflows/client.ovpn
+
       - name: Install OpenVPN
         run: |
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
-  
-      - uses: actions/checkout@v1
-      - name: Install Open VPN
-        run: sudo apt-get install openvpn
-
-      - name: Set permissions for config.ovpn
-        run: chmod 644 .github/vpn/config.ovpn
 
       - name: Connect VPN
         uses: golfzaptw/action-connect-ovpn@master
