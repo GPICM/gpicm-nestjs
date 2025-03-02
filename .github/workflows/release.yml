@@ -21,49 +21,51 @@ jobs:
     - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
     - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
 
-  #deploy:
-  #  needs: pushToDockerHub
-  #  runs-on: ubuntu-22.04
-  #  steps:
-  #    - uses: actions/checkout@v3
-  #    - name: Install OpenVPN
-  #      run: |
-  #        sudo apt update
-  #        sudo apt install -y openvpn openvpn-systemd-resolved
+  deploy:
+    needs: pushToDockerHub
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install OpenVPN
+        run: |
+          sudo apt update
+          sudo apt install -y openvpn openvpn-systemd-resolved
+  
+      - uses: actions/checkout@v1
+      - name: Install Open VPN
+        run: sudo apt-get install openvpn
+
+      - name: Connect VPN
+        uses: golfzaptw/action-connect-ovpn@master
+        id: connect_vpn
+        with: 
+          PING_URL: '10.77.0.99'
+          FILE_OVPN: '.github/vpn/client.ovpn'
+          TLS_KEY: ${{ secrets.TLS_KEY }}
+          #SECRET: ${{ secrets.SECRET_USERNAME_PASSWORD }}
+        env:
+          CA_CRT: ${{ secrets.OVPN_CA}}
+          USER_CRT: ${{ secrets.OVPN_CERT }}
+          USER_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+      - name: Check Connect VPN
+        run: echo ${{ steps.connect_vpn.outputs.STATUS }}
+      - name: kill vpn
+        if: always()
+        run: sudo killall openvpn
+
+     
+      #- name: Execute remote commands via SSH
+      #  uses: appleboy/ssh-action@master
+      #  with:
+      #    host: ${{ secrets.HOST }}
+      #    username: ${{ secrets.HOST_USERNAME }}
+      #    password: ${{ secrets.HOST_PASSWORD }}
+      #    port: 22
+      #    script: |
+      #      whoami
+      #      ls -al
   #
-  #    - name: Setup VPN config
-  #      run: |
-  #        echo "${{ secrets.OVPN_CA }}" > ca.crt
-  #        echo "${{ secrets.OVPN_CERT }}" > user.crt
-  #
-  #    - name: Establish VPN connection
-  #      run: |
-  #          echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
-  #          echo "${{ secrets.OVPN_USERNAME }}" > vpn-credentials.txt
-  #          echo "${{ secrets.OVPN_PASSWORD }}" >> vpn-credentials.txt
-  #          sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-credentials.txt --daemon
-  #          sleep 15
-  #
-  #    - name: Check VPN connection
-  #      run: |
-  #        if ip addr show | grep -q "tun0"; then
-  #          echo "VPN connected"
-  #        else
-  #          echo "VPN not connected" && exit 1
-  #        fi
-  #
-  #    - name: Execute remote commands via SSH
-  #      uses: appleboy/ssh-action@master
-  #      with:
-  #        host: ${{ secrets.HOST }}
-  #        username: ${{ secrets.HOST_USERNAME }}
-  #        password: ${{ secrets.HOST_PASSWORD }}
-  #        port: 22
-  #        script: |
-  #          whoami
-  #          ls -al
-  #
-  #    - name: Kill VPN connection
-  #      if: always()
-  #      run: |
-  #        sudo killall openvpn          
+      #- name: Kill VPN connection
+      #  if: always()
+      #  run: |
+      #    sudo killall openvpn          
