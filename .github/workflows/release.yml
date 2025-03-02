@@ -57,10 +57,10 @@ jobs:
           uses: "kota65535/github-openvpn-connect-action@v2"
           with:
             config_file: .github/vpn/config.ovpn
-            username: ${{ secrets.OVPN_USERNAME }}
-            password: ${{ secrets.OVPN_PASSWORD }}
+            username: appgpicm
+            password: "WV~A@W$y.yE!^>U7"
             tls_crypt_key: ${{secrets.TLS_KEY}}
-            client_key: ${{ secrets.OVPN_CLIENT_KEY }}
+            client_key: ${{secrets.OVPN_CLIENT_KEY}}
 
         - name: Check Connect VPN
           run: echo ${{ steps.connect_vpn.outputs.STATUS }}
