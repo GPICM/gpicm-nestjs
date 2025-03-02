@@ -9,6 +9,8 @@ on:
 env:
   REGISTRY_NAME: fonsecabarreto
   IMAGE_NAME: gpicm-nestjs-app
+  ACTIONS_RUNNER_DEBUG: true
+  ACTIONS_STEP_DEBUG: true
 
 jobs:
   #pushToDockerHub:
@@ -47,7 +49,8 @@ jobs:
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
 
-
+        - name: Modify .ovpn to increase verbosity
+          run: echo "verb 4" >> .github/vpn/config.ovpn
 
         - name: Connect to VPN
           uses: "kota65535/github-openvpn-connect-action@v2"
@@ -57,6 +60,11 @@ jobs:
             password: "WV~A@W$y.yE!^>U7"
             tls_crypt_key: ${{secrets.TLS_KEY}}
             client_key: ${{secrets.OVPN_CLIENT_KEY}}
+
+        - name: Check VPN connection status
+          run: |
+            sudo systemctl status openvpn
+            sudo journalctl -u openvpn
 
         - name: Check Connect VPN
           run: echo ${{ steps.connect_vpn.outputs.STATUS }}
