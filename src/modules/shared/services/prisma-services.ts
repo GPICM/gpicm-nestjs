@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import { PrismaClient } from "#prisma/generated/primary-client";
-
+import { PrismaClient } from "@prisma/client";
 @Injectable()
-export class PrimaryPrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     await this.$connect();
   }

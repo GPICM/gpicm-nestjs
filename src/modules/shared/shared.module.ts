@@ -1,12 +1,11 @@
 import { Global, Module } from "@nestjs/common";
-import { PrimaryPrismaService } from "./services/prisma-services";
-import { SpyPrismaReadService } from "./services/spy-prisma-services";
+import { PrismaService } from "./services/prisma-services";
 
 @Global()
 @Module({
   imports: [],
   controllers: [],
-  providers: [PrimaryPrismaService, SpyPrismaReadService],
-  exports: [PrimaryPrismaService, SpyPrismaReadService],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class SharedModule {}

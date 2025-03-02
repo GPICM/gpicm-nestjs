@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-COPY --chown=node:node prisma ./prisma
+COPY --chown=node:node database ./database
 RUN yarn run prisma:generate
 
 COPY --chown=node:node . .
@@ -24,7 +24,7 @@ COPY --chown=node:node package.json yarn.lock ./
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node . .
 
-COPY --chown=node:node prisma ./prisma
+COPY --chown=node:node database ./database
 RUN yarn run prisma:generate
 
 RUN yarn build
@@ -46,7 +46,7 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/package.json ./package.json
-COPY --chown=node:node --from=build /usr/src/app/prisma ./prisma
+COPY --chown=node:node --from=build /usr/src/app/database ./database
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
