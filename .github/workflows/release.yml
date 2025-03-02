@@ -47,18 +47,13 @@ jobs:
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
 
-        - name: Connect VPN
-          uses: golfzaptw/action-connect-ovpn@master
-          id: connect_vpn
-          with: 
-            PING_URL: '10.77.0.99'
-            FILE_OVPN: '.github/vpn/config.ovpn'
-            TLS_KEY: ${{ secrets.TLS_KEY }}
-            #SECRET: ${{ secrets.SECRET_USERNAME_PASSWORD }}
-          env:
-            CA_CRT: ${{ secrets.OVPN_CA}}
-            USER_CRT: ${{ secrets.OVPN_CERT }}
-            USER_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+
+        - name: Connect to VPN
+          uses: "kota65535/github-openvpn-connect-action@v2"
+          with:
+            config_file: .github/vpn/config.ovpn
+            tls_crypt_key: ${{secrets.TLS_KEY}}
+            client_key: ${{ secrets.OVPN_CLIENT_KEY }}
 
         - name: Check Connect VPN
           run: echo ${{ steps.connect_vpn.outputs.STATUS }}
