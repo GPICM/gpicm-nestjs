@@ -40,7 +40,7 @@ jobs:
         id: connect_vpn
         with: 
           PING_URL: '10.77.0.99'
-          FILE_OVPN: '.github/vpn/client.ovpn'
+          FILE_OVPN: '.github/workflows/client.ovpn'
           TLS_KEY: ${{ secrets.TLS_KEY }}
           #SECRET: ${{ secrets.SECRET_USERNAME_PASSWORD }}
         env:
