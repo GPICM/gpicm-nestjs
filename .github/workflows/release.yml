@@ -81,16 +81,16 @@ jobs:
         run: |
           curl -I https://ifconfig.me
 
-      - name: Copy file via SSH key
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          port: 22
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.HOST_USERNAME }}
-          password: ${{ secrets.HOST_PASSWORD }}
-          source: "./docker-compose.prod.yml"
-          target: "/usr/app"
-          debug: true  # Enable debugging for more verbose output
+      #- name: Copy file via SSH key
+      #  uses: appleboy/scp-action@v0.1.4
+      #  with:
+      #    port: 22
+      #    host: ${{ secrets.HOST }}
+      #    username: ${{ secrets.HOST_USERNAME }}
+      #    password: ${{ secrets.HOST_PASSWORD }}
+      #    source: "./docker-compose.prod.yml"
+      #    target: "/usr/app"
+      #    debug: true  # Enable debugging for more verbose output
 
       - name: Executing remote command
         uses: appleboy/ssh-action@master
