@@ -103,27 +103,19 @@ jobs:
 
             echo "${{ secrets.HOST_PASSWORD }}" | sudo -S su -
 
-            # Create home directory if it doesn't exist
-            sudo mkdir -p /home/$USER
-            sudo chown $USER:$USER /home/$USER
-
-            # Fix permissions for app directory
-            sudo chown -R $USER:$USER /usr/app
-            sudo chmod -R u+w /usr/app
-
             # Ensure Docker group permissions (optional but recommended)
             sudo usermod -aG docker $USER
             sudo systemctl start docker
 
             # Create .env file
-            echo "${{ secrets.APP_ENVS }}" | base64 -d > /usr/app/.env
+            echo "${{ secrets.APP_ENVS }}" | base64 -d > /home/app/.env
 
             # Docker Compose commands
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            docker-compose -f /usr/app/docker-compose.prod.yml down
+            docker-compose -f /home/app/docker-compose.prod.yml down
             docker image prune -f
-            docker-compose -f /usr/app/docker-compose.prod.yml pull
-            docker-compose --env-file /usr/app/.env -f /usr/app/docker-compose.prod.yml up --build -d
+            docker-compose -f /home/app/docker-compose.prod.yml pull
+            docker-compose --env-file /home/app/.env -f /home/app/docker-compose.prod.yml up --build -d
       - name: Kill VPN
         if: always()
         run: sudo killall openvpn
