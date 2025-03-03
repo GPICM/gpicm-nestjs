@@ -90,6 +90,7 @@ jobs:
           password: ${{ secrets.HOST_PASSWORD }}
           source: "./docker-compose.prod.yml"
           target: "/usr/app"
+          debug: true  # Enable debugging for more verbose output
 
       - name: Executing remote command
         uses: appleboy/ssh-action@master
