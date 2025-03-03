@@ -57,6 +57,9 @@ jobs:
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
 
+        - name: Display password contents
+          run: cat .github/vpn/my_auth_pass.txt
+
         - name: Modify .ovpn to increase verbosity
           run: echo "verb 4" >> .github/vpn/config.ovpn
 
