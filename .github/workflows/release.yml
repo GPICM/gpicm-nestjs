@@ -27,50 +27,58 @@ jobs:
     #needs: pushToDockerHub
     runs-on: ubuntu-latest
     steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-        - name: Enable debug logging
-          run: echo "DEBUG=true" >> $GITHUB_ENV
+      - name: Enable debug logging
+        run: echo "DEBUG=true" >> $GITHUB_ENV
 
-        - name: Install OpenVPN
-          run: |
-            sudo apt update
-            sudo apt install -y openvpn openvpn-systemd-resolved
+      - name: Install OpenVPN
+        run: |
+          sudo apt update
+          sudo apt install -y openvpn openvpn-systemd-resolved
+          sudo systemctl enable openvpn
 
-        - name: Create .ovpn file from secrets
-          run: echo "$CLIENT_OVPN" > .github/vpn/config.ovpn
-          env:
-            CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
+      - name: Create .ovpn file from secrets
+        run: echo "$CLIENT_OVPN" > .github/vpn/config.ovpn
+        env:
+          CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
 
-        - name: Create .password file from secrets
-          run: echo "$OVPN_PASSWORD" > .github/vpn/my_auth_pass.txt
-          env:
-            OVPN_PASSWORD: ${{ secrets.OVPN_PASSWORD }}
+      - name: Create .password file from secrets
+        run: echo "$OVPN_PASSWORD" > .github/vpn/my_auth_pass.txt
+        env:
+          OVPN_PASSWORD: ${{ secrets.OVPN_PASSWORD }}
 
-        - name: Set permissions for config.ovpn
-          run: chmod 644 .github/vpn/config.ovpn
+      - name: Set permissions for config.ovpn
+        run: chmod 644 .github/vpn/config.ovpn
 
-        - name: Set permissions for my_auth_pass.txt
-          run: chmod 600 .github/vpn/my_auth_pass.txt
+      - name: Set permissions for my_auth_pass.txt
+        run: chmod 600 .github/vpn/my_auth_pass.txt
 
-        - name: Display client.ovpn contents
-          run: cat .github/vpn/config.ovpn
+      - name: Display client.ovpn contents
+        run: cat .github/vpn/config.ovpn
 
-        - name: Display password contents
-          run: cat .github/vpn/my_auth_pass.txt
+      - name: Display password contents
+        run: cat .github/vpn/my_auth_pass.txt
 
-        - name: Modify .ovpn to increase verbosity
-          run: echo "verb 4" >> .github/vpn/config.ovpn
+      - name: Modify .ovpn to increase verbosity
+        run: echo "verb 4" >> .github/vpn/config.ovpn
 
-        - name: Connect to VPN
-          run: openvpn --config .github/vpn/config.ovpn --askpass .github/vpn/my_auth_pass.txt --verb 4 --auth-nocache
+      - name: Connect to VPN
+        run: |
+          sudo openvpn --config .github/vpn/config.ovpn --auth-nocache --verb 4 --askpass .github/vpn/my_auth_pass.txt &
+          # Wait for OpenVPN to establish connection
+          sleep 10
+          
+      - name: Check VPN connection status
+        run: |
+          sudo systemctl status openvpn
+          sudo journalctl -u openvpn
 
-        - name: Check VPN connection status
-          run: |
-            sudo systemctl status openvpn
-            sudo journalctl -u openvpn
+      - name: Verify VPN connectivity
+        run: |
+          curl -I https://ifconfig.me
 
-        - name: Kill VPN
-          if: always()
-          run: sudo killall openvpn
+      - name: Kill VPN
+        if: always()
+        run: sudo killall openvpn
