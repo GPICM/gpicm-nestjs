@@ -51,6 +51,9 @@ jobs:
         - name: Set permissions for config.ovpn
           run: chmod 644 .github/vpn/config.ovpn
 
+        - name: Set permissions for my_auth_pass.txt
+          run: chmod 644 .github/vpn/my_auth_pass.txt
+
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
 
