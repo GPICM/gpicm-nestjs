@@ -87,7 +87,7 @@ jobs:
           port: 22
           host: ${{ secrets.HOST }}
           username: ${{ secrets.HOST_USERNAME }}
-          passphrase: ${{ secrets.HOST_PASSWORD }}
+          password: ${{ secrets.HOST_PASSWORD }}
           source: "./docker-compose.prod.yml"
           target: "/usr/app"
 
@@ -97,7 +97,7 @@ jobs:
           port: 22
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          passphrase: ${{ secrets.HOST_PASSWORD }}
+          password: ${{ secrets.HOST_PASSWORD }}
           envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, DOCKERHUB_PASSWORD, DOCKERHUB_USERNAME, APP_ENVS
           script: |
             rm -f .env &&
