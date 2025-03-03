@@ -101,8 +101,13 @@ jobs:
           password: ${{ secrets.HOST_PASSWORD }}
           envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, DOCKERHUB_PASSWORD, DOCKERHUB_USERNAME, APP_ENVS
           script: |
+            # Grant permissions to /usr/app and .env file if needed
+            sudo chmod -R u+w /usr/app
+            sudo chown -R $USER:$USER /usr/app
+
             rm -f /usr/app/.env &&
-            echo "${{ secrets.APP_ENVS }}" | base64 -d > /usr/app/.env
+            echo "${{ secrets.APP_ENVS }}" | base64 -d | sudo tee /usr/app/.env
+
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             docker compose -f /usr/app/docker-compose.prod.yml down &&
             docker image prune -f &&
