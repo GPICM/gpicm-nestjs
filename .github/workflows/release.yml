@@ -79,6 +79,33 @@ jobs:
         run: |
           curl -I https://ifconfig.me
 
+      - name: copy file via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          port: 22
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.HOST_USERNAME }}
+          passphrase: ${{ secrets.HOST_PASSWORD }}
+          source: "./docker-compose.prod.yml
+          target: "/usr/app"
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@master
+        with:
+          PORT: 22
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.HOST_PASSWORD }}
+          envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, {{secrets.DOCKERHUB_PASSWORD}}, {{secrets.DOCKERHUB_USERNAME}}, {{secrets.APP_ENVS}}
+          script: |
+            rm -f .env &&
+            echo "${{secrets.APP_ENVS}}" | base64 -d > .env
+            echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
+            docker compose -f /usr/app/docker-compose.prod.yml down &&
+            docker image prune -f &&
+            docker compose -f /usr/app/docker-compose.prod.yml pull &&
+            docker compose --env-file ./.env -f /usr/app/docker-compose.prod.yml up --build -d
+
       - name: Kill VPN
         if: always()
         run: sudo killall openvpn
