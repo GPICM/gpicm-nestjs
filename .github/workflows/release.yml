@@ -99,24 +99,31 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.HOST_USERNAME }}
           password: ${{ secrets.HOST_PASSWORD }}
-          envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, DOCKERHUB_PASSWORD, DOCKERHUB_USERNAME, APP_ENVS
           script: |
 
             echo "${{ secrets.HOST_PASSWORD }}" | sudo -S su -
 
-            # Grant permissions to /usr/app and .env file if needed
-            echo "${{ secrets.HOST_PASSWORD }}" | sudo -S chmod -R u+w /usr/app
-            echo "${{ secrets.HOST_PASSWORD }}" | sudo -S chown -R $USER:$USER /usr/app
+            # Create home directory if it doesn't exist
+            sudo mkdir -p /home/$USER
+            sudo chown $USER:$USER /home/$USER
 
-            rm -f /usr/app/.env &&
-            echo "${{ secrets.APP_ENVS }}" | base64 -d | sudo tee /usr/app/.env
+            # Fix permissions for app directory
+            sudo chown -R $USER:$USER /usr/app
+            sudo chmod -R u+w /usr/app
 
+            # Ensure Docker group permissions (optional but recommended)
+            sudo usermod -aG docker $USER
+            sudo systemctl start docker
+
+            # Create .env file
+            echo "${{ secrets.APP_ENVS }}" | base64 -d > /usr/app/.env
+
+            # Docker Compose commands
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            docker compose -f /usr/app/docker-compose.prod.yml down &&
-            docker image prune -f &&
-            docker compose -f /usr/app/docker-compose.prod.yml pull &&
-            docker compose --env-file ./.env -f /usr/app/docker-compose.prod.yml up --build -d
-
+            docker-compose -f /usr/app/docker-compose.prod.yml down
+            docker image prune -f
+            docker-compose -f /usr/app/docker-compose.prod.yml pull
+            docker-compose --env-file /usr/app/.env -f /usr/app/docker-compose.prod.yml up --build -d
       - name: Kill VPN
         if: always()
         run: sudo killall openvpn
