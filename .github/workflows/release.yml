@@ -46,13 +46,13 @@ jobs:
         - name: Create .password file from secrets
           run: echo "$OVPN_PASSWORD" > .github/vpn/my_auth_pass.txt
           env:
-            CLIENT_OVPN: ${{ secrets.CLIENT_OVPN }}
+            OVPN_PASSWORD: ${{ secrets.OVPN_PASSWORD }}
 
         - name: Set permissions for config.ovpn
           run: chmod 644 .github/vpn/config.ovpn
 
         - name: Set permissions for my_auth_pass.txt
-          run: chmod 644 .github/vpn/my_auth_pass.txt
+          run: chmod 600 .github/vpn/my_auth_pass.txt
 
         - name: Display client.ovpn contents
           run: cat .github/vpn/config.ovpn
@@ -64,33 +64,4 @@ jobs:
           run: echo "verb 4" >> .github/vpn/config.ovpn
 
         - name: Connect to VPN
-          run: openvpn --config .github/vpn/config.ovpn --askpass .github/vpn/my_auth_pass.txt
-
-        - name: Check VPN connection status
-          run: |
-            sudo systemctl status openvpn
-            sudo journalctl -u openvpn
-
-        - name: Check Connect VPN
-          run: echo ${{ steps.connect_vpn.outputs.STATUS }}
-
-        - name: kill vpn
-          if: always()
-          run: sudo killall openvpn
-
-     
-      #- name: Execute remote commands via SSH
-      #  uses: appleboy/ssh-action@master
-      #  with:
-      #    host: ${{ secrets.HOST }}
-      #    username: ${{ secrets.HOST_USERNAME }}
-      #    password: ${{ secrets.HOST_PASSWORD }}
-      #    port: 22
-      #    script: |
-      #      whoami
-      #      ls -al
-  #
-      #- name: Kill VPN connection
-      #  if: always()
-      #  run: |
-      #    sudo killall openvpn          
+          run: openvpn --config .github/vpn/config.ovpn --askpas
