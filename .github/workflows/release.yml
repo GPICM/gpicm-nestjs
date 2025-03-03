@@ -101,8 +101,8 @@ jobs:
           password: ${{ secrets.HOST_PASSWORD }}
           envs: WEB_IMAGE_NAME, IMAGE_NAME, REGISTRY_NAME, DOCKERHUB_PASSWORD, DOCKERHUB_USERNAME, APP_ENVS
           script: |
-            rm -f .env &&
-            echo "${{ secrets.APP_ENVS }}" | base64 -d > .env
+            rm -f /usr/app/.env &&
+            echo "${{ secrets.APP_ENVS }}" | base64 -d > /usr/app/.env
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             docker compose -f /usr/app/docker-compose.prod.yml down &&
             docker image prune -f &&
