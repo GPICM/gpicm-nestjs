@@ -65,6 +65,9 @@ export class MongoDbStationsRepository implements StationsRepository {
               preserveNullAndEmptyArrays: true,
             },
           },
+          {
+            $sort: { isOnline: -1 },
+          },
         ])
         .toArray();
 
