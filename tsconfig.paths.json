@@ -5,9 +5,6 @@
       "@/*": [
         "src/*"
       ],
-      "#prisma*": [
-        "prisma/*"
-      ],
       "#database*": [
         "database/*"
       ],

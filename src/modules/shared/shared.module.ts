@@ -1,5 +1,4 @@
 import { Global, Module } from "@nestjs/common";
-import { PrismaService } from "./services/prisma-services";
 import { MongodbService } from "./services/mongodb-service";
 import { MongoClient } from "mongodb";
 
@@ -10,7 +9,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
   imports: [],
   controllers: [],
   providers: [
-    PrismaService,
     MongodbService,
     {
       provide: MongoClient,
@@ -20,6 +18,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       },
     },
   ],
-  exports: [PrismaService, MongodbService],
+  exports: [MongodbService],
 })
 export class SharedModule {}
