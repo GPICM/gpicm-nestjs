@@ -14,19 +14,18 @@ env:
   ACTIONS_STEP_DEBUG: true
 
 jobs:
-  #pushToDockerHub:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v3
-  #    with:
-  #      submodules: true
-  #  - run: docker build -f ./Dockerfile --target production --tag $REGISTRY_NAME/$IMAGE_NAME ./
-  #  - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
-  #  - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
+  pushToDockerHub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - run: docker build -f ./Dockerfile --target production --tag $REGISTRY_NAME/$IMAGE_NAME ./
+    - run: echo "${{secrets.DOCKERHUB_PASSWORD}}" | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
+    - run: docker push $REGISTRY_NAME/$IMAGE_NAME:latest
 
   deploy:
-    #needs: pushToDockerHub
-
+    needs: pushToDockerHub
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
