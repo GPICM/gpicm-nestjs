@@ -43,6 +43,9 @@ export class MongoDbStationsRepository implements StationsRepository {
       const result = await collection
         .aggregate<MongoStationProjection>([
           {
+            $match: { isActive: true },
+          },
+          {
             $lookup: {
               from: STATION_DAILY_METRICS_COLLECTION_NAME,
               let: { stationSlug: "$slug" },
