@@ -11,7 +11,6 @@ import { STATION_DAILY_METRICS_COLLECTION_NAME } from "#database/mongodb/schemas
 
 export class MongoDbStationsRepository implements StationsRepository {
   private readonly logger = new Logger(MongoDbStationsRepository.name);
-
   private db: Db;
 
   constructor(
@@ -29,8 +28,8 @@ export class MongoDbStationsRepository implements StationsRepository {
       });
 
       return MongoDbStationMapper.fromMongo(result);
-    } catch (error: unknown) {
-      console.error("Failed to find station", { error });
+    } catch (error) {
+      this.logger.error("Failed to find station", error);
       throw new Error("Failed to find station by id");
     }
   }
@@ -42,9 +41,7 @@ export class MongoDbStationsRepository implements StationsRepository {
 
       const result = await collection
         .aggregate<MongoStationProjection>([
-          {
-            $match: { isActive: true },
-          },
+          { $match: { isActive: true } },
           {
             $lookup: {
               from: STATION_DAILY_METRICS_COLLECTION_NAME,
@@ -66,8 +63,17 @@ export class MongoDbStationsRepository implements StationsRepository {
             },
           },
           {
-            $sort: { isOnline: -1 },
+            $addFields: {
+              isOnline: {
+                $cond: {
+                  if: { $ne: ["$latestMetrics.isOnline", null] },
+                  then: "$latestMetrics.isOnline",
+                  else: false,
+                },
+              },
+            },
           },
+          { $sort: { isOnline: -1 } },
         ])
         .toArray();
 
@@ -80,9 +86,9 @@ export class MongoDbStationsRepository implements StationsRepository {
         }
       }
       return stations;
-    } catch (error: unknown) {
-      console.error("Failed to find list stations", { error });
-      throw new Error("Failed to lists stations");
+    } catch (error) {
+      this.logger.error("Failed to list stations", error);
+      throw new Error("Failed to list stations");
     }
   }
 }
