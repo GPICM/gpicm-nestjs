@@ -16,7 +16,7 @@ import { AuthorizationService } from "./authorization.service";
     DefaultJwtStrategy,
     {
       provide: Encryptor,
-      useValue: new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
+      useValue: new JwtAdapter(String(process.env.JWT_SECRET), "6h"),
     },
   ],
   imports: [SharedModule],
