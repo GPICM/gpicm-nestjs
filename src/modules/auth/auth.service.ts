@@ -50,6 +50,8 @@ export class AuthService {
         body: { captcha },
       });
 
+      console.log(response);
+
       if (response.isError()) {
         throw new Error("Failed to request recaptcha");
       }
