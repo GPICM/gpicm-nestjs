@@ -5,6 +5,7 @@ import { AppController } from "./app.controller";
 import { SharedModule } from "./modules/shared/shared.module";
 import { StationsModule } from "./modules/stations/stations.module";
 import { ReportsModule } from "./modules/reports/reports.module";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   controllers: [AppController],
@@ -17,6 +18,7 @@ import { ReportsModule } from "./modules/reports/reports.module";
     SharedModule,
     StationsModule,
     ReportsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

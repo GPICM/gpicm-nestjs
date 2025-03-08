@@ -2,7 +2,9 @@ import { HttpClientRequestOptions } from "./http-client-request";
 import { HttpClientResponse } from "./http-client-response";
 
 export abstract class HttpClient {
-  protected defaultHeaders: object = {};
+  protected defaultHeaders: object = {
+    "Content-Type": "application/json",
+  };
 
   protected baseUrl: string;
 
