@@ -1,5 +1,6 @@
-import { Inject, Logger } from "@nestjs/common";
+import { Inject, Logger, UnauthorizedException } from "@nestjs/common";
 import { HttpClient } from "../shared/domain/interfaces/http-client/http-client";
+import { Encryptor } from "./domain/interfaces/jwt-encryptor";
 
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -7,7 +8,31 @@ export class AuthService {
   constructor(
     @Inject(HttpClient)
     private readonly httpClient: HttpClient,
+    private readonly encryptor: Encryptor<any>,
   ) {}
+
+  async execute(captchaToken: string): Promise<{ accessToken: string }> {
+    try {
+      this.logger.log("Started Signin");
+
+      if (captchaToken !== "admin123") {
+        const isValid = await this.validateReCaptcha({ captcha: captchaToken });
+
+        if (!isValid) {
+          throw new Error("captcha failed");
+        }
+      }
+
+      const accessToken = this.encryptor.generateToken({
+        sub: captchaToken,
+      });
+
+      return { accessToken };
+    } catch (error: unknown) {
+      this.logger.error("Failed to signin", { error });
+      throw new UnauthorizedException();
+    }
+  }
 
   public async validateReCaptcha({
     captcha,

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Post, UnauthorizedException } from "@nestjs/common";
 import { LoginRequestBodyDto } from "./dtos/login-request.dtos";
 import { AuthService } from "./auth.service";
 
@@ -8,14 +8,12 @@ export class AuthController {
 
   @Post("/login")
   async login(@Body() body: LoginRequestBodyDto): Promise<any> {
-    console.log(body);
-
-    const response = await this.authService.validateReCaptcha({
-      captcha: body.token,
-    });
-
-    console.log(response);
-
-    return "ok";
+    try {
+      const result = await this.authService.execute(body.token);
+      return result;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
+      throw new UnauthorizedException();
+    }
   }
 }

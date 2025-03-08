@@ -1,8 +1,10 @@
-import { Controller, Get, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, UseGuards, UseInterceptors } from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
 import { CacheInterceptor } from "@nestjs/cache-manager";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @Controller("stations")
+@UseGuards(JwtAuthGuard)
 export class StationController {
   constructor(private readonly stationRepository: StationsRepository) {}
 

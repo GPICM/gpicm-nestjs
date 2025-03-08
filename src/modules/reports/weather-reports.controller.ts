@@ -4,6 +4,7 @@ import {
   Inject,
   Param,
   Query,
+  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
@@ -13,8 +14,10 @@ import {
   WeatherReportMetricsRequestQuery,
 } from "./dtos/weather-reports-metrics-request";
 import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-daily-metrics-repository";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @Controller("weather/reports")
+@UseGuards(JwtAuthGuard)
 export class WeatherReportsController {
   constructor(
     @Inject(MongoDbWeatherRecordsRepository)
