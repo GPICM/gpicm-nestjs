@@ -11,7 +11,7 @@ export class AuthController {
     console.log(body);
 
     const response = await this.authService.validateReCaptcha({
-      captcha: body.captchaCode,
+      captcha: body.token,
     });
 
     console.log(response);

@@ -6,18 +6,21 @@ export class AuthService {
 
   constructor(
     @Inject(HttpClient)
-    private readonly httpClient: HttpClient
+    private readonly httpClient: HttpClient,
   ) {}
 
   public async validateReCaptcha({
     captcha,
+    ipAddress = "localhost",
   }: {
     captcha: string;
+    ipAddress?: string;
   }): Promise<boolean> {
     try {
-      const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RE_CAPTCHA_SECRET_KEY}&response=${captcha}`;
+      const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_PRIVATE_KEY}&response=${captcha}&remoteip=${ipAddress}`;
+
       const response = await this.httpClient.request({
-        url,
+        url: verificationUrl,
         method: "POST",
         body: { captcha },
       });
