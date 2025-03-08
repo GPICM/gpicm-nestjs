@@ -1,6 +1,8 @@
 import { Global, Module } from "@nestjs/common";
 import { MongodbService } from "./services/mongodb-service";
 import { MongoClient } from "mongodb";
+import { HttpClient } from "./domain/interfaces/http-client/http-client";
+import { AxiosHttpClient } from "./services/lib/axios/axios-http-client";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -16,6 +18,10 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
         const client = new MongoClient(MONGO_DB_URI);
         return client.connect();
       },
+    },
+    {
+      provide: HttpClient,
+      useClass: AxiosHttpClient,
     },
   ],
   exports: [MongodbService],
