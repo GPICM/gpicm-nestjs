@@ -100,21 +100,19 @@ jobs:
           password: ${{ secrets.HOST_PASSWORD }}
           script: |
 
-            echo "${{ secrets.HOST_PASSWORD }}" | sudo -S su -
-
-            # Ensure Docker group permissions (optional but recommended)
-            sudo usermod -aG docker $USER
+            sudo usermod -aG docker $(whoami)
             sudo systemctl start docker
 
-            # Create .env file
-            echo "${{ secrets.APP_ENVS }}" | base64 -d > /home/app/.env
+            echo "${{ secrets.APP_ENVS }}" | base64 -d | sudo tee /home/app/.env.production > /dev/null
+            sudo chown app:app /home/app/.env.production
 
-            # Docker Compose commands
+            # Authenticate to Docker Hub
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+            # Deploy application
             docker compose -f /home/app/docker-compose.prod.yml down
-            #docker image prune -f
             docker compose -f /home/app/docker-compose.prod.yml pull
-            docker compose --env-file /home/app/.env -f /home/app/docker-compose.prod.yml up --build -d
+            docker compose -f /home/app/docker-compose.prod.yml up -d
       - name: Kill VPN
         if: always()
         run: sudo killall openvpn

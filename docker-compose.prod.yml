@@ -30,7 +30,7 @@ services:
     image: fonsecabarreto/gpicm-nestjs-app:latest
     container_name: gpcim-nestjs-app-prod
     env_file:
-      - .env
+      - .env.production
     ports:
       - '9000:9000'
     networks:
@@ -40,7 +40,7 @@ services:
     image: fonsecabarreto/gpicm-metrics-computation:latest
     container_name: gpcim-gpicm-metrics-computation
     env_file:
-      - .env
+      - .env.production
     ports:
       - '3001:3001'
     networks:
