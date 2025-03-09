@@ -353,7 +353,7 @@ export class MongoDbWeatherRecordsRepository {
     const binSize = 1;
 
     if (diffDays <= 1) {
-      unit = "minute";
+      unit = "hour";
     } else if (diffDays <= 7) {
       unit = "hour";
     } else if (diffDays <= 30) {
