@@ -17,29 +17,23 @@ import { WeatherTimeSeriesMetricsRequestQuery } from "./dtos/weather-time-series
 export class WeatherTimeSeriesMetricsController {
   constructor(
     @Inject(MongoDbWeatherRecordsRepository)
-    private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository
+    private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository,
   ) {}
 
   @Get("/stations/:stationSlug")
   @UseInterceptors(CacheInterceptor)
   async findMetricByStations(
     @Param("stationSlug") stationSlug: string,
-    @Query() query: WeatherTimeSeriesMetricsRequestQuery
+    @Query() query: WeatherTimeSeriesMetricsRequestQuery,
   ): Promise<any> {
-    const { endDate: _endDate, startDate: _startDate } = query;
-
-    const startDate = new Date(_startDate);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(_endDate);
-    endDate.setHours(23, 59, 59, 999);
+    const { endDate, startDate } = query;
 
     return this.mongoDbWeatherRecordsRepository.getAggregatedTimesSeriesMetrics(
       stationSlug,
       {
         startDate,
         endDate,
-      }
+      },
     );
   }
 }
