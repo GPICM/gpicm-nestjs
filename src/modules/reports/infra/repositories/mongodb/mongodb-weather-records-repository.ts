@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Db } from "mongodb";
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
@@ -6,6 +7,7 @@ import {
   MongoWeatherRecord,
   WEATHER_RECORDS_COLLECTION_NAME,
 } from "#database/mongodb/schemas/weather-records";
+import { TimeSeriesMetric } from "@/modules/reports/domain/entities/TimeSeriesMetrics";
 
 export type Granularity =
   | "minutely"
@@ -114,7 +116,232 @@ export class MongoDbWeatherRecordsRepository {
       );
     }
   }
+  public async getAggregatedTimesSeriesMetrics(
+    stationSlug: string,
+    filters: {
+      startDate: Date;
+      endDate: Date;
+    }
+  ): Promise<{
+    avgTemperature: TimeSeriesMetric;
+    avgAirHumidity: TimeSeriesMetric;
+    totalRainVolume: TimeSeriesMetric;
+    avgWindSpeed: TimeSeriesMetric;
+    avgWindDirection: TimeSeriesMetric;
+    maxWindGust: TimeSeriesMetric;
+    avgAtmosphericPressure: TimeSeriesMetric;
+    count: number;
+  }> {
+    try {
+      const { endDate, startDate } = filters;
 
+      this.db = this.mongoService.getDatabase();
+      const collection = this.db.collection<MongoWeatherRecord>(
+        WEATHER_RECORDS_COLLECTION_NAME
+      );
+
+      const matchStage = {
+        $match: {
+          timestamp: { $gte: startDate, $lt: endDate },
+          stationSlug,
+        },
+      };
+
+      const { config: dateTruncConfig } = this.determineGranularity(
+        startDate,
+        endDate
+      );
+
+      const pipeline = [
+        matchStage,
+        { $addFields: { intervalStart: { $dateTrunc: dateTruncConfig } } },
+        {
+          $group: {
+            _id: {
+              intervalStart: "$intervalStart",
+              stationSlug: "$stationSlug",
+            },
+
+            avgTemperature: { $avg: "$temperature" },
+            avgAirHumidity: { $avg: "$airHumidity" },
+            totalRainVolume: { $sum: "$rainVolume" },
+            avgWindSpeed: { $avg: "$windSpeed" },
+            avgWindDirection: { $avg: "$windDirection" },
+            maxWindGust: { $max: "$windGust" },
+            avgAtmosphericPressure: { $avg: "$atmosphericPressure" },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            intervalStart: "$_id.intervalStart",
+            stationSlug: "$_id.stationSlug",
+            avgTemperature: { $round: ["$avgTemperature", 1] },
+            avgAirHumidity: { $round: ["$avgAirHumidity", 1] },
+            totalRainVolume: { $round: ["$totalRainVolume", 1] },
+            avgWindSpeed: {
+              $round: [{ $multiply: ["$avgWindSpeed", 3.6] }, 1],
+            },
+            maxWindGust: {
+              $round: [{ $multiply: ["$maxWindGust", 3.6] }, 1],
+            },
+            avgWindDirection: {
+              $round: [{ $multiply: ["$avgWindDirection", 45] }, 1],
+            },
+            avgAtmosphericPressure: {
+              $round: [{ $divide: ["$avgAtmosphericPressure", 1013.25] }, 3],
+            },
+            count: 1,
+          },
+        },
+        {
+          $sort: {
+            intervalStart: 1,
+          },
+        },
+        {
+          $group: {
+            _id: "$stationSlug",
+            avgTemperature: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$avgTemperature" }, null] },
+              },
+            },
+            avgAirHumidity: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$avgAirHumidity" }, null] },
+              },
+            },
+            totalRainVolume: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$totalRainVolume" }, null] },
+              },
+            },
+            avgWindSpeed: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$avgWindSpeed" }, null] },
+              },
+            },
+            avgWindDirection: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$avgWindDirection" }, null] },
+              },
+            },
+            maxWindGust: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: { $ifNull: [{ $toString: "$maxWindGust" }, null] },
+              },
+            },
+            avgAtmosphericPressure: {
+              $push: {
+                timestamp: { $toLong: "$intervalStart" },
+                value: {
+                  $ifNull: [{ $toString: "$avgAtmosphericPressure" }, null],
+                },
+              },
+            },
+            count: { $sum: "$count" }, // ✅ Sum all counts into a single value
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            slug: "$_id",
+            avgTemperature: {
+              $map: {
+                input: "$avgTemperature",
+                as: "temp",
+                in: ["$$temp.timestamp", "$$temp.value"],
+              },
+            },
+            avgAirHumidity: {
+              $map: {
+                input: "$avgAirHumidity",
+                as: "humidity",
+                in: ["$$humidity.timestamp", "$$humidity.value"],
+              },
+            },
+            totalRainVolume: {
+              $map: {
+                input: "$totalRainVolume",
+                as: "rain",
+                in: ["$$rain.timestamp", "$$rain.value"],
+              },
+            },
+            avgWindSpeed: {
+              $map: {
+                input: "$avgWindSpeed",
+                as: "wind",
+                in: ["$$wind.timestamp", "$$wind.value"],
+              },
+            },
+            avgWindDirection: {
+              $map: {
+                input: "$avgWindDirection",
+                as: "direction",
+                in: ["$$direction.timestamp", "$$direction.value"],
+              },
+            },
+            maxWindGust: {
+              $map: {
+                input: "$maxWindGust",
+                as: "gust",
+                in: ["$$gust.timestamp", "$$gust.value"],
+              },
+            },
+            avgAtmosphericPressure: {
+              $map: {
+                input: "$avgAtmosphericPressure",
+                as: "pressure",
+                in: ["$$pressure.timestamp", "$$pressure.value"],
+              },
+            },
+            count: 1,
+          },
+        },
+      ];
+
+      const result = await collection
+        .aggregate<{
+          avgTemperature: TimeSeriesMetric;
+          avgAirHumidity: TimeSeriesMetric;
+          totalRainVolume: TimeSeriesMetric;
+          avgWindSpeed: TimeSeriesMetric;
+          avgWindDirection: TimeSeriesMetric;
+          maxWindGust: TimeSeriesMetric;
+          avgAtmosphericPressure: TimeSeriesMetric;
+          count: number;
+        }>(pipeline)
+        .toArray();
+      // Return the first result (or default if no data)
+      return (
+        result[0] || {
+          avgTemperature: [],
+          avgAirHumidity: [],
+          totalRainVolume: [],
+          avgWindSpeed: [],
+          avgWindDirection: [],
+          maxWindGust: [],
+          avgAtmosphericPressure: [],
+          count: 0,
+        }
+      );
+    } catch (error: unknown) {
+      console.error("Failed to aggregate weather records", { error });
+      throw new Error(
+        `Failed to aggregate weather records: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
   private determineGranularity(
     startDate: Date,
     endDate: Date
