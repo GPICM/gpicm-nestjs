@@ -45,3 +45,13 @@ services:
       - '3001:3001'
     networks:
       - gpicm-production
+
+  worker2:
+    image: fonsecabarreto/gpicm-sync-engine:latest
+    container_name: gpicm-sync-engine
+    env_file:
+      - .env.production
+    ports:
+      - '3001:3001'
+    networks:
+      - gpicm-production
