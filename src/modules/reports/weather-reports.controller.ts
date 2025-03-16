@@ -70,17 +70,12 @@ export class WeatherReportsController {
   @Get("/metrics/today")
   @UseInterceptors(CacheInterceptor)
   async findGlobalMetrics(): Promise<any> {
-    const today = new Date();
+    return this.mongoDbDailyMetricsRepository.getLatest();
+  }
 
-    const startDate = new Date(today);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(today);
-    endDate.setHours(23, 59, 59, 999);
-
-    return this.mongoDbDailyMetricsRepository.getDailyMetrics(
-      startDate,
-      endDate
-    );
+  @Get("/metrics/latest")
+  @UseInterceptors(CacheInterceptor)
+  async findLatestGlobalMetrics(): Promise<any> {
+    return this.mongoDbDailyMetricsRepository.getLatest();
   }
 }
