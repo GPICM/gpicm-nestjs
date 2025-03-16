@@ -1,34 +1,37 @@
 import { ObjectId } from "mongodb";
 
-export const DAILY_METRICS_COLLECTION_NAME = "daily_metrics";
+export const REGION_DAILY_METRICS_COLLECTION_NAME = "region_daily_metrics";
 
-export interface MongoDailyMetrics {
+export interface MongoRegionDailyMetrics {
   _id: ObjectId;
   date: Date;
 
   // Temperature
+  latestTemperature: number | null;
   avgTemperature: number | null;
   minTemperature: number | null;
   maxTemperature: number | null;
 
   // Humidity
+  latestAirHumidity: number | null;
   avgAirHumidity: number | null;
+  minAirHumidity: number | null;
+  maxAirHumidity: number | null;
 
   // Precipitation
-  rainVolume: number;
-  rainVolumeAcc: number;
-  rainVolumeAccLastHour: number;
+  latestRainVolume: number | null;
+  rainVolumeAcc: number | null;
 
   // Wind
-  windSpeed: number;
-  maxWindSpeed: number | null;
+  latestWindSpeed: number | null;
+  avgWindSpeed: number | null;
   minWindSpeed: number | null;
+  maxWindSpeed: number | null;
 
-  windDirection: number;
+  latestWindDirection: number | null;
   avgWindDirection: number | null;
-  avgWindDirectionLastHour: number;
 
   // Metadata
-  recordsCount: number;
-  lastUpdate: Date;
+  stationsCount: number;
+  updatedAt: Date;
 }

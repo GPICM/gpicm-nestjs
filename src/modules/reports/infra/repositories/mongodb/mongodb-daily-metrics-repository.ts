@@ -2,8 +2,8 @@ import { Db } from "mongodb";
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
 import { Inject, Injectable } from "@nestjs/common";
 import {
-  DAILY_METRICS_COLLECTION_NAME,
-  MongoDailyMetrics,
+  REGION_DAILY_METRICS_COLLECTION_NAME,
+  MongoRegionDailyMetrics,
 } from "#database/mongodb/schemas/daily-metrics";
 
 @Injectable()
@@ -15,15 +15,15 @@ export class MongoDbDailyMetricsRepository {
     private readonly mongoService: MongodbService
   ) {}
 
-  public async getLatest(): Promise<MongoDailyMetrics | null> {
+  public async getLatest(): Promise<MongoRegionDailyMetrics | null> {
     try {
       this.db = this.mongoService.getDatabase();
-      const collection = this.db.collection<MongoDailyMetrics>(
-        DAILY_METRICS_COLLECTION_NAME
+      const collection = this.db.collection<MongoRegionDailyMetrics>(
+        REGION_DAILY_METRICS_COLLECTION_NAME,
       );
 
       const data = await collection
-        .aggregate<MongoDailyMetrics>([{ $sort: { date: -1 } }])
+        .aggregate<MongoRegionDailyMetrics>([{ $sort: { date: -1 } }])
         .toArray();
 
       return data[0] ?? null;
@@ -38,11 +38,11 @@ export class MongoDbDailyMetricsRepository {
   public async getDailyMetrics(
     startDate: Date,
     endDate: Date
-  ): Promise<MongoDailyMetrics | null> {
+  ): Promise<MongoRegionDailyMetrics | null> {
     try {
       this.db = this.mongoService.getDatabase();
-      const collection = this.db.collection<MongoDailyMetrics>(
-        DAILY_METRICS_COLLECTION_NAME
+      const collection = this.db.collection<MongoRegionDailyMetrics>(
+        REGION_DAILY_METRICS_COLLECTION_NAME
       );
 
       const pipeline = [
@@ -55,7 +55,7 @@ export class MongoDbDailyMetricsRepository {
       ];
 
       const data = await collection
-        .aggregate<MongoDailyMetrics>(pipeline)
+        .aggregate<MongoRegionDailyMetrics>(pipeline)
         .toArray();
 
       return data[0] ?? null;

@@ -9,14 +9,11 @@ import {
 } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mongodb-weather-records-repository";
-import {
-  WeatherReportMetricsByStationRequestQuery,
-  WeatherReportMetricsRequestQuery,
-} from "./dtos/weather-reports-metrics-request";
+import { WeatherReportMetricsByStationRequestQuery } from "./dtos/weather-reports-metrics-request";
 import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-daily-metrics-repository";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
-@Controller("weather/reports")
+@Controller("weather")
 @UseGuards(JwtAuthGuard)
 export class WeatherReportsController {
   constructor(
@@ -28,26 +25,12 @@ export class WeatherReportsController {
 
   @Get("/metrics")
   @UseInterceptors(CacheInterceptor)
-  async findMetrics(
-    @Query() query: WeatherReportMetricsRequestQuery
-  ): Promise<any> {
-    const { stationSlug, endDate: _endDate, startDate: _startDate } = query;
-
-    const startDate = new Date(_startDate);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(_endDate);
-    endDate.setHours(23, 59, 59, 999);
-
-    return this.mongoDbWeatherRecordsRepository.getAggregatedWeatherRecords(
-      startDate,
-      endDate,
-      stationSlug
-    );
+  async findLatestGlobalMetrics(): Promise<any> {
+    return this.mongoDbDailyMetricsRepository.getLatest();
   }
 
-  @Get("/metrics/stations/:stationSlug")
-  @UseInterceptors(CacheInterceptor)
+  // @Get("/metrics/stations/:stationSlug")
+  // @UseInterceptors(CacheInterceptor)
   async findMetricByStations(
     @Param("stationSlug") stationSlug: string,
     @Query() query: WeatherReportMetricsByStationRequestQuery
@@ -65,17 +48,5 @@ export class WeatherReportsController {
       endDate,
       stationSlug
     );
-  }
-
-  @Get("/metrics/today")
-  @UseInterceptors(CacheInterceptor)
-  async findGlobalMetrics(): Promise<any> {
-    return this.mongoDbDailyMetricsRepository.getLatest();
-  }
-
-  @Get("/metrics/latest")
-  @UseInterceptors(CacheInterceptor)
-  async findLatestGlobalMetrics(): Promise<any> {
-    return this.mongoDbDailyMetricsRepository.getLatest();
   }
 }
