@@ -1,1 +1,1 @@
-export type TimeSeriesMetric = Array<[number, string | null]>;
+export type TimeSeriesMetric = Array<[number, string | number | null]>;

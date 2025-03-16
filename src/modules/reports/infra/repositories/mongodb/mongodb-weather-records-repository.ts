@@ -116,6 +116,7 @@ export class MongoDbWeatherRecordsRepository {
       );
     }
   }
+
   public async getAggregatedTimesSeriesMetrics(
     stationSlug: string,
     filters: {
@@ -127,7 +128,6 @@ export class MongoDbWeatherRecordsRepository {
     avgAirHumidity: TimeSeriesMetric;
     totalRainVolume: TimeSeriesMetric;
     avgWindSpeed: TimeSeriesMetric;
-    avgWindDirection: TimeSeriesMetric;
     maxWindGust: TimeSeriesMetric;
     avgAtmosphericPressure: TimeSeriesMetric;
     count: number;
@@ -161,12 +161,10 @@ export class MongoDbWeatherRecordsRepository {
               intervalStart: "$intervalStart",
               stationSlug: "$stationSlug",
             },
-
             avgTemperature: { $avg: "$temperature" },
             avgAirHumidity: { $avg: "$airHumidity" },
             totalRainVolume: { $sum: "$rainVolume" },
             avgWindSpeed: { $avg: "$windSpeed" },
-            avgWindDirection: { $avg: "$windDirection" },
             maxWindGust: { $max: "$windGust" },
             avgAtmosphericPressure: { $avg: "$atmosphericPressure" },
             count: { $sum: 1 },
@@ -176,18 +174,21 @@ export class MongoDbWeatherRecordsRepository {
           $project: {
             _id: 0,
             intervalStart: "$_id.intervalStart",
+
             stationSlug: "$_id.stationSlug",
+
             avgTemperature: { $round: ["$avgTemperature", 1] },
+
             avgAirHumidity: { $round: ["$avgAirHumidity", 1] },
+
             totalRainVolume: { $round: ["$totalRainVolume", 1] },
+
             avgWindSpeed: {
               $round: [{ $multiply: ["$avgWindSpeed", 3.6] }, 1],
             },
+
             maxWindGust: {
               $round: [{ $multiply: ["$maxWindGust", 3.6] }, 1],
-            },
-            avgWindDirection: {
-              $round: [{ $multiply: ["$avgWindDirection", 45] }, 1],
             },
             avgAtmosphericPressure: {
               $round: [{ $divide: ["$avgAtmosphericPressure", 1013.25] }, 3],
@@ -206,48 +207,42 @@ export class MongoDbWeatherRecordsRepository {
             avgTemperature: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$avgTemperature" }, null] },
+                value: { $ifNull: ["$avgTemperature", null] },
               },
             },
             avgAirHumidity: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$avgAirHumidity" }, null] },
+                value: { $ifNull: ["$avgAirHumidity", null] },
               },
             },
             totalRainVolume: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$totalRainVolume" }, null] },
+                value: { $ifNull: ["$totalRainVolume", null] },
               },
             },
             avgWindSpeed: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$avgWindSpeed" }, null] },
-              },
-            },
-            avgWindDirection: {
-              $push: {
-                timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$avgWindDirection" }, null] },
+                value: { $ifNull: ["$avgWindSpeed", null] },
               },
             },
             maxWindGust: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
-                value: { $ifNull: [{ $toString: "$maxWindGust" }, null] },
+                value: { $ifNull: ["$maxWindGust", null] },
               },
             },
             avgAtmosphericPressure: {
               $push: {
                 timestamp: { $toLong: "$intervalStart" },
                 value: {
-                  $ifNull: [{ $toString: "$avgAtmosphericPressure" }, null],
+                  $ifNull: ["$avgAtmosphericPressure", null],
                 },
               },
             },
-            count: { $sum: "$count" }, // ✅ Sum all counts into a single value
+            count: { $sum: "$count" },
           },
         },
         {
@@ -282,13 +277,6 @@ export class MongoDbWeatherRecordsRepository {
                 in: ["$$wind.timestamp", "$$wind.value"],
               },
             },
-            avgWindDirection: {
-              $map: {
-                input: "$avgWindDirection",
-                as: "direction",
-                in: ["$$direction.timestamp", "$$direction.value"],
-              },
-            },
             maxWindGust: {
               $map: {
                 input: "$maxWindGust",
@@ -314,7 +302,6 @@ export class MongoDbWeatherRecordsRepository {
           avgAirHumidity: TimeSeriesMetric;
           totalRainVolume: TimeSeriesMetric;
           avgWindSpeed: TimeSeriesMetric;
-          avgWindDirection: TimeSeriesMetric;
           maxWindGust: TimeSeriesMetric;
           avgAtmosphericPressure: TimeSeriesMetric;
           count: number;
@@ -327,7 +314,6 @@ export class MongoDbWeatherRecordsRepository {
           avgAirHumidity: [],
           totalRainVolume: [],
           avgWindSpeed: [],
-          avgWindDirection: [],
           maxWindGust: [],
           avgAtmosphericPressure: [],
           count: 0,

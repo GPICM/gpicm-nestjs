@@ -12,7 +12,7 @@ import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mo
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { WeatherTimeSeriesMetricsRequestQuery } from "./dtos/weather-time-series-metrics-request";
 
-@Controller("weather/metrics/time-series")
+@Controller("weather/time-series")
 @UseGuards(JwtAuthGuard)
 export class WeatherTimeSeriesMetricsController {
   constructor(
@@ -20,7 +20,7 @@ export class WeatherTimeSeriesMetricsController {
     private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository,
   ) {}
 
-  @Get("/stations/:stationSlug")
+  @Get("/metrics/stations/:stationSlug")
   @UseInterceptors(CacheInterceptor)
   async findMetricByStations(
     @Param("stationSlug") stationSlug: string,
