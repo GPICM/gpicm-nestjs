@@ -7,6 +7,8 @@ RUN yarn install --frozen-lockfile
 
 COPY --chown=node:node database ./database
 
+RUN yarn run prisma:generate
+
 COPY --chown=node:node . .
 
 USER node
@@ -24,6 +26,8 @@ COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modul
 COPY --chown=node:node . .
 
 COPY --chown=node:node database ./database
+
+RUN yarn run prisma:generate
 
 RUN yarn build
 

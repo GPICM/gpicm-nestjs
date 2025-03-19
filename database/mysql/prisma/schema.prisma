@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  uuid       String    @default(uuid())
+  email      String?   @unique
+  name       String?
+  role       UserRoles @default(GUEST)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+  ipAddress  String?   @map("ip_address")
+  deviceKey  String?   @unique @map("device_key")
+  deviceInfo Json?     @map("device_info")
+
+  Credentials    UserCredential[]
+  UserLogs       UserLog[]
+  UserAgreements UserAgreement[]
+
+  @@unique([uuid])
+  @@map("users")
+}
+
+model UserCredential {
+  userId                     Int           @map("user_id")
+  provider                   AuthProviders
+  externalId                 String?       @map("external_id")
+  passwordHash               String?       @map("password_hash")
+  temporaryPasswordHash      String?       @map("temporary_password_hash")
+  temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
+  createdAt                  DateTime      @default(now()) @map("created_at")
+  updatedAt                  DateTime      @updatedAt @map("updated_at")
+  deletedAt                  DateTime?     @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, provider])
+  @@map("user_credentials")
+}
+
+model UserAgreement {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  policyVersion String    @map("policy_version")
+  consentedAt   DateTime  @default(now()) @map("consented_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, policyVersion])
+  @@map("user_agreements")
+}
+
+model Policy {
+  id          String     @id @default(uuid()) @map("id")
+  version     String
+  type        PolicyType
+  content     String     @db.LongText
+  htmlContent String     @db.LongText
+  createdAt   DateTime   @default(now())
+  deletedAt   DateTime?
+
+  @@unique([version, type])
+  @@map("policies")
+}
+
+model UserLog {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  action    String    @map("action")
+  message   String    @map("message")
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_logs")
+}
+
+// Enums
+
+enum PolicyType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  DATA_USAGE_POLICY
+}
+
+enum AuthProviders {
+  EMAIL_PASSWORD
+  GOOGLE
+}
+
+enum UserRoles {
+  USER
+  GUEST
+}
