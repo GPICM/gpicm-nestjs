@@ -9,7 +9,7 @@ services:
   app:
     container_name: gpcim-nestjs-app
     restart: always
-    command: sh -c "yarn run start:dev"
+    command: sh -c "yarn run prisma:generate & yarn run start:dev"
     build:
       context: .
       target: development

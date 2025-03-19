@@ -5,7 +5,7 @@
       "@/*": [
         "src/*"
       ],
-      "#database*": [
+      "#database/*": [
         "database/*"
       ],
     }

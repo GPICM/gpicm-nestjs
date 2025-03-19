@@ -2,7 +2,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Encryptor } from "../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
-import { TYPES } from "../types";
 import { User } from "../domain/entities/User";
 
 @Injectable()
@@ -10,7 +9,7 @@ export class AuthorizationService {
   private readonly logger = new Logger(AuthorizationService.name);
 
   constructor(
-    @Inject(TYPES.AccessTokenEncryptor)
+    @Inject(Encryptor)
     private readonly encryptor: Encryptor<{ sub: string }>,
     private readonly usersRepository: UsersRepository
   ) {}

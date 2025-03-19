@@ -1,11 +1,12 @@
+import { Request } from "express";
 import {
   Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
 } from "@nestjs/common";
-import { Request } from "express";
-import { User } from "../../domain/entities/User";
+
+import { User } from "@/modules/identity/domain/entities/User";
 
 @Injectable()
 export class GuestGuard implements CanActivate {
@@ -19,7 +20,7 @@ export class GuestGuard implements CanActivate {
     }
 
     if (!user.isGuest()) {
-      throw new ForbiddenException("Guest roles is required");
+      throw new ForbiddenException("Guest role is required");
     }
 
     return true;

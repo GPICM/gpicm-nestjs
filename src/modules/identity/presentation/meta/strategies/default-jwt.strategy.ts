@@ -8,13 +8,14 @@ import {
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-custom";
 import { Request } from "express";
-import { AuthorizationService } from "../../application/authorization.service";
+import { AuthorizationService } from "@/modules/identity/application/authorization.service";
+
 export const defaultJwtStrategyName = "identity-jwt";
 
 @Injectable()
 export class DefaultJwtStrategy extends PassportStrategy(
   Strategy,
-  defaultJwtStrategyName,
+  defaultJwtStrategyName
 ) {
   private readonly logger = new Logger(DefaultJwtStrategy.name);
 

@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, UseInterceptors } from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
 import { CacheInterceptor } from "@nestjs/cache-manager";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 
 @Controller("stations")
 @UseGuards(JwtAuthGuard)

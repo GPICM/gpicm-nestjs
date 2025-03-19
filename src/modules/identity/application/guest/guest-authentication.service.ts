@@ -5,7 +5,7 @@ import { UsersRepository } from "../../domain/interfaces/repositories/users-repo
 import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
 import { Guest } from "../../domain/entities/Guest";
-import { TYPES } from "../../types";
+import { UserJWTpayload } from "../../domain/object-values/user-jwt-payload";
 
 export class GuestAuthenticationService {
   private readonly logger = new Logger(GuestAuthenticationService.name);
@@ -14,8 +14,7 @@ export class GuestAuthenticationService {
     @Inject(HttpClient)
     private readonly httpClient: HttpClient,
     private readonly usersRepository: UsersRepository,
-    @Inject(TYPES.AccessTokenEncryptor)
-    private readonly encryptor: Encryptor<any>
+    private readonly encryptor: Encryptor<UserJWTpayload>
   ) {}
 
   async signIn(params: GuestSignInParams): Promise<{ accessToken: string }> {
@@ -41,7 +40,6 @@ export class GuestAuthenticationService {
 
       const accessToken = this.encryptor.generateToken({
         sub: guestUser.uuid,
-        role: guestUser.role,
       });
 
       return { accessToken };
@@ -68,7 +66,6 @@ export class GuestAuthenticationService {
 
       const accessToken = this.encryptor.generateToken({
         sub: guestUser.uuid,
-        role: guestUser.role,
       });
 
       return { accessToken };
