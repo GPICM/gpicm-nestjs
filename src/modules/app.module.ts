@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { CacheModule } from "@nestjs/cache-manager";
 
+import { SharedModule } from "./shared/shared.module";
+import { StationsModule } from "./stations/stations.module";
+import { ReportsModule } from "./reports/reports.module";
+import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
-import { SharedModule } from "./modules/shared/shared.module";
-import { StationsModule } from "./modules/stations/stations.module";
-import { ReportsModule } from "./modules/reports/reports.module";
-import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   controllers: [AppController],
@@ -18,7 +18,7 @@ import { AuthModule } from "./modules/auth/auth.module";
     SharedModule,
     StationsModule,
     ReportsModule,
-    AuthModule,
+    IdentityModule,
   ],
 })
 export class AppModule {}

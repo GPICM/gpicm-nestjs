@@ -3,6 +3,7 @@ import { MongodbService } from "./services/mongodb-service";
 import { MongoClient } from "mongodb";
 import { HttpClient } from "./domain/interfaces/http-client/http-client";
 import { AxiosHttpClient } from "./infra/lib/axios/axios-http-client";
+import { PrismaService } from "./services/prisma-services";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -12,6 +13,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
   controllers: [],
   providers: [
     MongodbService,
+    PrismaService,
     {
       provide: MongoClient,
       useFactory: () => {
