@@ -4,6 +4,7 @@ import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
 import { UserAssembler } from "./mappers/prisma-user.assembler";
 import { Inject, Logger } from "@nestjs/common";
+import { PrismaClient } from "@prisma/client";
 
 export class PrismaUserRepository implements UsersRepository {
   private readonly logger: Logger = new Logger(PrismaUserRepository.name);
@@ -49,10 +50,12 @@ export class PrismaUserRepository implements UsersRepository {
     }
   }
 
-  public async add(user: User): Promise<void> {
+  public async add(user: User, tx?: PrismaClient): Promise<void> {
     try {
+      const connection = this.prisma.getConnection() ?? tx;
       this.logger.log(`Adding user with public id: ${user.publicId}`);
-      await this.prisma.user.create({
+
+      await connection.user.create({
         data: UserAssembler.toPrismaCreateInput(user),
       });
     } catch (error: unknown) {
@@ -63,10 +66,12 @@ export class PrismaUserRepository implements UsersRepository {
     }
   }
 
-  public async update(user: User): Promise<void> {
+  public async update(user: User, tx?: PrismaClient): Promise<void> {
     try {
       this.logger.log(`Updating user with UUID: ${user.publicId}`);
-      await this.prisma.user.update({
+      const connection = this.prisma.getConnection() ?? tx;
+
+      await connection.user.update({
         where: { id: user.id },
         data: UserAssembler.toPrismaUpdateInput(user),
       });
