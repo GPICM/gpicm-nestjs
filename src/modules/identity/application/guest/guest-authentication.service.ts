@@ -22,7 +22,7 @@ export class GuestAuthenticationService {
     bypassCaptcha = false
   ): Promise<{ accessToken: string }> {
     try {
-      const { captchaToken, deviceKey, ipAddress, deviceInfo } = params;
+      const { name, captchaToken, deviceKey, ipAddress, deviceInfo } = params;
       this.logger.log("Started guest Sign in");
 
       if (!bypassCaptcha) {
@@ -39,12 +39,12 @@ export class GuestAuthenticationService {
       );
 
       if (!guestUser) {
-        guestUser = User.CreateGuest(deviceKey, ipAddress, deviceInfo);
+        guestUser = User.CreateGuest(deviceKey, name, ipAddress, deviceInfo);
         await this.usersRepository.add(guestUser);
       }
 
       const accessToken = this.encryptor.generateToken({
-        sub: guestUser.uuid,
+        sub: guestUser.publicId,
       });
 
       return { accessToken };
@@ -70,7 +70,7 @@ export class GuestAuthenticationService {
       await this.usersRepository.update(guestUser);
 
       const accessToken = this.encryptor.generateToken({
-        sub: guestUser.uuid,
+        sub: guestUser.publicId,
       });
 
       return { accessToken };
@@ -126,6 +126,7 @@ export type ReCaptchaResult = {
 export interface GuestSignInParams {
   captchaToken: string;
   deviceKey: string;
+  name?: string;
   ipAddress?: string;
   deviceInfo?: Record<string, unknown>;
 }

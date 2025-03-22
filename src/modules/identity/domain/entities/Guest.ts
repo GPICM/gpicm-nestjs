@@ -12,7 +12,6 @@ export class Guest extends User {
       throw new Error("Cannot upgrade a non guest user");
     }
     this.setRole(UserRoles.USER);
-    this.setEmail(email);
     this.setName(name);
     this.credentials = [];
   }

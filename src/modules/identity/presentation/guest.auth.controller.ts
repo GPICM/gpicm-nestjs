@@ -28,11 +28,12 @@ export class AuthController {
       this.logger.log("Started guest signin ", { ipAddress, body });
       const result = await this.authService.signIn(
         {
-          captchaToken: body.captchaToken,
+          name: body.name,
           deviceKey: body.deviceKey,
+          captchaToken: body.captchaToken,
           ipAddress: ipAddress,
         },
-        true
+        process.env.NODE_ENV !== "production"
       );
       return result;
     } catch (error: unknown) {

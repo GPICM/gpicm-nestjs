@@ -6,6 +6,9 @@ export class SignInRequestBodyDto {
 
   @IsString()
   deviceKey: string;
+
+  @IsString()
+  name?: string;
 }
 
 export class SignUpRequestBodyDto extends SignInRequestBodyDto {

@@ -1,5 +1,6 @@
 import { User } from "@/modules/identity/domain/entities/User";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
+import { UserStatus } from "@/modules/identity/domain/enums/user-status";
 import { Prisma, User as PrismaUser } from "@prisma/client";
 
 export class UserAssembler {
@@ -8,21 +9,34 @@ export class UserAssembler {
 
     return new User({
       id: prismaData.id,
-      uuid: prismaData.uuid,
-      email: prismaData.email ?? null,
+      publicId: prismaData.publicId,
       name: prismaData.name ?? null,
       role: prismaData.role as UserRoles,
       ipAddress: prismaData.ipAddress ?? null,
       deviceKey: prismaData.deviceKey ?? null,
       deviceInfo: prismaData.deviceInfo as Record<string, unknown> | null,
+      bio: prismaData.bio,
+      birthDate: prismaData.birthDate,
+      gender: prismaData.gender,
+      isVerified: prismaData.isVerified,
+      lastLoginAt: prismaData.lastLoginAt,
+      phoneNumber: prismaData.phoneNumber,
+      profilePicture: prismaData.profilePicture,
+      status: prismaData.status as UserStatus,
       credentials: [],
     });
   }
 
   public static toPrismaCreateInput(user: User): Prisma.UserCreateInput {
     return {
-      uuid: user.uuid,
-      email: user.email,
+      publicId: user.publicId,
+      bio: user.bio,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      isVerified: user.isVerified,
+      phoneNumber: user.phoneNumber,
+      profilePicture: user.profilePicture,
+      status: user.status,
       name: user.name,
       role: user.role,
       ipAddress: user.ipAddress,
@@ -36,11 +50,18 @@ export class UserAssembler {
 
   public static toPrismaUpdateInput(user: User): Prisma.UserUpdateInput {
     return {
-      email: user.email ?? undefined,
-      name: user.name ?? undefined,
-      role: user.role ?? undefined,
-      ipAddress: user.ipAddress ?? undefined,
-      deviceKey: user.deviceKey ?? undefined,
+      publicId: user.publicId,
+      bio: user.bio,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      isVerified: user.isVerified,
+      phoneNumber: user.phoneNumber,
+      profilePicture: user.profilePicture,
+      status: user.status,
+      name: user.name,
+      role: user.role,
+      ipAddress: user.ipAddress,
+      deviceKey: user.deviceKey,
       deviceInfo: (user.deviceInfo ?? undefined) as
         | Prisma.NullableJsonNullValueInput
         | Prisma.InputJsonValue

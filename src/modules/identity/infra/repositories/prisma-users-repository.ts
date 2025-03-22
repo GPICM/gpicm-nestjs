@@ -36,27 +36,27 @@ export class PrismaUserRepository implements UsersRepository {
     }
   }
 
-  public async findByUuid(uuid: string): Promise<User | null> {
+  public async findByPublicId(publicId: string): Promise<User | null> {
     try {
-      this.logger.log(`Finding user by UUID: ${uuid}`);
+      this.logger.log(`Finding user by UUID: ${publicId}`);
       const user = await this.prisma.user.findUnique({
-        where: { uuid },
+        where: { publicId },
       });
       return user ? UserAssembler.fromPrisma(user) : null;
     } catch (error: unknown) {
-      this.logger.error(`Failed to find user by UUID: ${uuid}`, { error });
+      this.logger.error(`Failed to find user by UUID: ${publicId}`, { error });
       throw new Error("Error retrieving user by UUID");
     }
   }
 
   public async add(user: User): Promise<void> {
     try {
-      this.logger.log(`Adding user with UUID: ${user.uuid}`);
+      this.logger.log(`Adding user with public id: ${user.publicId}`);
       await this.prisma.user.create({
         data: UserAssembler.toPrismaCreateInput(user),
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to add user with UUID: ${user.uuid}`, {
+      this.logger.error(`Failed to add user with public id: ${user.publicId}`, {
         error,
       });
       throw new Error("Error adding user");
@@ -65,13 +65,13 @@ export class PrismaUserRepository implements UsersRepository {
 
   public async update(user: User): Promise<void> {
     try {
-      this.logger.log(`Updating user with UUID: ${user.uuid}`);
+      this.logger.log(`Updating user with UUID: ${user.publicId}`);
       await this.prisma.user.update({
-        where: { uuid: user.uuid },
+        where: { id: user.id },
         data: UserAssembler.toPrismaUpdateInput(user),
       });
     } catch (error: unknown) {
-      this.logger.error(`Failed to update user with UUID: ${user.uuid}`, {
+      this.logger.error(`Failed to update user with UUID: ${user.publicId}`, {
         error,
       });
       throw new Error("Error updating user");

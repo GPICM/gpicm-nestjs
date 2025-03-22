@@ -1,8 +1,15 @@
   
   
-  Grant mysql permission
-  
+### Grant Local mysql permission:
+
+```
 docker exec -it db mariadb -u root -p
+```
+
+password:
+```
+ mariadbrootPW
+```
 
 ```
 CREATE USER 'local'@'%' IDENTIFIED BY '12345678';

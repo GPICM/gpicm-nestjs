@@ -1,16 +1,25 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
-
+import { UserStatus } from "../enums/user-status";
 export class User {
   public id?: number;
-  public uuid: string;
+  public publicId: string;
   public name: string | null;
-  public email: string | null;
-  public role: UserRoles;
-  public ipAddress: string | null;
-  public deviceKey: string | null;
+  public profilePicture: string | null;
+  public gender: string | null;
+  public isVerified: boolean | null;
+  public birthDate: Date | null;
+  public phoneNumber: string | null;
+  public lastLoginAt: Date | null;
+  public bio: string | null;
+  public status: UserStatus;
+  public deviceKey: string;
   public deviceInfo: Record<string, unknown> | null;
+  public ipAddress: string | null;
+  public role: UserRoles;
+
+  // Virtual
   public credentials: any[];
 
   constructor(args: NonFunctionProperties<User>) {
@@ -19,28 +28,31 @@ export class User {
 
   public static CreateGuest(
     deviceKey: string,
+    name?: string,
     ipAddress?: string,
-    deviceInfo?: Record<string, unknown>,
+    deviceInfo?: Record<string, unknown>
   ) {
     return new User({
-      uuid: randomUUID(),
-      email: "",
-      name: "Visitante",
-      deviceInfo: deviceInfo ?? null,
-      ipAddress: ipAddress ?? null,
+      publicId: randomUUID(),
+      name: name ?? `Visitante_${new Date().getTime()}`,
+      status: UserStatus.ACTIVE,
       role: UserRoles.GUEST,
       deviceKey,
+      deviceInfo: deviceInfo ?? null,
+      ipAddress: ipAddress ?? null,
+      bio: null,
+      birthDate: null,
+      gender: null,
+      isVerified: false,
+      lastLoginAt: null,
+      phoneNumber: null,
+      profilePicture: null,
       credentials: [],
     });
   }
 
   public isGuest() {
     return this.role === UserRoles.GUEST && !this.credentials.length;
-  }
-
-  public setEmail(email: string) {
-    // TODO: validate email here
-    this.email = email;
   }
 
   public setName(name: string) {

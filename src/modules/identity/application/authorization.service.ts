@@ -27,7 +27,7 @@ export class AuthorizationService {
         throw new Error("Invalid accessToken");
       }
 
-      const user = await this.usersRepository.findByUuid(decoded.sub);
+      const user = await this.usersRepository.findByPublicId(decoded.sub);
 
       if (!user) {
         throw new Error("User not found");

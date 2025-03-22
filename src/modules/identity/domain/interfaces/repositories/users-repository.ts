@@ -2,7 +2,7 @@ import { User } from "../../entities/User";
 import { UserRoles } from "../../enums/user-roles";
 
 export abstract class UsersRepository {
-  abstract findByUuid(
+  abstract findByPublicId(
     uuid: string,
     filters?: { roles?: UserRoles[] }
   ): Promise<User | null>;
