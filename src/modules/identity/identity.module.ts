@@ -8,6 +8,8 @@ import { AuthorizationService } from "./application/authorization.service";
 import { PrismaUserRepository } from "./infra/repositories/prisma-users-repository";
 import { UsersRepository } from "./domain/interfaces/repositories/users-repository";
 import { DefaultJwtStrategy } from "./presentation/meta";
+import { UserCredentialsRepository } from "./domain/interfaces/repositories/user-credentials-repository";
+import { PrismaUserCredentialsRepository } from "./infra/repositories/prisma-user-credentials-repository";
 
 @Global()
 @Module({
@@ -21,6 +23,10 @@ import { DefaultJwtStrategy } from "./presentation/meta";
       useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
     },
     { provide: UsersRepository, useClass: PrismaUserRepository },
+    {
+      provide: UserCredentialsRepository,
+      useClass: PrismaUserCredentialsRepository,
+    },
   ],
   imports: [SharedModule],
   exports: [Encryptor, DefaultJwtStrategy],
