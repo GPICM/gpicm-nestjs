@@ -2,9 +2,11 @@
   
   Grant mysql permission
   
-  docker exec -it db mysql -u root -p
+docker exec -it db mariadb -u root -p
 
 ```
-GRANT ALL PRIVILEGES ON anselmo_telemetria.* TO 'myuser'@'%' WITH GRANT OPTION;
+CREATE USER 'local'@'%' IDENTIFIED BY '12345678';
+GRANT ALL PRIVILEGES ON *.* TO 'local'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 ```
 

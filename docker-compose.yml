@@ -9,24 +9,29 @@ services:
   app:
     container_name: gpcim-nestjs-app
     restart: always
-    command: sh -c "yarn run prisma:generate & yarn run start:dev"
+    command: sh -c "npm run db:deploy && yarn start:dev"
     build:
       context: .
       target: development
     env_file:
-      - .env.local
+      - .env
+    environment:
+      DATABASE_URL: mysql://local:12345678@db:3306/anselmo_telemetria
     volumes:
-      - ./:/usr/src/app
-      - node_modules:/usr/src/app/node_modules
+      - .:/usr/src/app:cached
+      - /usr/src/app/node_modules
     ports:
       - '9000:9000'
     networks:
       - gpicm-development
+    user: "1000:1000"
+    depends_on:
+      - db
 
   db:
     container_name: db
     image: 'mariadb:10.5'
-    environment:   
+    environment:
       MARIADB_USER: local
       MARIADB_PASSWORD: 12345678
       MARIADB_ROOT_PASSWORD: mariadbrootPW

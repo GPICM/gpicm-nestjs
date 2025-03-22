@@ -27,6 +27,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       scope: Scope.DEFAULT,
     },
   ],
-  exports: [MongodbService, HttpClient],
+  exports: [MongodbService, HttpClient, PrismaService],
 })
 export class SharedModule {}

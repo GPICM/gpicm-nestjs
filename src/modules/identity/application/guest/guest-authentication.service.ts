@@ -17,15 +17,20 @@ export class GuestAuthenticationService {
     private readonly encryptor: Encryptor<UserJWTpayload>
   ) {}
 
-  async signIn(params: GuestSignInParams): Promise<{ accessToken: string }> {
+  async signIn(
+    params: GuestSignInParams,
+    bypassCaptcha = false
+  ): Promise<{ accessToken: string }> {
     try {
       const { captchaToken, deviceKey, ipAddress, deviceInfo } = params;
       this.logger.log("Started guest Sign in");
 
-      const isValid = await this.validateReCaptcha({ captcha: captchaToken });
+      if (!bypassCaptcha) {
+        const isValid = await this.validateReCaptcha({ captcha: captchaToken });
 
-      if (!isValid) {
-        throw new Error("Captcha failed to validate");
+        if (!isValid) {
+          throw new Error("Captcha failed to validate");
+        }
       }
 
       let guestUser = await this.usersRepository.findUserByDeviceKey(

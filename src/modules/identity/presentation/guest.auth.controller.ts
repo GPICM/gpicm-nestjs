@@ -26,11 +26,14 @@ export class AuthController {
   async signIn(@Ip() ipAddress: string, @Body() body: SignInRequestBodyDto) {
     try {
       this.logger.log("Started guest signin ", { ipAddress, body });
-      const result = await this.authService.signIn({
-        captchaToken: body.captchaToken,
-        deviceKey: body.deviceKey,
-        ipAddress: ipAddress,
-      });
+      const result = await this.authService.signIn(
+        {
+          captchaToken: body.captchaToken,
+          deviceKey: body.deviceKey,
+          ipAddress: ipAddress,
+        },
+        true
+      );
       return result;
     } catch (error: unknown) {
       this.logger.error("Failed to signIn Guest", { error });

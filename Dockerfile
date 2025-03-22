@@ -1,21 +1,26 @@
-FROM node:20-alpine AS development
+FROM node:slim AS development
+
+RUN apt-get update -y \
+    && apt-get install -y openssl
 
 WORKDIR /usr/src/app
 
-COPY --chown=node:node package.json yarn.lock ./
+COPY package.json yarn.lock ./
+
 RUN yarn install --frozen-lockfile
 
-COPY --chown=node:node database ./database
+COPY database ./database
 
 RUN yarn run prisma:generate
 
-COPY --chown=node:node . .
+RUN chown -R node:node node_modules/.prisma
 
-USER node
+COPY  . .
 
 EXPOSE 3000
 
-CMD ["yarn", "start:dev"]
+CMD ["sh", "-c", "npm run db:deploy && yarn start:dev"]
+
 
 FROM node:20-alpine AS build
 
@@ -47,3 +52,4 @@ COPY --chown=node:node --from=build /usr/src/app/database ./database
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 CMD ["node", "dist/src/main"]
+
