@@ -1,0 +1,38 @@
+version: '3'
+
+networks:
+  gpicm-staging:
+    name: 'gpicm-staging'
+
+services:
+
+  web: 
+    container_name: "gpcim-react-app-hml"
+    image: fonsecabarreto/weather-react-app:latest
+    mem_limit: 128m
+    hostname: web
+    ports:
+      - 3000:8080
+    networks:
+      - gpicm-staging
+
+  redis:
+    image: redis
+    container_name: gpcim-weather-redis-hml
+    command: ["redis-server", "--appendonly", "no", "--save", "", "--dir", "/data"]
+    restart: always
+    ports:
+      - 6333:6379
+    networks:
+      - gpicm-staging
+
+  api:
+    image: test-gpicm 
+    container_name: gpcim-nestjs-api-hml
+    env_file:
+      - .env.staging
+    ports:
+      - '9000:9000'
+    networks:
+      - gpicm-staging
+      
