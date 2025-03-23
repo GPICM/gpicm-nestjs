@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  publicId       String     @default(uuid()) @map("public_id")
+  name           String?
+  profilePicture String?    @map("profile_picture")
+  gender         String?    @map("gender")
+  isVerified     Boolean?   @map("is_verified")
+  birthDate      DateTime?  @map("birth_date")
+  phoneNumber    String?    @map("phone_number")
+  lastLoginAt    DateTime?  @map("last_login_at")
+  bio            String?
+  status         UserStatus @default(ACTIVE)
+  role           UserRoles  @default(GUEST)
+  deviceKey      String     @unique @map("device_key")
+  ipAddress      String?    @map("ip_address")
+  deviceInfo     Json?      @map("device_info")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  Credentials    UserCredential[]
+  UserLogs       UserLog[]
+  UserAgreements UserAgreement[]
+
+  @@unique([publicId])
+  @@map("users")
+}
+
+model UserCredential {
+  userId                     Int           @map("user_id")
+  provider                   AuthProviders
+  email                      String        @unique
+  externalId                 String?       @map("external_id")
+  passwordHash               String?       @map("password_hash")
+  temporaryPasswordHash      String?       @map("temporary_password_hash")
+  temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
+  lastPasswordChangeAt       DateTime?     @map("last_password_change_At")
+  isPrimary                  Boolean       @default(false) @map("is_primary")
+  createdAt                  DateTime      @default(now()) @map("created_at")
+  updatedAt                  DateTime      @updatedAt @map("updated_at")
+  deletedAt                  DateTime?     @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, provider])
+  @@unique([userId, isPrimary], name: "unique_primary_email_per_user")
+  @@map("user_credentials")
+}
+
+model UserAgreement {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  policyVersion String    @map("policy_version")
+  consentedAt   DateTime  @default(now()) @map("consented_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, policyVersion])
+  @@map("user_agreements")
+}
+
+model Policy {
+  id          String     @id @default(uuid()) @map("id")
+  version     String
+  type        PolicyType
+  content     String     @db.LongText
+  htmlContent String     @db.LongText
+  createdAt   DateTime   @default(now())
+  deletedAt   DateTime?
+
+  @@unique([version, type])
+  @@map("policies")
+}
+
+model UserLog {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  action    String    @map("action")
+  message   String    @map("message")
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_logs")
+}
+
+// Enums
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+  SUSPENDED
+}
+
+enum PolicyType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  DATA_USAGE_POLICY
+}
+
+enum AuthProviders {
+  EMAIL_PASSWORD
+  GOOGLE
+}
+
+enum UserRoles {
+  USER
+  GUEST
+  ADMIN
+}

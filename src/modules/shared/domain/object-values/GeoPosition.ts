@@ -8,7 +8,7 @@ export class GeoPosition {
     latitude: number,
     longitude: number,
     altitude?: number,
-    accuracy?: number,
+    accuracy?: number
   ) {
     if (!GeoPosition.isValidLatitude(latitude)) {
       throw new Error(
