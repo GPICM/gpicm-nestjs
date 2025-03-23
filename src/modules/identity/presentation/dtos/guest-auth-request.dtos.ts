@@ -1,20 +1,25 @@
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class SignInRequestBodyDto {
   @IsString()
   captchaToken: string;
 
   @IsString()
-  deviceKey: string;
+  @IsOptional()
+  deviceKey?: string;
 
   @IsString()
+  @IsOptional()
   name?: string;
 }
 
-export class SignUpRequestBodyDto extends SignInRequestBodyDto {
+export class SignUpRequestBodyDto {
   @IsString()
   name: string;
 
   @IsString()
   email: string;
+
+  @IsString()
+  password: string;
 }

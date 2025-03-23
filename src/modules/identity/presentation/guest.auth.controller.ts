@@ -12,7 +12,7 @@ import {
   SignUpRequestBodyDto,
 } from "./dtos/guest-auth-request.dtos";
 import { GuestAuthenticationService } from "../application/guest/guest-authentication.service";
-import { CurrentUser } from "./meta/decorators/user.decorator";
+import { GuestUser } from "./meta/decorators/user.decorator";
 import { Guest } from "../domain/entities/Guest";
 import { GuestGuard, JwtAuthGuard } from "./meta";
 
@@ -43,18 +43,18 @@ export class AuthController {
   }
 
   @Post("/upgrade")
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(GuestGuard)
+  @UseGuards(JwtAuthGuard, GuestGuard)
   async signUp(
     @Ip() ipAddress: string,
     @Body() body: SignUpRequestBodyDto,
-    @CurrentUser() user: Guest
+    @GuestUser() guestUser: Guest
   ): Promise<any> {
     try {
       this.logger.log("Started guest upgrade ", { ipAddress, body });
-      const result = await this.authService.guestUpgrade(user, {
+      const result = await this.authService.guestUpgrade(guestUser, {
         email: body.email,
         name: body.name,
+        password: body.password,
       });
       return result;
     } catch (error: unknown) {

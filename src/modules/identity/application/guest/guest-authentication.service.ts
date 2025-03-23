@@ -6,6 +6,9 @@ import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
 import { Guest } from "../../domain/entities/Guest";
 import { UserJWTpayload } from "../../domain/object-values/user-jwt-payload";
+import { PrismaService } from "@/modules/shared/services/prisma-services";
+import { UserCredentialsRepository } from "../../domain/interfaces/repositories/user-credentials-repository";
+import { randomUUID } from "crypto";
 
 export class GuestAuthenticationService {
   private readonly logger = new Logger(GuestAuthenticationService.name);
@@ -14,13 +17,15 @@ export class GuestAuthenticationService {
     @Inject(HttpClient)
     private readonly httpClient: HttpClient,
     private readonly usersRepository: UsersRepository,
-    private readonly encryptor: Encryptor<UserJWTpayload>
+    private readonly userCredentialsRepository: UserCredentialsRepository,
+    private readonly encryptor: Encryptor<UserJWTpayload>,
+    private readonly prismaService: PrismaService
   ) {}
 
   async signIn(
     params: GuestSignInParams,
     bypassCaptcha = false
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; deviceKey: string }> {
     try {
       const { name, captchaToken, deviceKey, ipAddress, deviceInfo } = params;
       this.logger.log("Started guest Sign in");
@@ -33,13 +38,15 @@ export class GuestAuthenticationService {
         }
       }
 
-      let guestUser = await this.usersRepository.findUserByDeviceKey(
-        deviceKey,
-        { roles: [UserRoles.GUEST] }
-      );
+      let guestUser: User | null = null;
+      if (deviceKey) {
+        guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
+          roles: [UserRoles.GUEST],
+        });
+      }
 
       if (!guestUser) {
-        guestUser = User.CreateGuest(deviceKey, name, ipAddress, deviceInfo);
+        guestUser = User.CreateGuest(name, ipAddress, deviceInfo);
         await this.usersRepository.add(guestUser);
       }
 
@@ -47,7 +54,7 @@ export class GuestAuthenticationService {
         sub: guestUser.publicId,
       });
 
-      return { accessToken };
+      return { accessToken, deviceKey: guestUser.deviceKey };
     } catch (error: unknown) {
       this.logger.error("Failed to signin", { error });
       throw new UnauthorizedException();
@@ -56,18 +63,26 @@ export class GuestAuthenticationService {
 
   public async guestUpgrade(
     guestUser: Guest,
-    params: GuestUpgradeParams
+    params: {
+      name: string;
+      email: string;
+      password: string;
+    }
   ): Promise<{ accessToken: string }> {
     try {
-      const { name, email } = params;
-      this.logger.log("Started guest Sign Up");
+      this.logger.log("Started guest Sign Up", { guestUser, params });
+      const { name, email, password } = params;
 
       if (guestUser.role !== UserRoles.GUEST) {
         throw new Error("Users is no longe guest");
       }
 
-      guestUser.upgrade(email, name);
-      await this.usersRepository.update(guestUser);
+      const newCredential = guestUser.upgrade(name, email, password);
+
+      await this.prismaService.openTransaction(async (tx) => {
+        await this.userCredentialsRepository.add(newCredential, tx);
+        await this.usersRepository.update(guestUser, tx);
+      });
 
       const accessToken = this.encryptor.generateToken({
         sub: guestUser.publicId,
@@ -125,13 +140,8 @@ export type ReCaptchaResult = {
 
 export interface GuestSignInParams {
   captchaToken: string;
-  deviceKey: string;
   name?: string;
+  deviceKey?: string;
   ipAddress?: string;
   deviceInfo?: Record<string, unknown>;
-}
-
-export interface GuestUpgradeParams {
-  name: string;
-  email: string;
 }

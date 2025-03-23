@@ -27,17 +27,18 @@ export class User {
   }
 
   public static CreateGuest(
-    deviceKey: string,
     name?: string,
     ipAddress?: string,
     deviceInfo?: Record<string, unknown>
   ) {
+    const newDeviceKey = randomUUID();
+
     return new User({
       publicId: randomUUID(),
       name: name ?? `Visitante_${new Date().getTime()}`,
       status: UserStatus.ACTIVE,
       role: UserRoles.GUEST,
-      deviceKey,
+      deviceKey: newDeviceKey,
       deviceInfo: deviceInfo ?? null,
       ipAddress: ipAddress ?? null,
       bio: null,

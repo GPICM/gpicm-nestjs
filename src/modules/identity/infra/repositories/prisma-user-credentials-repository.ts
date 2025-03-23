@@ -29,6 +29,9 @@ export class PrismaUserCredentialsRepository
           email: userCredential.email,
           provider: userCredential.provider,
           userId: userCredential.userId,
+          externalId: userCredential.externalId,
+          isPrimary: userCredential.isPrimary,
+          passwordHash: userCredential.passwordHash,
         },
       });
     } catch (error: unknown) {

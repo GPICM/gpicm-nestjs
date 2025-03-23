@@ -1,18 +1,27 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { User } from "./User";
 import { UserRoles } from "../enums/user-roles";
+import { EmailPasswordCredential, UserCredential } from "./UserCredential";
 
 export class Guest extends User {
   constructor(args: NonFunctionProperties<User>) {
     super(args);
   }
 
-  public upgrade(email: string, name: string) {
-    if (this.isGuest()) {
+  public upgrade(
+    name: string,
+    email: string,
+    password: string
+  ): UserCredential {
+    if (!this.isGuest() || !this.id) {
       throw new Error("Cannot upgrade a non guest user");
     }
-    this.setRole(UserRoles.USER);
+
     this.setName(name);
-    this.credentials = [];
+    this.setRole(UserRoles.USER);
+    const newCredential = new EmailPasswordCredential(this.id, email, password);
+    this.credentials.push(newCredential);
+
+    return newCredential;
   }
 }
