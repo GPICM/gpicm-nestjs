@@ -31,6 +31,7 @@ model User {
   Credentials    UserCredential[]
   UserLogs       UserLog[]
   UserAgreements UserAgreement[]
+  Incidents      Incident[]
 
   @@unique([publicId])
   @@map("users")
@@ -94,6 +95,41 @@ model UserLog {
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_logs")
+}
+
+model Incident {
+  id String @id()
+
+  title String
+
+  description String
+
+  status Int
+
+  address String
+
+  latitude Float?
+
+  longitude Float?
+
+  authorId Int @map("author_id")
+
+  incidentType Int @map("incident_type")
+
+  incidentDate DateTime @map("incident_date")
+
+  imageUrl String? @map("image_url")
+
+  imagePreviewUrl String? @map("image_preview_url")
+
+  reporterName String? @map("reporter_name")
+
+  observation String?
+
+  // Relations
+  Author User @relation(fields: [authorId], references: [id])
+
+  @@map("incidents")
 }
 
 // Enums
