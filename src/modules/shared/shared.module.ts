@@ -4,6 +4,9 @@ import { MongoClient } from "mongodb";
 import { HttpClient } from "./domain/interfaces/http-client/http-client";
 import { AxiosHttpClient } from "./infra/lib/axios/axios-http-client";
 import { PrismaService } from "./services/prisma-services";
+import { UserLogsRepository } from "./domain/interfaces/repositories/user-logs-repository";
+import { PrismaUserLogsRepository } from "./infra/repositories/prisma-user-logs-repository";
+import { LogUserAction } from "./application/log-user-action";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -26,7 +29,18 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       useClass: AxiosHttpClient,
       scope: Scope.DEFAULT,
     },
+    {
+      provide: UserLogsRepository,
+      useClass: PrismaUserLogsRepository,
+    },
+    LogUserAction,
   ],
-  exports: [MongodbService, HttpClient, PrismaService],
+  exports: [
+    UserLogsRepository,
+    LogUserAction,
+    MongodbService,
+    HttpClient,
+    PrismaService,
+  ],
 })
 export class SharedModule {}

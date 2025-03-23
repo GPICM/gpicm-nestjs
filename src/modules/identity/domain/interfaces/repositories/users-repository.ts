@@ -12,7 +12,7 @@ export abstract class UsersRepository {
     filters: { roles?: UserRoles[] }
   ): Promise<User | null>;
 
-  abstract add(user: User, tx?: unknown): Promise<void>;
+  abstract add(user: User, tx?: unknown): Promise<number>;
 
   abstract update(user: User, tx?: unknown): Promise<void>;
 

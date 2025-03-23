@@ -50,14 +50,16 @@ export class PrismaUserRepository implements UsersRepository {
     }
   }
 
-  public async add(user: User, tx?: PrismaClient): Promise<void> {
+  public async add(user: User, tx?: PrismaClient): Promise<number> {
     try {
       const connection = this.prisma.getConnection() ?? tx;
       this.logger.log(`Adding user with public id: ${user.publicId}`);
 
-      await connection.user.create({
+      const result = await connection.user.create({
         data: UserAssembler.toPrismaCreateInput(user),
       });
+
+      return result.id;
     } catch (error: unknown) {
       this.logger.error(`Failed to add user with public id: ${user.publicId}`, {
         error,

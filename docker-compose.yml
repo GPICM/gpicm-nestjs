@@ -56,5 +56,3 @@ services:
 volumes:
   mariadb-data:
     name: gpicm-dev-db
-  node_modules:
-    name: "gpicm-node-modules"

@@ -8,7 +8,7 @@ import { Guest } from "../../domain/entities/Guest";
 import { UserJWTpayload } from "../../domain/object-values/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../../domain/interfaces/repositories/user-credentials-repository";
-import { randomUUID } from "crypto";
+import { LogUserAction } from "@/modules/shared/application/log-user-action";
 
 export class GuestAuthenticationService {
   private readonly logger = new Logger(GuestAuthenticationService.name);
@@ -18,6 +18,7 @@ export class GuestAuthenticationService {
     private readonly httpClient: HttpClient,
     private readonly usersRepository: UsersRepository,
     private readonly userCredentialsRepository: UserCredentialsRepository,
+    private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService
   ) {}
@@ -47,12 +48,15 @@ export class GuestAuthenticationService {
 
       if (!guestUser) {
         guestUser = User.CreateGuest(name, ipAddress, deviceInfo);
-        await this.usersRepository.add(guestUser);
+        const newUserId = await this.usersRepository.add(guestUser);
+        guestUser.setId(newUserId);
       }
 
       const accessToken = this.encryptor.generateToken({
         sub: guestUser.publicId,
       });
+
+      await this.logUserAction.execute(guestUser.id!, "GUEST_SIGNIN");
 
       return { accessToken, deviceKey: guestUser.deviceKey };
     } catch (error: unknown) {

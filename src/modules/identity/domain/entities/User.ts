@@ -56,6 +56,10 @@ export class User {
     return this.role === UserRoles.GUEST && !this.credentials.length;
   }
 
+  public setId(newId: number) {
+    this.id = newId;
+  }
+
   public setName(name: string) {
     // TODO: validate name length
     this.name = name;
