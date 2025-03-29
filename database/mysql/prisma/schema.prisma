@@ -32,6 +32,7 @@ model User {
   UserLogs       UserLog[]
   UserAgreements UserAgreement[]
   Incidents      Incident[]
+  Posts          Post[]
 
   @@unique([publicId])
   @@map("users")
@@ -127,12 +128,42 @@ model Incident {
   observation String?
 
   // Relations
-  Author User @relation(fields: [authorId], references: [id])
+  Author User   @relation(fields: [authorId], references: [id])
+  Posts  Post[]
 
   @@map("incidents")
 }
 
+model Post {
+  id          Int        @id @default(autoincrement())
+  title       String
+  slug        String     @unique
+  content     String
+  status      PostStatus @default(PENDING)
+  type        PostType   @default(INCIDENT)
+  publishedAt DateTime?  @map("published_at")
+  authorId    Int        @map("author_id")
+  incidentId  String?    @map("incident_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  Author   User      @relation(fields: [authorId], references: [id])
+  Incident Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
 // Enums
+
+enum PostType {
+  INCIDENT
+}
+
+enum PostStatus {
+  PENDING
+  PUBLISHED
+  ARCHIVED
+}
 
 enum UserStatus {
   ACTIVE
