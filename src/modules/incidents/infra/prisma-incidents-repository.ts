@@ -1,6 +1,6 @@
 import { Inject, Logger } from "@nestjs/common";
 import { IncidentsRepository } from "../domain/interfaces/repositories/incidents-repository";
-import { IncidentAssembler } from "./mappers/incident.mapper";
+import { IncidentAssembler, incidentInclude } from "./mappers/incident.mapper";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Incident } from "@/modules/incidents/domain/entities/Incident";
 
@@ -30,6 +30,7 @@ export class PrismaIncidentsRepository implements IncidentsRepository {
       this.logger.log(`Fetching incident by ID: ${incidentId}`);
       const modelData = await this.prisma.incident.findUnique({
         where: { id: incidentId },
+        include: incidentInclude,
       });
 
       if (!modelData) {
@@ -52,6 +53,7 @@ export class PrismaIncidentsRepository implements IncidentsRepository {
       this.logger.log("Fetching all incidents...");
       const resultData = await this.prisma.incident.findMany({
         orderBy: { incidentDate: "desc" },
+        include: incidentInclude,
       });
 
       this.logger.log(`Total incidents found: ${resultData.length}`);

@@ -31,6 +31,8 @@ import {
   BlobStorageRepositoryTypes,
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { PostRepository } from "../../domain/interfaces/repositories/post-repository";
+import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 const photoValidation = new ParseFilePipe({
@@ -47,6 +49,8 @@ export class IncidentsController {
   constructor(
     @Inject(IncidentsRepository)
     private readonly incidentsRepository: IncidentsRepository,
+    @Inject(PostRepository)
+    private readonly postRepository: PostRepository,
     @Inject(BlobStorageRepository)
     private readonly blobRepository: BlobStorageRepository
   ) {}
@@ -80,11 +84,20 @@ export class IncidentsController {
         observation: body.observation ?? null,
         reporterName: user?.name ?? "Anonimo",
         incidentType: body.incidentType,
-        authorId: user.id!,
+        author: new AuthorSummary({
+          id: user.id!,
+          name: user.name ?? "Anônimo",
+          profilePicture: user.profilePicture ?? "",
+          publicId: user.publicId,
+        }),
         status: 1,
       });
 
+      const post = incident.publish();
+
       await this.incidentsRepository.add(incident);
+
+      await this.postRepository.add(post);
 
       return incident;
     } catch (error) {

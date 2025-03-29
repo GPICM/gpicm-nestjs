@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Incident as PrismaIncident } from "@prisma/client";
+import { Prisma, Incident as PrismaIncident } from "@prisma/client";
 
 import { Incident } from "../../domain/entities/Incident";
+import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
 
+export const incidentInclude = Prisma.validator<Prisma.IncidentInclude>()({
+  Author: true,
+});
+
+type IncidentJoinModel = Prisma.IncidentGetPayload<{
+  include: typeof incidentInclude;
+}>;
 class IncidentAssembler {
   public static toPrisma(incident: Incident): PrismaIncident {
-    console.log({ incident });
     return {
       id: incident.id,
       title: incident.title,
@@ -21,14 +28,24 @@ class IncidentAssembler {
       reporterName: incident.reporterName,
       status: incident.status,
       incidentType: incident.incidentType,
-      authorId: incident.authorId,
+      authorId: incident.author.id,
     };
   }
 
   public static fromPrisma(
-    prismaData?: PrismaIncident | null
+    prismaData?: IncidentJoinModel | null
   ): Incident | null {
     if (!prismaData) return null;
+
+    const { Author } = prismaData;
+
+    const author = new AuthorSummary({
+      id: Author.id,
+      name: Author.name ?? "Anônimo",
+      profilePicture: Author.profilePicture ?? "",
+      publicId: Author.publicId,
+    });
+
     return new Incident({
       id: prismaData.id,
       title: prismaData.title,
@@ -43,11 +60,13 @@ class IncidentAssembler {
       reporterName: prismaData.reporterName,
       status: prismaData.status,
       incidentType: prismaData.incidentType,
-      authorId: prismaData.authorId,
+      author,
     });
   }
 
-  public static fromPrismaMany(prismaDataArray: PrismaIncident[]): Incident[] {
+  public static fromPrismaMany(
+    prismaDataArray: IncidentJoinModel[]
+  ): Incident[] {
     const incidents: Incident[] = [];
     for (const prismaData of prismaDataArray) {
       const incident = this.fromPrisma(prismaData);

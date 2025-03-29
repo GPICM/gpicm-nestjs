@@ -3,12 +3,12 @@
 import { Prisma, PostStatus, PostType } from "@prisma/client";
 
 import { Post, PostStatusEnum, PostTypeEnum } from "../../domain/entities/Post";
-import { PostAuthor } from "../../domain/object-values/post-author";
+import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
 import { Incident } from "../../domain/entities/Incident";
 import { IncidentAssembler } from "./incident.mapper";
 
 export const postInclude = Prisma.validator<Prisma.PostInclude>()({
-  Incident: true,
+  Incident: { include: { Author: true } },
   Author: true,
 });
 
@@ -39,7 +39,7 @@ class PostAssembler {
 
     const { Author, Incident: incidentData } = prismaData;
 
-    const author = new PostAuthor({
+    const author = new AuthorSummary({
       id: Author.id,
       name: Author.name ?? "Anônimo",
       profilePicture: Author.profilePicture ?? "",

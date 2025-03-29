@@ -1,6 +1,6 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { Incident } from "./Incident";
-import { PostAuthor } from "../object-values/post-author";
+import { AuthorSummary } from "../object-values/AuthorSumary";
 
 export enum PostStatusEnum {
   PENDING = "PENDING",
@@ -14,7 +14,7 @@ export enum PostTypeEnum {
 }
 
 export class Post {
-  public readonly id: number;
+  public readonly id: number | null;
 
   public readonly title: string;
 
@@ -28,11 +28,21 @@ export class Post {
 
   public readonly publishedAt: Date | null;
 
-  public readonly author: PostAuthor;
+  public readonly author: AuthorSummary;
 
   public readonly incident: Incident | null;
 
   constructor(args: NonFunctionProperties<Post>) {
     Object.assign(this, args);
+  }
+
+  public static createSlug(text: string): string {
+    return text
+      .toLowerCase() 
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 100);
   }
 }

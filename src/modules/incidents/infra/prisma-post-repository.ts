@@ -2,7 +2,7 @@ import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { Post } from "../domain/entities/Post";
-import { PostAssembler, postInclude } from "./mappers/post.assembler.";
+import { PostAssembler, postInclude } from "./mappers/post.assembler";
 
 export class PrismaPostRepository implements PostRepository {
   private readonly logger: Logger = new Logger(PrismaPostRepository.name);
