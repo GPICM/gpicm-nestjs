@@ -6,8 +6,10 @@ import { PrismaIncidentsRepository } from "./infra/prisma-incidents-repository";
 import { IncidentsController } from "./presentation/controllers/incidents.controller";
 import { PostRepository } from "./domain/interfaces/repositories/post-repository";
 import { PrismaPostRepository } from "./infra/prisma-post-repository";
+import { PostController } from "./presentation/controllers/post.controller";
+
 @Module({
-  controllers: [IncidentsController],
+  controllers: [IncidentsController, PostController],
   providers: [
     {
       provide: IncidentsRepository,

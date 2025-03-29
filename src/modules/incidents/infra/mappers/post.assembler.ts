@@ -30,6 +30,11 @@ class PostAssembler {
           id: post.author.id,
         },
       },
+      Incident: {
+        connect: {
+          id: post.incident?.id,
+        },
+      },
     };
   }
 
