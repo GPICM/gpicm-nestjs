@@ -6,7 +6,6 @@ import { Incident } from "../../domain/entities/Incident";
 
 class IncidentAssembler {
   public static toPrisma(incident: Incident): PrismaIncident {
-
     console.log({ incident });
     return {
       id: incident.id,
