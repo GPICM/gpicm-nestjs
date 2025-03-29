@@ -7,6 +7,7 @@ import { ReportsModule } from "./reports/reports.module";
 import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
 import { IncidentsModule } from "./incidents/incidents.module";
+import { AssetsModule } from "./assets/assets.module";
 
 @Module({
   controllers: [AppController],
@@ -20,7 +21,8 @@ import { IncidentsModule } from "./incidents/incidents.module";
     StationsModule,
     ReportsModule,
     IdentityModule,
-    IncidentsModule
+    IncidentsModule,
+    AssetsModule
   ],
 })
 export class AppModule {}
