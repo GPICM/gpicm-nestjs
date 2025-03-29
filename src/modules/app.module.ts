@@ -6,6 +6,7 @@ import { StationsModule } from "./stations/stations.module";
 import { ReportsModule } from "./reports/reports.module";
 import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
+import { IncidentsModule } from "./incidents/incidents.module";
 
 @Module({
   controllers: [AppController],
@@ -19,6 +20,7 @@ import { AppController } from "./app.controller";
     StationsModule,
     ReportsModule,
     IdentityModule,
+    IncidentsModule
   ],
 })
 export class AppModule {}

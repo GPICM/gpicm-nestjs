@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { Inject, Logger } from "@nestjs/common";
 import { IncidentsRepository } from "../domain/interfaces/repositories/incidents-repository";
 import { IncidentAssembler } from "./mappers/incident.mapper";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
@@ -7,7 +7,10 @@ import { Incident } from "@/modules/incidents/domain/entities/Incident";
 export class PrismaIncidentsRepository implements IncidentsRepository {
   private readonly logger: Logger = new Logger(PrismaIncidentsRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService
+  ) {}
 
   async add(incident: Incident): Promise<void> {
     try {
@@ -37,7 +40,9 @@ export class PrismaIncidentsRepository implements IncidentsRepository {
       this.logger.log(`Incident found: ${incidentId}`);
       return IncidentAssembler.fromPrisma(modelData);
     } catch (error: unknown) {
-      this.logger.error(`Failed to find incident by ID: ${incidentId}`, { error });
+      this.logger.error(`Failed to find incident by ID: ${incidentId}`, {
+        error,
+      });
       throw new Error("Failed to find incident by ID");
     }
   }
