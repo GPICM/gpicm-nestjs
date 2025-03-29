@@ -7,6 +7,8 @@ import { PrismaService } from "./services/prisma-services";
 import { UserLogsRepository } from "./domain/interfaces/repositories/user-logs-repository";
 import { PrismaUserLogsRepository } from "./infra/repositories/prisma-user-logs-repository";
 import { LogUserAction } from "./application/log-user-action";
+import { BlobStorageRepository } from "./domain/interfaces/repositories/blob-storage-repository";
+import { LocalBlobStorageRepository } from "./infra/repositories/local-blob-storage-reppository";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -33,9 +35,14 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: UserLogsRepository,
       useClass: PrismaUserLogsRepository,
     },
+    {
+      provide: BlobStorageRepository,
+      useFactory: () => new LocalBlobStorageRepository("assets"),
+    },
     LogUserAction,
   ],
   exports: [
+    BlobStorageRepository,
     UserLogsRepository,
     LogUserAction,
     MongodbService,
