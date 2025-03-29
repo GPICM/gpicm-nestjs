@@ -101,9 +101,9 @@ model UserLog {
 model Incident {
   id String @id()
 
-  title String
+  title String @db.LongText
 
-  description String
+  description String @db.LongText
 
   status Int
 
@@ -136,9 +136,9 @@ model Incident {
 
 model Post {
   id          Int        @id @default(autoincrement())
-  title       String
+  title       String     @db.LongText
   slug        String     @unique
-  content     String
+  content     String     @db.LongText
   status      PostStatus @default(PENDING)
   type        PostType   @default(INCIDENT)
   publishedAt DateTime?  @map("published_at")
