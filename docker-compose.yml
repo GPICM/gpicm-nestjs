@@ -20,7 +20,7 @@ services:
     volumes:
       - .:/usr/src/app:cached
       - /usr/src/app/node_modules
-      - ./assets:/usr/src/app/assets
+      - ./public/assets:/usr/src/app/public/assets
     ports:
       - '9000:9000'
     networks:
@@ -57,5 +57,3 @@ services:
 volumes:
   mariadb-data:
     name: gpicm-dev-db
-  assets:
-    name: gpicm-tem-assets

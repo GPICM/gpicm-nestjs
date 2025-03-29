@@ -37,7 +37,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     },
     {
       provide: BlobStorageRepository,
-      useFactory: () => new LocalBlobStorageRepository("assets"),
+      useFactory: () => new LocalBlobStorageRepository("public/assets"),
     },
     LogUserAction,
   ],
