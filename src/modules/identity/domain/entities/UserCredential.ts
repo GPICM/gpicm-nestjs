@@ -30,10 +30,6 @@ export class UserCredential {
     this.userId = newUserId;
   }
 
-  private static hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
-  }
-
   public verifyPassword(password: string): boolean {
     return bcrypt.compareSync(password, this.passwordHash!);
   }
@@ -49,7 +45,7 @@ export class UserCredential {
         email,
         password,
       });
-      const passwordHash = UserCredential.hashPassword(password);
+      const passwordHash = bcrypt.hashSync(password, 10);
 
       console.log("DEBUG: passwordHash", {
         passwordHash,
