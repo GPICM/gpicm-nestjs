@@ -107,4 +107,15 @@ export class User {
     // TODO: VALID IF VALID ROLES
     this.role = r;
   }
+
+  public toJSON() {
+    return {
+      id: this.id,
+      publicId: this.publicId,
+      name: this.name,
+      profilePicture: this.profilePicture ?? null,
+      gender: this.gender ?? null,
+      role: this.role,
+    };
+  }
 }
