@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
