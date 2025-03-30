@@ -2,6 +2,8 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
+import { EmailPasswordCredential, UserCredential } from "./UserCredential";
+
 export class User {
   public id?: number;
   public publicId: string;
@@ -20,7 +22,7 @@ export class User {
   public role: UserRoles;
 
   // Virtual
-  public credentials: any[];
+  public credentials: UserCredential[];
 
   constructor(args: NonFunctionProperties<User>) {
     Object.assign(this, args);
@@ -52,12 +54,43 @@ export class User {
     });
   }
 
+  public static CreateUser(
+    name: string,
+    email: string,
+    password: string,
+    deviceInfo?: Record<string, unknown>
+  ) {
+    const newDeviceKey = randomUUID();
+    return new User({
+      name: name,
+      publicId: randomUUID(),
+      role: UserRoles.USER,
+      deviceKey: newDeviceKey,
+      status: UserStatus.ACTIVE,
+      ipAddress: null,
+      deviceInfo: deviceInfo ?? null,
+      bio: null,
+      birthDate: null,
+      gender: null,
+      isVerified: false,
+      lastLoginAt: null,
+      phoneNumber: null,
+      profilePicture: null,
+      credentials: [new EmailPasswordCredential(null, email, password)],
+    });
+  }
+
   public isGuest() {
     return this.role === UserRoles.GUEST && !this.credentials.length;
   }
 
-  public setId(newId: number) {
-    this.id = newId;
+  public setId(newUserId: number) {
+    this.id = newUserId;
+    if (this.credentials.length) {
+      for (const cred of this.credentials) {
+        cred.setUserId(newUserId);
+      }
+    }
   }
 
   public setName(name: string) {

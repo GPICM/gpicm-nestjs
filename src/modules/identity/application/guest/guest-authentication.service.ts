@@ -4,10 +4,7 @@ import { Encryptor } from "../../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../../domain/interfaces/repositories/users-repository";
 import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
-import { Guest } from "../../domain/entities/Guest";
 import { UserJWTpayload } from "../../domain/object-values/user-jwt-payload";
-import { PrismaService } from "@/modules/shared/services/prisma-services";
-import { UserCredentialsRepository } from "../../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 
 export class GuestAuthenticationService {
@@ -17,10 +14,8 @@ export class GuestAuthenticationService {
     @Inject(HttpClient)
     private readonly httpClient: HttpClient,
     private readonly usersRepository: UsersRepository,
-    private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly logUserAction: LogUserAction,
-    private readonly encryptor: Encryptor<UserJWTpayload>,
-    private readonly prismaService: PrismaService
+    private readonly encryptor: Encryptor<UserJWTpayload>
   ) {}
 
   async signIn(
@@ -59,40 +54,6 @@ export class GuestAuthenticationService {
       await this.logUserAction.execute(guestUser.id!, "GUEST_SIGNIN");
 
       return { accessToken, deviceKey: guestUser.deviceKey };
-    } catch (error: unknown) {
-      this.logger.error("Failed to signin", { error });
-      throw new UnauthorizedException();
-    }
-  }
-
-  public async guestUpgrade(
-    guestUser: Guest,
-    params: {
-      name: string;
-      email: string;
-      password: string;
-    }
-  ): Promise<{ accessToken: string }> {
-    try {
-      this.logger.log("Started guest Sign Up", { guestUser, params });
-      const { name, email, password } = params;
-
-      if (guestUser.role !== UserRoles.GUEST) {
-        throw new Error("Users is no longe guest");
-      }
-
-      const newCredential = guestUser.upgrade(name, email, password);
-
-      await this.prismaService.openTransaction(async (tx) => {
-        await this.userCredentialsRepository.add(newCredential, tx);
-        await this.usersRepository.update(guestUser, tx);
-      });
-
-      const accessToken = this.encryptor.generateToken({
-        sub: guestUser.publicId,
-      });
-
-      return { accessToken };
     } catch (error: unknown) {
       this.logger.error("Failed to signin", { error });
       throw new UnauthorizedException();

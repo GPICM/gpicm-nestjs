@@ -15,6 +15,9 @@ export class SignInRequestBodyDto {
 
 export class SignUpRequestBodyDto {
   @IsString()
+  captchaToken: string;
+
+  @IsString()
   name: string;
 
   @IsString()
@@ -22,4 +25,8 @@ export class SignUpRequestBodyDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  @IsOptional()
+  deviceKey?: string;
 }

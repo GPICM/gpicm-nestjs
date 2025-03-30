@@ -5,20 +5,13 @@ import {
   UnauthorizedException,
   Ip,
   Logger,
-  UseGuards,
 } from "@nestjs/common";
-import {
-  SignInRequestBodyDto,
-  SignUpRequestBodyDto,
-} from "./dtos/guest-auth-request.dtos";
+import { SignInRequestBodyDto } from "./dtos/guest-auth-request.dtos";
 import { GuestAuthenticationService } from "../application/guest/guest-authentication.service";
-import { GuestUser } from "./meta/decorators/user.decorator";
-import { Guest } from "../domain/entities/Guest";
-import { GuestGuard, JwtAuthGuard } from "./meta";
 
 @Controller("identity/guest/auth")
-export class AuthController {
-  private readonly logger = new Logger(AuthController.name);
+export class GuestAuthController {
+  private readonly logger = new Logger(GuestAuthController.name);
 
   constructor(private readonly authService: GuestAuthenticationService) {}
 
@@ -35,27 +28,6 @@ export class AuthController {
         },
         process.env.NODE_ENV !== "production"
       );
-      return result;
-    } catch (error: unknown) {
-      this.logger.error("Failed to signIn Guest", { error });
-      throw new UnauthorizedException();
-    }
-  }
-
-  @Post("/upgrade")
-  @UseGuards(JwtAuthGuard, GuestGuard)
-  async signUp(
-    @Ip() ipAddress: string,
-    @Body() body: SignUpRequestBodyDto,
-    @GuestUser() guestUser: Guest
-  ): Promise<any> {
-    try {
-      this.logger.log("Started guest upgrade ", { ipAddress, body });
-      const result = await this.authService.guestUpgrade(guestUser, {
-        email: body.email,
-        name: body.name,
-        password: body.password,
-      });
       return result;
     } catch (error: unknown) {
       this.logger.error("Failed to signIn Guest", { error });

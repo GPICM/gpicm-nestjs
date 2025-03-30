@@ -4,7 +4,7 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 
 export class UserCredential {
-  public userId: number;
+  public userId: number | null;
 
   public provider: AuthProviders;
 
@@ -25,10 +25,14 @@ export class UserCredential {
   constructor(args: NonFunctionProperties<UserCredential>) {
     Object.assign(this, args);
   }
+
+  public setUserId(newUserId: number) {
+    this.userId = newUserId;
+  }
 }
 
 export class EmailPasswordCredential extends UserCredential {
-  constructor(userId: number, email: string, password: string) {
+  constructor(userId: number | null, email: string, password: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const passwordHash: string = bcrypt.hashSync(password, 10);
     super({

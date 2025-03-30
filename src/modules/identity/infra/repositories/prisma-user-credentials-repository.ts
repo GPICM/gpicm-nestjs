@@ -28,7 +28,7 @@ export class PrismaUserCredentialsRepository
         data: {
           email: userCredential.email,
           provider: userCredential.provider,
-          userId: userCredential.userId,
+          userId: userCredential.userId!,
           externalId: userCredential.externalId,
           isPrimary: userCredential.isPrimary,
           passwordHash: userCredential.passwordHash,

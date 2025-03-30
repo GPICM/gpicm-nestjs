@@ -1,5 +1,5 @@
 import { Global, Module } from "@nestjs/common";
-import { AuthController } from "./presentation/guest.auth.controller";
+import { GuestAuthController } from "./presentation/guest.auth.controller";
 import { SharedModule } from "../shared/shared.module";
 import { JwtAdapter } from "./infra/lib/jwt-Adapter";
 import { GuestAuthenticationService } from "./application/guest/guest-authentication.service";
@@ -11,11 +11,13 @@ import { DefaultJwtStrategy } from "./presentation/meta";
 import { UserCredentialsRepository } from "./domain/interfaces/repositories/user-credentials-repository";
 import { PrismaUserCredentialsRepository } from "./infra/repositories/prisma-user-credentials-repository";
 import { CommonAuthController } from "./presentation/common.auth.controller";
+import { AuthenticationService } from "./application/authentication.service";
 
 @Global()
 @Module({
-  controllers: [AuthController, CommonAuthController],
+  controllers: [GuestAuthController, CommonAuthController],
   providers: [
+    AuthenticationService,
     GuestAuthenticationService,
     AuthorizationService,
     DefaultJwtStrategy,
