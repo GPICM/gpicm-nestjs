@@ -70,18 +70,21 @@ export class AuthenticationService {
             password
           );
 
-          this.logger.log("newCredential:", { newCredential });
+          this.logger.log("DEBUG: newCredential:", { newCredential });
 
           newUser = User.Create(name, newCredential);
 
-          this.logger.log("newUser:", { newUser });
+          this.logger.log("DEBUG: [newUser'", { newUser });
           accessToken = this.encryptor.generateToken({
             sub: newUser.publicId,
           });
 
           this.logger.log("DEBUG: accesstoken:", { accessToken });
         } catch (error: unknown) {
-          console.log("Faled to create user", JSON.stringify(error, null, 4));
+          console.log(
+            "DEBUG: Faled to create user",
+            JSON.stringify(error, null, 4)
+          );
         }
       } else {
         this.logger.log("Upgrading guest user");
