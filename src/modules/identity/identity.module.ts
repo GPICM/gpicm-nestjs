@@ -10,10 +10,11 @@ import { UsersRepository } from "./domain/interfaces/repositories/users-reposito
 import { DefaultJwtStrategy } from "./presentation/meta";
 import { UserCredentialsRepository } from "./domain/interfaces/repositories/user-credentials-repository";
 import { PrismaUserCredentialsRepository } from "./infra/repositories/prisma-user-credentials-repository";
+import { CommonAuthController } from "./presentation/common.auth.controller";
 
 @Global()
 @Module({
-  controllers: [AuthController],
+  controllers: [AuthController, CommonAuthController],
   providers: [
     GuestAuthenticationService,
     AuthorizationService,
