@@ -67,17 +67,25 @@ export class AuthenticationService {
         this.logger.log("Creating a new user");
         newUser = User.Create(name, email, password);
 
+        this.logger.log("newUser:", { newUser });
         accessToken = this.encryptor.generateToken({
           sub: newUser.publicId,
         });
+
+        this.logger.log("accesstoken:", { accessToken });
       } else {
         this.logger.log("Upgrading guest user");
 
         guestUser.upgrade(name, email, password);
 
+        this.logger.log("guest upgraded", { guestUser });
+
         accessToken = this.encryptor.generateToken({
           sub: guestUser.publicId,
         });
+
+        this.logger.log("accesstoken:", { accessToken });
+
       }
 
       await this.prismaService.openTransaction(async (tx) => {
