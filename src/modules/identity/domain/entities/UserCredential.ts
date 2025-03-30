@@ -49,7 +49,7 @@ export class UserCredential {
         email,
         password,
       });
-      const passwordHash = this.hashPassword(password);
+      const passwordHash = UserCredential.hashPassword(password);
 
       console.log("DEBUG: passwordHash", {
         passwordHash,
