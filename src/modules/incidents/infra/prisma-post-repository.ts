@@ -57,7 +57,7 @@ export class PrismaPostRepository implements PostRepository {
       const skip = filters.offset;
       const take = filters.limit;
       const sort = filters.sort ?? "publishedAt";
-      const order = filters.order ?? "asc";
+      const order = filters.order ?? "desc";
 
       const where: Prisma.PostWhereInput = {};
 
