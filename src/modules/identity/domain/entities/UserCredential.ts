@@ -32,19 +32,36 @@ export class UserCredential {
 }
 
 export class EmailPasswordCredential extends UserCredential {
-  constructor(userId: number | null, email: string, password: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const passwordHash: string = bcrypt.hashSync(password, 10);
+  constructor(
+    userId: number | null,
+    email: string,
+    passwordHash: string,
+    isPrimary = true
+  ) {
     super({
-      userId,
       email,
+      userId,
       passwordHash,
+      isPrimary: isPrimary,
       provider: AuthProviders.EMAIL_PASSWORD,
-      isPrimary: true,
       externalId: null,
       lastPasswordChangeAt: null,
       temporaryPasswordExpiresAt: null,
       temporaryPasswordHash: null,
     });
+  }
+
+  public static Create(userId: number | null, email: string, password: string) {
+    const passwordHash = this.hashPassword(password);
+
+    return new EmailPasswordCredential(userId, email, passwordHash, true);
+  }
+
+  private static hashPassword(password: string): string {
+    return bcrypt.hashSync(password, 10);
+  }
+
+  public verifyPassword(password: string): boolean {
+    return bcrypt.compareSync(password, this.passwordHash!);
   }
 }

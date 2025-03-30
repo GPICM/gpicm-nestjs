@@ -54,7 +54,7 @@ export class User {
     });
   }
 
-  public static CreateUser(
+  public static Create(
     name: string,
     email: string,
     password: string,
@@ -76,7 +76,7 @@ export class User {
       lastLoginAt: null,
       phoneNumber: null,
       profilePicture: null,
-      credentials: [new EmailPasswordCredential(null, email, password)],
+      credentials: [EmailPasswordCredential.Create(null, email, password)],
     });
   }
 

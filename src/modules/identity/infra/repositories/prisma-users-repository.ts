@@ -2,9 +2,9 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UsersRepository } from "../../domain/interfaces/repositories/users-repository";
 import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
-import { UserAssembler } from "./mappers/prisma-user.assembler";
+import { UserAssembler, userInclude } from "./mappers/prisma-user.assembler";
 import { Inject, Logger } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { AuthProviders, PrismaClient } from "@prisma/client";
 
 export class PrismaUserRepository implements UsersRepository {
   private readonly logger: Logger = new Logger(PrismaUserRepository.name);
@@ -13,6 +13,33 @@ export class PrismaUserRepository implements UsersRepository {
     @Inject(PrismaService)
     private readonly prisma: PrismaService
   ) {}
+
+  public async findByCredentials(
+    provider: AuthProviders,
+    filters: { email: string }
+  ): Promise<User | null> {
+    try {
+      this.logger.log(`Finding user by credentials`, { provider, filters });
+
+      const result = await this.prisma.user.findFirst({
+        where: {
+          Credentials: {
+            every: {
+              email: filters.email,
+            },
+          },
+        },
+        include: userInclude,
+      });
+
+      return UserAssembler.fromPrisma(result);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to find user by device key`, {
+        error,
+      });
+      throw new Error("Error retrieving user by device key");
+    }
+  }
 
   async findUserByDeviceKey(
     deviceKey: string,
@@ -26,6 +53,7 @@ export class PrismaUserRepository implements UsersRepository {
           deviceKey,
           role: filters.roles ? { in: filters.roles } : undefined,
         },
+        include: userInclude,
       });
 
       return user ? UserAssembler.fromPrisma(user) : null;
@@ -42,7 +70,9 @@ export class PrismaUserRepository implements UsersRepository {
       this.logger.log(`Finding user by UUID: ${publicId}`);
       const user = await this.prisma.user.findUnique({
         where: { publicId },
+        include: userInclude,
       });
+
       return user ? UserAssembler.fromPrisma(user) : null;
     } catch (error: unknown) {
       this.logger.error(`Failed to find user by UUID: ${publicId}`, { error });

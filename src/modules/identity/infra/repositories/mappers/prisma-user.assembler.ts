@@ -1,12 +1,50 @@
 import { Guest } from "@/modules/identity/domain/entities/Guest";
 import { User } from "@/modules/identity/domain/entities/User";
+import {
+  EmailPasswordCredential,
+  UserCredential,
+} from "@/modules/identity/domain/entities/UserCredential";
+import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
-import { Prisma, User as PrismaUser } from "@prisma/client";
+import { Prisma, AuthProviders as PrismaAuthProviders } from "@prisma/client";
+
+export const userInclude = Prisma.validator<Prisma.UserInclude>()({
+  Credentials: true,
+});
+
+type UserJoinModel = Prisma.UserGetPayload<{
+  include: typeof userInclude;
+}>;
 
 export class UserAssembler {
-  public static fromPrisma(prismaData?: PrismaUser | null): User | null {
+  public static fromPrisma(prismaData?: UserJoinModel | null): User | null {
     if (!prismaData) return null;
+
+    let credentials: UserCredential[] = [];
+    if (prismaData.Credentials?.length) {
+      credentials = prismaData.Credentials.map((cred) => {
+        if (cred.provider === PrismaAuthProviders.EMAIL_PASSWORD) {
+          return new EmailPasswordCredential(
+            cred.userId,
+            cred.email,
+            cred.passwordHash!
+          );
+        }
+
+        return new UserCredential({
+          email: cred.email,
+          externalId: cred.externalId,
+          isPrimary: cred.isPrimary,
+          lastPasswordChangeAt: cred.lastPasswordChangeAt,
+          passwordHash: cred.passwordHash,
+          provider: cred.provider as AuthProviders,
+          temporaryPasswordExpiresAt: cred.temporaryPasswordExpiresAt,
+          temporaryPasswordHash: cred.temporaryPasswordHash,
+          userId: cred.userId,
+        });
+      });
+    }
 
     if (prismaData.role === "GUEST") {
       return new Guest({
@@ -25,7 +63,7 @@ export class UserAssembler {
         phoneNumber: prismaData.phoneNumber,
         profilePicture: prismaData.profilePicture,
         status: prismaData.status as UserStatus,
-        credentials: [],
+        credentials,
       });
     }
 
@@ -45,7 +83,7 @@ export class UserAssembler {
       phoneNumber: prismaData.phoneNumber,
       profilePicture: prismaData.profilePicture,
       status: prismaData.status as UserStatus,
-      credentials: [],
+      credentials,
     });
   }
 

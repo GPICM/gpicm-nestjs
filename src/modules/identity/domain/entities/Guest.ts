@@ -19,7 +19,13 @@ export class Guest extends User {
 
     this.setName(name);
     this.setRole(UserRoles.USER);
-    const newCredential = new EmailPasswordCredential(this.id, email, password);
+
+    const newCredential = EmailPasswordCredential.Create(
+      this.id,
+      email,
+      password
+    );
+
     this.credentials.push(newCredential);
 
     return newCredential;
