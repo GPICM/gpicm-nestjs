@@ -1,8 +1,13 @@
 import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-import { PostRepository } from "../domain/interfaces/repositories/post-repository";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+  PostRepository,
+} from "../domain/interfaces/repositories/post-repository";
 import { Post } from "../domain/entities/Post";
 import { PostAssembler, postInclude } from "./mappers/post.assembler";
+import { Prisma } from "@prisma/client";
 
 export class PrismaPostRepository implements PostRepository {
   private readonly logger: Logger = new Logger(PrismaPostRepository.name);
@@ -44,16 +49,40 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  public async listAll(): Promise<Post[]> {
+  public async listAll(
+    filters: BaseRepositoryFindManyFilters,
+    options?: { transactionContext?: unknown }
+  ): Promise<BaseRepositoryFindManyResult<Post>> {
     try {
-      this.logger.log("Fetching all posts...");
-      const resultData = await this.prisma.post.findMany({
-        orderBy: { publishedAt: "desc" },
-        include: postInclude,
-      });
+      const skip = filters.offset;
+      const take = filters.limit;
+      const sort = filters.sort ?? "publishedAt";
+      const order = filters.order ?? "asc";
 
-      this.logger.log(`Total posts found: ${resultData.length}`);
-      return PostAssembler.fromPrismaMany(resultData);
+      const where: Prisma.PostWhereInput = {};
+
+      if (filters.search) {
+        where.OR = [
+          { title: { contains: filters.search } },
+          { content: { contains: filters.search } },
+        ];
+      }
+
+      const [prismaResult, count] = await Promise.all([
+        this.prisma.post.findMany({
+          where,
+          take,
+          skip,
+          orderBy: { [sort]: order },
+          include: postInclude,
+        }),
+        this.prisma.post.count({
+          where,
+        }),
+      ]);
+
+      const records = PostAssembler.fromPrismaMany(prismaResult);
+      return { records, count };
     } catch (error: unknown) {
       this.logger.error("Failed to list posts", { error });
       throw new Error("Failed to list posts");

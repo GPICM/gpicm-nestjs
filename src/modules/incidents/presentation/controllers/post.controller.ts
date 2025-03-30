@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Logger } from "@nestjs/common";
+import { Controller, Get, Param, Logger, Query } from "@nestjs/common";
 
 import { PostRepository } from "../../domain/interfaces/repositories/post-repository";
+import { ListPostQueryDto } from "./dtos/list-post.dtos";
+import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
 
 @Controller("posts")
 export class PostController {
@@ -9,9 +11,26 @@ export class PostController {
   constructor(private readonly postRepository: PostRepository) {}
 
   @Get()
-  async list() {
+  async list(@Query() query: ListPostQueryDto) {
     this.logger.log("Fetching all posts");
-    return await this.postRepository.listAll();
+
+    const filters = {
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+    };
+
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } = await this.postRepository.listAll({
+      limit,
+      offset,
+      search: filters.search,
+    });
+
+    return new PaginatedResponse(records, total, limit, page, filters);
   }
 
   @Get(":postSlug")
