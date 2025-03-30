@@ -1,7 +1,9 @@
 FROM node:slim AS development
 
+
 RUN apt-get update -y \
-    && apt-get install -y openssl
+    && apt-get install -y openssl python3 build-essential \
+    && rm -rf /var/lib/apt/lists/*  
 
 WORKDIR /usr/src/app
 
@@ -22,7 +24,7 @@ EXPOSE 3000
 CMD ["sh", "-c", "npm run db:deploy && yarn start:dev"]
 
 
-FROM node:20-alpine AS build
+FROM node:slim  AS build
 
 WORKDIR /usr/src/app
 
@@ -42,7 +44,7 @@ RUN yarn install --frozen-lockfile --production && yarn cache clean
 
 USER node
 
-FROM node:20-alpine AS production
+FROM node:slim  AS production
 
 WORKDIR /usr/src/app
 
