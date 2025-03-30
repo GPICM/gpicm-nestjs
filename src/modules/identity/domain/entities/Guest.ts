@@ -1,7 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { User } from "./User";
 import { UserRoles } from "../enums/user-roles";
-import { EmailPasswordCredential, UserCredential } from "./UserCredential";
+import { UserCredential } from "./UserCredential";
 
 export class Guest extends User {
   constructor(args: NonFunctionProperties<User>) {
@@ -18,15 +18,16 @@ export class Guest extends User {
     }
 
     this.setName(name);
+
     this.setRole(UserRoles.USER);
 
-    const newCredential = EmailPasswordCredential.Create(
+    const newCredential = UserCredential.CreateEmailPasswordCredential(
       this.id,
       email,
       password
     );
 
-    this.credentials.push(newCredential);
+    this.addCredentials(newCredential);
 
     return newCredential;
   }

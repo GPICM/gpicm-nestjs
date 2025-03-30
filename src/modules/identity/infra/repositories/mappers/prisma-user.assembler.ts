@@ -1,13 +1,10 @@
 import { Guest } from "@/modules/identity/domain/entities/Guest";
 import { User } from "@/modules/identity/domain/entities/User";
-import {
-  EmailPasswordCredential,
-  UserCredential,
-} from "@/modules/identity/domain/entities/UserCredential";
+import { UserCredential } from "@/modules/identity/domain/entities/UserCredential";
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
-import { Prisma, AuthProviders as PrismaAuthProviders } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export const userInclude = Prisma.validator<Prisma.UserInclude>()({
   Credentials: true,
@@ -25,14 +22,6 @@ export class UserAssembler {
 
     if (prismaData.Credentials?.length) {
       credentials = prismaData.Credentials.map((cred) => {
-        if (cred.provider == PrismaAuthProviders.EMAIL_PASSWORD) {
-          return new EmailPasswordCredential(
-            cred.userId,
-            cred.email,
-            cred.passwordHash!
-          );
-        }
-
         return new UserCredential({
           email: cred.email,
           externalId: cred.externalId,

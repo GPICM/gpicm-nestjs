@@ -13,9 +13,9 @@ import { UserJWTpayload } from "../domain/object-values/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
-import { EmailPasswordCredential } from "../domain/entities/UserCredential";
 import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
+import { UserCredential } from "../domain/entities/UserCredential";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -47,8 +47,6 @@ export class AuthenticationService {
         guestUser = (await this.usersRepository.findUserByDeviceKey(deviceKey, {
           roles: [UserRoles.GUEST],
         })) as Guest | null;
-
-        this.logger.log("guest result: ", guestUser);
       }
 
       const emailExists = await this.usersRepository.findByCredentials(
@@ -64,33 +62,39 @@ export class AuthenticationService {
 
       let newUser: User | null = null;
       if (!guestUser) {
-        this.logger.log("Creating a new user: -> ");
+        this.logger.log("DEBUG: Creating a new user: -> ");
         try {
-          newUser = User.Create(name, email, password);
+          const newCredential = UserCredential.CreateEmailPasswordCredential(
+            null,
+            email,
+            password
+          );
+
+          this.logger.log("newCredential:", { newCredential });
+
+          newUser = User.Create(name, newCredential);
 
           this.logger.log("newUser:", { newUser });
           accessToken = this.encryptor.generateToken({
             sub: newUser.publicId,
           });
 
-          this.logger.log("accesstoken:", { accessToken });
+          this.logger.log("DEBUG: accesstoken:", { accessToken });
         } catch (error: unknown) {
           console.log("Faled to create user", JSON.stringify(error, null, 4));
         }
-
       } else {
         this.logger.log("Upgrading guest user");
 
         guestUser.upgrade(name, email, password);
 
-        this.logger.log("guest upgraded", { guestUser });
+        this.logger.log("DEBUG:  guest upgraded", { guestUser });
 
         accessToken = this.encryptor.generateToken({
           sub: guestUser.publicId,
         });
 
-        this.logger.log("accesstoken:", { accessToken });
-
+        this.logger.log("DEBUG: accesstoken:", { accessToken });
       }
 
       await this.prismaService.openTransaction(async (tx) => {
@@ -137,9 +141,7 @@ export class AuthenticationService {
         throw new UnauthorizedException("Invalid credentials");
       }
 
-      const credential = user.getCredential(
-        AuthProviders.EMAIL_PASSWORD
-      ) as EmailPasswordCredential | null;
+      const credential = user.getCredential(AuthProviders.EMAIL_PASSWORD);
 
       if (!credential || !credential.verifyPassword(password)) {
         throw new UnauthorizedException("Invalid credentials");

@@ -2,7 +2,7 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
-import { EmailPasswordCredential, UserCredential } from "./UserCredential";
+import { UserCredential } from "./UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
 
 export class User {
@@ -60,19 +60,16 @@ export class User {
     });
   }
 
-  public static Create(
-    name: string,
-    email: string,
-    password: string,
-    deviceInfo?: Record<string, unknown>
-  ) {
+  public static Create(name: string, credential: UserCredential) {
     try {
-      console.log("Creating user", { name, email, password, deviceInfo });
+      console.log("DEBUG: Creating user", { name, credential });
 
       const publicId = randomUUID();
       const deviceKey = randomUUID();
 
-      console.log("Generated:", { publicId, deviceKey });
+      console.log("DEBUG: Generated:", { publicId, deviceKey });
+
+      console.log("DEBUG: newCredential", { credential });
 
       return new User({
         name,
@@ -81,7 +78,7 @@ export class User {
         role: UserRoles.USER,
         status: UserStatus.ACTIVE,
         ipAddress: null,
-        deviceInfo: deviceInfo ?? null,
+        deviceInfo: null,
         bio: null,
         birthDate: null,
         gender: null,
@@ -89,7 +86,7 @@ export class User {
         lastLoginAt: null,
         phoneNumber: null,
         profilePicture: null,
-        credentials: [EmailPasswordCredential.Create(null, email, password)],
+        credentials: [credential],
       });
     } catch (error: unknown) {
       console.log("Failed to create new user", { error });
@@ -116,8 +113,11 @@ export class User {
   }
 
   public setRole(r: UserRoles) {
-    // TODO: VALID IF VALID ROLES
     this.role = r;
+  }
+
+  public addCredentials(credential: UserCredential) {
+    this.credentials.push(credential);
   }
 
   public toJSON() {

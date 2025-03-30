@@ -29,33 +29,6 @@ export class UserCredential {
   public setUserId(newUserId: number) {
     this.userId = newUserId;
   }
-}
-
-export class EmailPasswordCredential extends UserCredential {
-  constructor(
-    userId: number | null,
-    email: string,
-    passwordHash: string,
-    isPrimary = true
-  ) {
-    super({
-      email,
-      userId,
-      passwordHash,
-      isPrimary: isPrimary,
-      provider: AuthProviders.EMAIL_PASSWORD,
-      externalId: null,
-      lastPasswordChangeAt: null,
-      temporaryPasswordExpiresAt: null,
-      temporaryPasswordHash: null,
-    });
-  }
-
-  public static Create(userId: number | null, email: string, password: string) {
-    const passwordHash = this.hashPassword(password);
-
-    return new EmailPasswordCredential(userId, email, passwordHash, true);
-  }
 
   private static hashPassword(password: string): string {
     return bcrypt.hashSync(password, 10);
@@ -63,5 +36,47 @@ export class EmailPasswordCredential extends UserCredential {
 
   public verifyPassword(password: string): boolean {
     return bcrypt.compareSync(password, this.passwordHash!);
+  }
+
+  public static CreateEmailPasswordCredential(
+    userId: number | null,
+    email: string,
+    password: string
+  ): UserCredential {
+    try {
+      console.log("DEBUG: creating  EMAIL_PASSWORD credential", {
+        userId,
+        email,
+        password,
+      });
+      const passwordHash = this.hashPassword(password);
+
+      console.log("DEBUG: passwordHash", {
+        passwordHash,
+      });
+
+      const credential = new UserCredential({
+        email,
+        userId,
+        passwordHash,
+        isPrimary: true,
+        provider: AuthProviders.EMAIL_PASSWORD,
+        externalId: null,
+        lastPasswordChangeAt: null,
+        temporaryPasswordExpiresAt: null,
+        temporaryPasswordHash: null,
+      });
+
+      console.log("DEBUG: cred", {
+        credential,
+      });
+
+      return credential;
+    } catch (error: unknown) {
+      console.error("DEBUG: failed to create credentialsk", {
+        error: JSON.stringify(error, null, 4),
+      });
+      throw error;
+    }
   }
 }
