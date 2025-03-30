@@ -8,6 +8,7 @@ import {
   Ip,
   Body,
   Inject,
+  HttpException,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
@@ -45,7 +46,7 @@ export class CommonAuthController {
     @Body() body: SignUpRequestBodyDto
   ): Promise<any> {
     try {
-      this.logger.log("Started guest upgrade ", { ipAddress, body });
+      this.logger.log("SignUp started ", { ipAddress, body });
       const result = await this.authenticationService.signUp({
         email: body.email,
         name: body.name,
@@ -54,7 +55,11 @@ export class CommonAuthController {
       });
       return result;
     } catch (error: unknown) {
-      this.logger.error("Failed to signIn Guest", { error });
+      this.logger.error("Failed to sign up guest", { error });
+      if (error instanceof HttpException && error?.getStatus() === 409) {
+        throw error;
+      }
+
       throw new UnauthorizedException();
     }
   }

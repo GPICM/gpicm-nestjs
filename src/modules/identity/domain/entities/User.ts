@@ -66,12 +66,11 @@ export class User {
     password: string,
     deviceInfo?: Record<string, unknown>
   ) {
-    const newDeviceKey = randomUUID();
     return new User({
       name: name,
       publicId: randomUUID(),
       role: UserRoles.USER,
-      deviceKey: newDeviceKey,
+      deviceKey: randomUUID(),
       status: UserStatus.ACTIVE,
       ipAddress: null,
       deviceInfo: deviceInfo ?? null,

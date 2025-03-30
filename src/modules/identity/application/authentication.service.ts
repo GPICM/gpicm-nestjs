@@ -1,4 +1,9 @@
-import { Inject, Logger, UnauthorizedException } from "@nestjs/common";
+import {
+  ConflictException,
+  Inject,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Encryptor } from "../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { User } from "../domain/entities/User";
@@ -10,6 +15,7 @@ import { UserCredentialsRepository } from "../domain/interfaces/repositories/use
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 import { EmailPasswordCredential } from "../domain/entities/UserCredential";
 import { AuthProviders } from "../domain/enums/auth-provider";
+import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -30,26 +36,43 @@ export class AuthenticationService {
     deviceKey?: string;
   }): Promise<{ accessToken: string }> {
     try {
-      this.logger.log("Started guest Sign Up", { params });
+      this.logger.log("Started Sign Up", { params });
       const { name, email, password, deviceKey } = params;
 
       let accessToken: string = "";
 
       let guestUser: Guest | null = null;
       if (deviceKey) {
+        this.logger.log("DEvice key intercepted. searching for its guest");
         guestUser = (await this.usersRepository.findUserByDeviceKey(deviceKey, {
           roles: [UserRoles.GUEST],
         })) as Guest | null;
+
+        this.logger.log("guest result: ", guestUser);
+      }
+
+      const emailExists = await this.usersRepository.findByCredentials(
+        AuthProviders.EMAIL_PASSWORD,
+        { email }
+      );
+
+      if (emailExists) {
+        throw new ConflictException(
+          new ClientError("EMAIL_ALREADY_IN_USE", "E-mail is already in use")
+        );
       }
 
       let newUser: User | null = null;
       if (!guestUser) {
+        this.logger.log("Creating a new user");
         newUser = User.Create(name, email, password);
 
         accessToken = this.encryptor.generateToken({
           sub: newUser.publicId,
         });
       } else {
+        this.logger.log("Upgrading guest user");
+
         guestUser.upgrade(name, email, password);
 
         accessToken = this.encryptor.generateToken({
@@ -80,7 +103,7 @@ export class AuthenticationService {
       return { accessToken };
     } catch (error: unknown) {
       this.logger.error("Failed to signin", { error });
-      throw new UnauthorizedException();
+      throw error;
     }
   }
 
@@ -122,4 +145,3 @@ export class AuthenticationService {
     }
   }
 }
-
