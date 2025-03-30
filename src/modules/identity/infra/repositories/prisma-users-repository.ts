@@ -24,7 +24,7 @@ export class PrismaUserRepository implements UsersRepository {
       const result = await this.prisma.user.findFirst({
         where: {
           Credentials: {
-            every: {
+            some: {
               email: filters.email,
             },
           },

@@ -1,5 +1,4 @@
 import { Inject, Logger, UnauthorizedException } from "@nestjs/common";
-import { HttpClient } from "../../shared/domain/interfaces/http-client/http-client";
 import { Encryptor } from "../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { User } from "../domain/entities/User";
@@ -9,13 +8,14 @@ import { UserJWTpayload } from "../domain/object-values/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
+import { EmailPasswordCredential } from "../domain/entities/UserCredential";
+import { AuthProviders } from "../domain/enums/auth-provider";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
 
   constructor(
-    @Inject(HttpClient)
-    private readonly httpClient: HttpClient,
+    @Inject(UsersRepository)
     private readonly usersRepository: UsersRepository,
     private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly logUserAction: LogUserAction,
@@ -44,7 +44,7 @@ export class AuthenticationService {
 
       let newUser: User | null = null;
       if (!guestUser) {
-        newUser = User.CreateUser(name, email, password);
+        newUser = User.Create(name, email, password);
 
         accessToken = this.encryptor.generateToken({
           sub: newUser.publicId,
@@ -84,53 +84,42 @@ export class AuthenticationService {
     }
   }
 
-  public async validateReCaptcha({
-    captcha,
-    ipAddress = "localhost",
-  }: {
-    captcha: string;
-    ipAddress?: string;
-  }): Promise<boolean> {
+  public async signIn(params: {
+    email: string;
+    password: string;
+  }): Promise<{ accessToken: string }> {
     try {
-      const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_PRIVATE_KEY}&response=${captcha}&remoteip=${ipAddress}`;
+      this.logger.log("Started user Sign In", { params });
+      const { email, password } = params;
 
-      const response = await this.httpClient.request({
-        url: verificationUrl,
-        method: "POST",
-        body: { captcha },
+      const user = await this.usersRepository.findByCredentials(
+        AuthProviders.EMAIL_PASSWORD,
+        { email }
+      );
+
+      if (!user) {
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      const credential = user.getCredential(
+        AuthProviders.EMAIL_PASSWORD
+      ) as EmailPasswordCredential | null;
+
+      if (!credential || !credential.verifyPassword(password)) {
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      const accessToken = this.encryptor.generateToken({
+        sub: user.publicId,
       });
 
-      console.log(response);
+      await this.logUserAction.execute(user.id!, "SIGNIN");
 
-      if (response.isError()) {
-        throw new Error("Failed to request recaptcha");
-      }
-
-      const data = response.getData<ReCaptchaResult>();
-      if (data.success !== true) {
-        throw new Error("Repatch payload is malformed");
-      }
-
-      this.logger.log("Successfully validated ReCaptcha", { data });
-      return true;
+      return { accessToken };
     } catch (error: unknown) {
-      this.logger.error("Failed to validate ReCaptcha", { error });
-      return false;
+      this.logger.error("Failed to sign in", { error });
+      throw new UnauthorizedException();
     }
   }
 }
 
-export type ReCaptchaResult = {
-  success: boolean;
-  challenge_ts: string;
-  hostname: string;
-  score: number;
-};
-
-export interface GuestSignInParams {
-  captchaToken: string;
-  name?: string;
-  deviceKey?: string;
-  ipAddress?: string;
-  deviceInfo?: Record<string, unknown>;
-}

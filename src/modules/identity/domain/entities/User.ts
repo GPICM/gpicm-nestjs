@@ -3,6 +3,7 @@ import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
 import { EmailPasswordCredential, UserCredential } from "./UserCredential";
+import { AuthProviders } from "../enums/auth-provider";
 
 export class User {
   public id?: number;
@@ -26,6 +27,11 @@ export class User {
 
   constructor(args: NonFunctionProperties<User>) {
     Object.assign(this, args);
+  }
+
+  public getCredential(provider: AuthProviders): UserCredential | null {
+    const found = this.credentials.find((c) => c.provider === provider);
+    return found ?? null;
   }
 
   public static CreateGuest(

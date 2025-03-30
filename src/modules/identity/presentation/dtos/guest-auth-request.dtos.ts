@@ -1,6 +1,6 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-export class SignInRequestBodyDto {
+export class GuestSignInRequestBodyDto {
   @IsString()
   captchaToken: string;
 
@@ -11,6 +11,16 @@ export class SignInRequestBodyDto {
   @IsString()
   @IsOptional()
   name?: string;
+}
+
+export class SignInRequestBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
 
 export class SignUpRequestBodyDto {

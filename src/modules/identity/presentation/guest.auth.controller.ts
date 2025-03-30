@@ -6,7 +6,7 @@ import {
   Ip,
   Logger,
 } from "@nestjs/common";
-import { SignInRequestBodyDto } from "./dtos/guest-auth-request.dtos";
+import { GuestSignInRequestBodyDto } from "./dtos/guest-auth-request.dtos";
 import { GuestAuthenticationService } from "../application/guest/guest-authentication.service";
 
 @Controller("identity/guest/auth")
@@ -16,7 +16,10 @@ export class GuestAuthController {
   constructor(private readonly authService: GuestAuthenticationService) {}
 
   @Post("/signin")
-  async signIn(@Ip() ipAddress: string, @Body() body: SignInRequestBodyDto) {
+  async signIn(
+    @Ip() ipAddress: string,
+    @Body() body: GuestSignInRequestBodyDto
+  ) {
     try {
       this.logger.log("Started guest signin ", { ipAddress, body });
       const result = await this.authService.signIn(

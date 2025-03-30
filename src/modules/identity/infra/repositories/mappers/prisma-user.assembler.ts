@@ -22,9 +22,10 @@ export class UserAssembler {
     if (!prismaData) return null;
 
     let credentials: UserCredential[] = [];
+
     if (prismaData.Credentials?.length) {
       credentials = prismaData.Credentials.map((cred) => {
-        if (cred.provider === PrismaAuthProviders.EMAIL_PASSWORD) {
+        if (cred.provider == PrismaAuthProviders.EMAIL_PASSWORD) {
           return new EmailPasswordCredential(
             cred.userId,
             cred.email,
@@ -63,7 +64,7 @@ export class UserAssembler {
         phoneNumber: prismaData.phoneNumber,
         profilePicture: prismaData.profilePicture,
         status: prismaData.status as UserStatus,
-        credentials,
+        credentials: [],
       });
     }
 
