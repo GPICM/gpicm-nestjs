@@ -66,23 +66,35 @@ export class User {
     password: string,
     deviceInfo?: Record<string, unknown>
   ) {
-    return new User({
-      name: name,
-      publicId: randomUUID(),
-      role: UserRoles.USER,
-      deviceKey: randomUUID(),
-      status: UserStatus.ACTIVE,
-      ipAddress: null,
-      deviceInfo: deviceInfo ?? null,
-      bio: null,
-      birthDate: null,
-      gender: null,
-      isVerified: false,
-      lastLoginAt: null,
-      phoneNumber: null,
-      profilePicture: null,
-      credentials: [EmailPasswordCredential.Create(null, email, password)],
-    });
+    try {
+      console.log("Creating user", { name, email, password, deviceInfo });
+
+      const publicId = randomUUID();
+      const deviceKey = randomUUID();
+
+      console.log("Generated:", { publicId, deviceKey });
+
+      return new User({
+        name,
+        publicId,
+        deviceKey,
+        role: UserRoles.USER,
+        status: UserStatus.ACTIVE,
+        ipAddress: null,
+        deviceInfo: deviceInfo ?? null,
+        bio: null,
+        birthDate: null,
+        gender: null,
+        isVerified: false,
+        lastLoginAt: null,
+        phoneNumber: null,
+        profilePicture: null,
+        credentials: [EmailPasswordCredential.Create(null, email, password)],
+      });
+    } catch (error: unknown) {
+      console.log("Failed to create new user", { error });
+      throw error;
+    }
   }
 
   public isGuest() {

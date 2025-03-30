@@ -64,15 +64,20 @@ export class AuthenticationService {
 
       let newUser: User | null = null;
       if (!guestUser) {
-        this.logger.log("Creating a new user");
-        newUser = User.Create(name, email, password);
+        this.logger.log("Creating a new user: -> ");
+        try {
+          newUser = User.Create(name, email, password);
 
-        this.logger.log("newUser:", { newUser });
-        accessToken = this.encryptor.generateToken({
-          sub: newUser.publicId,
-        });
+          this.logger.log("newUser:", { newUser });
+          accessToken = this.encryptor.generateToken({
+            sub: newUser.publicId,
+          });
 
-        this.logger.log("accesstoken:", { accessToken });
+          this.logger.log("accesstoken:", { accessToken });
+        } catch (error: unknown) {
+          console.log("Faled to create user", JSON.stringify(error, null, 4));
+        }
+
       } else {
         this.logger.log("Upgrading guest user");
 
