@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./modules/app.module";
 
@@ -6,7 +7,7 @@ import {
   ValidationPipe,
   VersioningType,
 } from "@nestjs/common";
-import { AllExceptionsFilter } from "./GlobalExceptionFilter";
+import { winstonLogger, logtail } from "./logger";
 
 async function bootstrap(): Promise<INestApplication<any>> {
   const banner = `
@@ -21,7 +22,7 @@ Y88b  d88P 888         888  Y88b  d88P 888   "   888
  `;
   console.log(banner);
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: winstonLogger });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -45,7 +46,17 @@ Y88b  d88P 888         888  Y88b  d88P 888   "   888
 
 async function main() {
   const app = await bootstrap();
-  app.useGlobalFilters(new AllExceptionsFilter());
+  // app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Graceful shutdown
+  app.enableShutdownHooks();
+
+  process.on("SIGINT", async () => {
+    console.log("SIGINT received, flushing logs...");
+    await logtail.flush(); // flush Logs
+    process.exit(0);
+  });
+
   await app.listen(process.env.PORT ?? 9000);
 }
 

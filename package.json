@@ -24,6 +24,8 @@
     "db:deploy": "npx prisma migrate deploy --schema database/mysql/prisma/schema.prisma && yarn run prisma:generate"
   },
   "dependencies": {
+    "@logtail/node": "^0.5.2",
+    "@logtail/winston": "^0.5.2",
     "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
@@ -42,12 +44,14 @@
     "keyv": "^5.2.3",
     "mime-types": "^3.0.1",
     "mongodb": "^6.14.0",
+    "nest-winston": "^1.10.2",
     "passport": "^0.7.0",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
