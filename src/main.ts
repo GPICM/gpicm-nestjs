@@ -6,6 +6,7 @@ import {
   ValidationPipe,
   VersioningType,
 } from "@nestjs/common";
+import { AllExceptionsFilter } from "./GlobalExceptionFilter";
 
 async function bootstrap(): Promise<INestApplication<any>> {
   const banner = `
@@ -26,7 +27,7 @@ Y88b  d88P 888         888  Y88b  d88P 888   "   888
     new ValidationPipe({
       transform: true,
       whitelist: true,
-    }),
+    })
   );
 
   app.enableVersioning({
@@ -44,6 +45,7 @@ Y88b  d88P 888         888  Y88b  d88P 888   "   888
 
 async function main() {
   const app = await bootstrap();
+  app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(process.env.PORT ?? 9000);
 }
 

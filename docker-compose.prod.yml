@@ -9,6 +9,7 @@ services:
   web: 
     container_name: "gpcim-react-app"
     image: fonsecabarreto/weather-react-app:latest
+    restart: always
     mem_limit: 128m
     hostname: web
     ports:
@@ -29,6 +30,7 @@ services:
   api:
     image: fonsecabarreto/gpicm-nestjs-app:latest
     container_name: gpcim-nestjs-api
+    restart: always
     env_file:
       - .env.production
     volumes:
@@ -41,6 +43,7 @@ services:
   worker1:
     image: fonsecabarreto/gpicm-metrics-computation:latest
     container_name: gpcim-metrics-computation
+    restart: always
     env_file:
       - .env.production
     ports:
@@ -51,6 +54,7 @@ services:
   worker2:
     image: fonsecabarreto/gpicm-sync-engine:latest
     container_name: gpicm-sync-engine
+    restart: always
     env_file:
       - .env.production
     ports:

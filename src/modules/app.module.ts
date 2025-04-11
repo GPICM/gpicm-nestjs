@@ -22,7 +22,7 @@ import { AssetsModule } from "./assets/assets.module";
     ReportsModule,
     IdentityModule,
     IncidentsModule,
-    AssetsModule
+    AssetsModule,
   ],
 })
 export class AppModule {}

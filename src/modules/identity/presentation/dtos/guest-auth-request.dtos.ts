@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class GuestSignInRequestBodyDto {
   @IsString()
@@ -31,6 +31,7 @@ export class SignUpRequestBodyDto {
   name: string;
 
   @IsString()
+  @IsEmail()
   email: string;
 
   @IsString()
