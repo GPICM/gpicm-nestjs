@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Inject,
@@ -33,10 +34,12 @@ export class WeatherReportsController {
   async getRainMetrics(
     @Query() query: WeatherMetricsRequestQuery
   ): Promise<any> {
-    const { startDate, endDate } = query;
+    const { startDate, endDate, stationSlugs } = query;
+
     return this.mongoDbWeatherRecordsRepository.getAggregatedRainMetrics(
       startDate,
-      endDate
+      endDate,
+      { stationSlugs }
     );
   }
 }

@@ -47,8 +47,9 @@ export class MongoDbWeatherRecordsRepository {
 
   public async getAggregatedRainMetrics(
     startDate: Date,
-    endDate: Date
-  ): Promise<AggregatedWeatherResponse> {
+    endDate: Date,
+    options?: { stationSlugs?: string[] }
+  ): Promise<any> {
     try {
       this.db = this.mongoService.getDatabase();
 
@@ -56,22 +57,19 @@ export class MongoDbWeatherRecordsRepository {
         WEATHER_RECORDS_COLLECTION_NAME
       );
 
-      const matchStage = {
-        $match: {
-          timestamp: { $gte: startDate, $lt: endDate },
-        },
+      const matchState: Record<string, any> = {
+        timestamp: { $gte: startDate, $lt: endDate },
       };
 
-      const { config: dateTruncConfig, granularity } =
-        this.determineGranularity(startDate, endDate);
+      if (options?.stationSlugs?.length) {
+        matchState.stationSlug = { $in: options.stationSlugs };
+      }
 
       const pipeline = [
-        matchStage,
-        { $addFields: { intervalStart: { $dateTrunc: dateTruncConfig } } },
+        { $match: matchState },
         {
           $group: {
             _id: {
-              intervalStart: "$intervalStart",
               stationSlug: "$stationSlug",
             },
             totalRainVolume: { $sum: "$rainVolume" },
@@ -80,7 +78,6 @@ export class MongoDbWeatherRecordsRepository {
         {
           $project: {
             _id: 0,
-            intervalStart: "$_id.intervalStart",
             stationSlug: "$_id.stationSlug",
             totalRainVolume: { $round: ["$totalRainVolume", 1] },
           },
@@ -92,7 +89,7 @@ export class MongoDbWeatherRecordsRepository {
         .aggregate<AggregatedWeatherRecord>(pipeline)
         .toArray();
 
-      return { granularity, data };
+      return data;
     } catch (error: unknown) {
       console.error("Failed to aggregate weather records", { error });
       throw new Error(
