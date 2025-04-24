@@ -14,7 +14,7 @@ export class WeatherReportMetricsRequestQuery {
   endDate: Date;
 }
 
-export class WeatherReportMetricsByStationRequestQuery {
+export class WeatherMetricsRequestQuery {
   @IsDate({ message: "Data inválida" })
   @Transform((p) => (p.value === "" ? undefined : new Date(p.value)))
   startDate: Date;

@@ -45,6 +45,62 @@ export class MongoDbWeatherRecordsRepository {
     private readonly mongoService: MongodbService
   ) {}
 
+  public async getAggregatedRainMetrics(
+    startDate: Date,
+    endDate: Date
+  ): Promise<AggregatedWeatherResponse> {
+    try {
+      this.db = this.mongoService.getDatabase();
+
+      const collection = this.db.collection<MongoWeatherRecord>(
+        WEATHER_RECORDS_COLLECTION_NAME
+      );
+
+      const matchStage = {
+        $match: {
+          timestamp: { $gte: startDate, $lt: endDate },
+        },
+      };
+
+      const { config: dateTruncConfig, granularity } =
+        this.determineGranularity(startDate, endDate);
+
+      const pipeline = [
+        matchStage,
+        { $addFields: { intervalStart: { $dateTrunc: dateTruncConfig } } },
+        {
+          $group: {
+            _id: {
+              intervalStart: "$intervalStart",
+              stationSlug: "$stationSlug",
+            },
+            totalRainVolume: { $sum: "$rainVolume" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            intervalStart: "$_id.intervalStart",
+            stationSlug: "$_id.stationSlug",
+            totalRainVolume: { $round: ["$totalRainVolume", 1] },
+          },
+        },
+        { $sort: { intervalStart: 1, stationSlug: 1 } },
+      ];
+
+      const data = await collection
+        .aggregate<AggregatedWeatherRecord>(pipeline)
+        .toArray();
+
+      return { granularity, data };
+    } catch (error: unknown) {
+      console.error("Failed to aggregate weather records", { error });
+      throw new Error(
+        `Failed to aggregate weather records: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  }
+
   public async getAggregatedWeatherRecords(
     startDate: Date,
     endDate: Date,
