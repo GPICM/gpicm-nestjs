@@ -46,12 +46,16 @@ USER node
 
 FROM node:slim  AS production
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/app
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/package.json ./package.json
 COPY --chown=node:node --from=build /usr/src/app/database ./database
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+
+USER node
 
 CMD ["node", "dist/src/main"]
 
