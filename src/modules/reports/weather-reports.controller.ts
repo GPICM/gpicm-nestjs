@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Controller,
   Get,
   Inject,
@@ -12,6 +11,7 @@ import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mo
 import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-daily-metrics-repository";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 import { WeatherMetricsRequestQuery } from "./dtos/weather-reports-metrics-request";
+import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
 
 @Controller("weather")
 @UseGuards(JwtAuthGuard)
@@ -20,7 +20,9 @@ export class WeatherReportsController {
     @Inject(MongoDbWeatherRecordsRepository)
     private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository,
     @Inject(MongoDbDailyMetricsRepository)
-    private readonly mongoDbDailyMetricsRepository: MongoDbDailyMetricsRepository
+    private readonly mongoDbDailyMetricsRepository: MongoDbDailyMetricsRepository,
+    @Inject(MongoDbStationDailyMetricsRepository)
+    private readonly mongoDbStationDailyMetricsRepository: MongoDbStationDailyMetricsRepository
   ) {}
 
   @Get("/metrics")
@@ -40,6 +42,14 @@ export class WeatherReportsController {
       startDate,
       endDate,
       { stationSlugs }
+    );
+  }
+
+  @Get("/metrics/rain/insights")
+  @UseInterceptors(CacheInterceptor)
+  async getRainMetricsInsights(): Promise<any> {
+    return this.mongoDbStationDailyMetricsRepository.getRainInsights(
+      new Date().toISOString()
     );
   }
 }

@@ -19,7 +19,7 @@ export class MongoDbDailyMetricsRepository {
     try {
       this.db = this.mongoService.getDatabase();
       const collection = this.db.collection<MongoRegionDailyMetrics>(
-        REGION_DAILY_METRICS_COLLECTION_NAME,
+        REGION_DAILY_METRICS_COLLECTION_NAME
       );
 
       const data = await collection
@@ -66,4 +66,5 @@ export class MongoDbDailyMetricsRepository {
       );
     }
   }
+
 }
