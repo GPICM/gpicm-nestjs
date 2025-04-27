@@ -29,7 +29,7 @@ export class GuestAuthController {
           captchaToken: body.captchaToken,
           ipAddress: ipAddress,
         },
-        process.env.NODE_ENV !== "production"
+        true // process.env.NODE_ENV !== "production"
       );
       return result;
     } catch (error: unknown) {
