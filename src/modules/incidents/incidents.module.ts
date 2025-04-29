@@ -13,18 +13,20 @@ import { PrismaIncidentTypeRepository } from "./infra/prisma-incidentType-reposi
 @Module({
   controllers: [IncidentsController, IncidentTypeController, PostController],
   providers: [
+    /* todo: criar um modulo para post depois */
+    {
+      provide: PostRepository,
+      useClass: PrismaPostRepository,
+    },
+    /* Incidnets */
     {
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
     },
     {
-      provide: PostRepository,
-      useClass: PrismaPostRepository,
-    },
-    {
       provide: IncidentTypeRepository,
-      useClass: PrismaIncidentTypeRepository
-    }
+      useClass: PrismaIncidentTypeRepository,
+    },
   ],
   imports: [SharedModule],
   exports: [],

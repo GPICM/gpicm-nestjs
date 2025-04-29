@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Prisma, IncidentTypes as PrismaIncidentType } from "@prisma/client";
+import { IncidentTypes as PrismaIncidentType } from "@prisma/client";
 
 import { IncidentType } from "../../domain/entities/incidentType";
 
-export const incidentTypeInclude = Prisma.validator<Prisma.IncidentTypesInclude>()({
+/* export const incidentTypeInclude = Prisma.validator<Prisma.IncidentTypesInclude>()({
   Incident: false,
 });
 
 type IncidentTypeJoinModel = Prisma.IncidentTypesGetPayload<{
   include: typeof incidentTypeInclude;
-}>;
+}>; */
 
 class IncidentTypeAssembler {
   public static toPrisma(incidentType: IncidentType): PrismaIncidentType {
@@ -23,7 +23,7 @@ class IncidentTypeAssembler {
   }
 
   public static fromPrisma(
-    prismaData?: IncidentTypeJoinModel | null
+    prismaData?: PrismaIncidentType | null
   ): IncidentType | null {
     if (!prismaData) return null;
 
@@ -36,7 +36,7 @@ class IncidentTypeAssembler {
   }
 
   public static fromPrismaMany(
-    prismaDataArray: IncidentTypeJoinModel[]
+    prismaDataArray: PrismaIncidentType[]
   ): IncidentType[] {
     const incidentTypes: IncidentType[] = [];
     for (const prismaData of prismaDataArray) {

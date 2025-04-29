@@ -1,11 +1,15 @@
 import { Inject, Logger } from "@nestjs/common";
-import { IncidentTypesRepository } from "../domain/interfaces/repositories/incident-types-repository";
-import { IncidentTypeAssembler, incidentTypeInclude } from "./mappers/incidentType.mapper";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { IncidentType } from "@/modules/incidents/domain/entities/incidentType";
 
-export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
-  private readonly logger: Logger = new Logger(PrismaIncidentTypeRepository.name);
+import { IncidentTypeAssembler } from "./mappers/incidentType.mapper";
+
+import { IncidentTypeRepository } from "../domain/interfaces/repositories/incidentType-repository";
+
+export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
+  private readonly logger: Logger = new Logger(
+    PrismaIncidentTypeRepository.name
+  );
 
   constructor(
     @Inject(PrismaService)
@@ -15,9 +19,11 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
   async add(incidentType: IncidentType): Promise<void> {
     try {
       this.logger.log(`Adding new incident type: ${incidentType.name}`);
+
       await this.prisma.incidentTypes.create({
         data: IncidentTypeAssembler.toPrisma(incidentType),
       });
+
       this.logger.log(`Incident type added successfully: ${incidentType.id}`);
     } catch (error: unknown) {
       this.logger.error("Failed to add incident type", { incidentType, error });
@@ -34,7 +40,9 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
       });
       this.logger.log(`Incident type updated successfully: ${incidentType.id}`);
     } catch (error: unknown) {
-      this.logger.error(`Failed to update incident type: ${incidentType.id}`, { error });
+      this.logger.error(`Failed to update incident type: ${incidentType.id}`, {
+        error,
+      });
       throw new Error("Failed to update incident type");
     }
   }
@@ -47,7 +55,9 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
       });
       this.logger.log(`Incident type deleted successfully: ${incidentTypeId}`);
     } catch (error: unknown) {
-      this.logger.error(`Failed to delete incident type: ${incidentTypeId}`, { error });
+      this.logger.error(`Failed to delete incident type: ${incidentTypeId}`, {
+        error,
+      });
       throw new Error("Failed to delete incident type");
     }
   }
@@ -57,7 +67,6 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
       this.logger.log(`Fetching incident type by ID: ${incidentTypeId}`);
       const modelData = await this.prisma.incidentTypes.findUnique({
         where: { id: incidentTypeId },
-        include: incidentTypeInclude,
       });
 
       if (!modelData) {
@@ -68,7 +77,10 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
       this.logger.log(`Incident type found: ${incidentTypeId}`);
       return IncidentTypeAssembler.fromPrisma(modelData);
     } catch (error: unknown) {
-      this.logger.error(`Failed to find incident type by ID: ${incidentTypeId}`, { error });
+      this.logger.error(
+        `Failed to find incident type by ID: ${incidentTypeId}`,
+        { error }
+      );
       throw new Error("Failed to find incident type by ID");
     }
   }
@@ -78,7 +90,6 @@ export class PrismaIncidentTypeRepository implements IncidentTypesRepository {
       this.logger.log("Fetching all incident types...");
       const resultData = await this.prisma.incidentTypes.findMany({
         orderBy: { name: "asc" },
-        include: incidentTypeInclude,
       });
 
       this.logger.log(`Total incident types found: ${resultData.length}`);
