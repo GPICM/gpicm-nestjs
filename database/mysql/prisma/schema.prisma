@@ -134,6 +134,18 @@ model Incident {
   @@map("incidents")
 }
 
+model IncidentTypes {
+  id Int @id @default(autoincrement())
+
+  name String @db.LongText
+
+  description String @db.LongText
+
+  internalId Int @map("internal_id")
+
+  @@map("incident_types")
+}
+
 model Post {
   id          Int        @id @default(autoincrement())
   title       String     @db.LongText

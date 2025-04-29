@@ -21,6 +21,7 @@
     "prisma:generate": "npx prisma generate --schema database/mysql/prisma/schema.prisma",
     "prisma:migrate": "npx prisma migrate dev --schema database/mysql/prisma/schema.prisma",
     "prisma:push": "npx prisma db push --schema database/mysql/prisma/schema.prisma",
+    "prisma:studio": "npx prisma studio --schema database/mysql/prisma/schema.prisma",
     "db:deploy": "npx prisma migrate deploy --schema database/mysql/prisma/schema.prisma && yarn run prisma:generate"
   },
   "dependencies": {
