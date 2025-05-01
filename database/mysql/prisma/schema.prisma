@@ -165,6 +165,32 @@ model Post {
   @@map("posts")
 }
 
+/**
+ * Integrations
+ */
+model Partner {
+  id        Int             @id @default(autoincrement()) @map("id")
+  name      String          @map("name")
+  email     String          @unique @map("email")
+  apiKeys   PartnerApiKey[] @relation("PartnerApiKeys")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  @@map("partners")
+}
+
+model PartnerApiKey {
+  id        Int      @id @default(autoincrement()) @map("id")
+  key       String   @unique @map("key")
+  partnerId Int      @map("partner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  Partner Partner @relation("PartnerApiKeys", fields: [partnerId], references: [id])
+
+  @@map("partner_api_keys")
+}
+
 // Enums
 
 enum PostType {
