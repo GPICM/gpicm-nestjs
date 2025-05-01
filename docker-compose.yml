@@ -28,6 +28,7 @@ services:
     user: "1000:1000"
     depends_on:
       - db
+      - redis
 
   db:
     container_name: db
