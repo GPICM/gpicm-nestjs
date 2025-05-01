@@ -4,9 +4,14 @@ import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mo
 import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-daily-metrics-repository";
 import { WeatherTimeSeriesMetricsController } from "./weather-time-series-metrics.controller";
 import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
+import { PartnerMetricsController } from "./partner-metrics.controller";
 
 @Module({
-  controllers: [WeatherReportsController, WeatherTimeSeriesMetricsController],
+  controllers: [
+    WeatherReportsController,
+    WeatherTimeSeriesMetricsController,
+    PartnerMetricsController,
+  ],
   providers: [
     MongoDbDailyMetricsRepository,
     MongoDbWeatherRecordsRepository,

@@ -12,6 +12,9 @@ import { UserCredentialsRepository } from "./domain/interfaces/repositories/user
 import { PrismaUserCredentialsRepository } from "./infra/repositories/prisma-user-credentials-repository";
 import { CommonAuthController } from "./presentation/common.auth.controller";
 import { AuthenticationService } from "./application/authentication.service";
+import { PartnerApiKeysRepository } from "./domain/interfaces/repositories/partner-api-keys-repository";
+import { PrismaPartnerApiKeysRepository } from "./infra/repositories/prisma-partner-api-key-repository";
+import { PartnerApiKeyGuard } from "./presentation/meta/guards/partner-api-key.guard";
 
 @Global()
 @Module({
@@ -21,17 +24,27 @@ import { AuthenticationService } from "./application/authentication.service";
     GuestAuthenticationService,
     AuthorizationService,
     DefaultJwtStrategy,
+    PartnerApiKeyGuard,
     {
       provide: Encryptor,
       useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
     },
     { provide: UsersRepository, useClass: PrismaUserRepository },
     {
+      provide: PartnerApiKeysRepository,
+      useClass: PrismaPartnerApiKeysRepository,
+    },
+    {
       provide: UserCredentialsRepository,
       useClass: PrismaUserCredentialsRepository,
     },
   ],
   imports: [SharedModule],
-  exports: [Encryptor, DefaultJwtStrategy],
+  exports: [
+    Encryptor,
+    DefaultJwtStrategy,
+    PartnerApiKeysRepository,
+    PartnerApiKeyGuard,
+  ],
 })
 export class IdentityModule {}

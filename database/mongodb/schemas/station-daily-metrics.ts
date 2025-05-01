@@ -8,9 +8,11 @@ export interface MongoStationDailyMetrics {
 
   // Station
   stationSlug: string;
+  stationDescription: string;
 
   // Temperature
   latestTemperature: number | null;
+  latestAtmosphericPressure: number | null;
   avgTemperature: number | null;
   minTemperature: number | null;
   maxTemperature: number | null;
@@ -27,6 +29,7 @@ export interface MongoStationDailyMetrics {
 
   // Wind
   latestWindSpeed: number | null;
+  latestWindGust: number | null;
   avgWindSpeed: number | null;
   minWindSpeed: number | null;
   maxWindSpeed: number | null;
