@@ -2,22 +2,93 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Db } from "mongodb";
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import {
   STATION_DAILY_METRICS_COLLECTION_NAME,
   MongoStationDailyMetrics,
 } from "#database/mongodb/schemas/station-daily-metrics";
+import { MinuteMetricsByStation } from "@/modules/reports/domain/object-values/MinuteMetricsByStation";
+
+const TIME_ZONE = "America/Sao_Paulo";
 
 @Injectable()
 export class MongoDbStationDailyMetricsRepository {
   private db: Db;
 
+  private readonly logger = new Logger(
+    MongoDbStationDailyMetricsRepository.name
+  );
+
   constructor(
     @Inject(MongodbService)
     private readonly mongoService: MongodbService
   ) {}
+
+  public async getLatestMetricsByStation(
+    stationSlug: string,
+    targetDateStr: string
+  ): Promise<MinuteMetricsByStation | null> {
+    try {
+      this.logger.log("Getting latest metrics by stations ", {
+        stationSlug,
+        targetDateStr,
+      });
+
+      this.db = this.mongoService.getDatabase();
+
+      const collection = this.db.collection<MongoStationDailyMetrics>(
+        STATION_DAILY_METRICS_COLLECTION_NAME
+      );
+
+      const targetDate = DateTime.fromISO(targetDateStr).setZone(TIME_ZONE);
+
+      const fiveMinutesAgo = targetDate
+        .minus({ minutes: 5 })
+        .toUTC()
+        .toJSDate();
+
+      const latestDoc = await collection
+        .find({
+          stationSlug,
+          lastRecordAt: { $gte: fiveMinutesAgo },
+        })
+        .sort({ lastRecordAt: -1 })
+        .limit(1)
+        .next();
+
+      if (!latestDoc) return null;
+
+      return {
+        stationId: latestDoc.stationSlug,
+        stationName: latestDoc?.stationDescription ?? latestDoc.stationSlug,
+        observation: {
+          timestamp: latestDoc.lastRecordAt,
+          windGust: latestDoc?.latestWindGust ?? null,
+          windSpeed: latestDoc?.latestWindSpeed ?? null,
+          rainVolume: latestDoc?.latestRainVolume ?? null,
+          temperature: latestDoc?.latestTemperature ?? null,
+          airHumidity: latestDoc?.latestAirHumidity ?? null,
+          windDirection: latestDoc?.latestWindDirection ?? null,
+          atmosphericPressure: latestDoc?.latestAtmosphericPressure ?? null,
+        },
+        statistics: {
+          maxTemperature: latestDoc?.maxTemperature,
+          minTemperature: latestDoc?.minTemperature,
+          rainVolumeAcc: latestDoc?.rainVolumeAcc,
+          totalObservations: latestDoc.recordsCount,
+        },
+      };
+    } catch (error: unknown) {
+      console.error("Failed to aggregate weather records", { error });
+      throw new Error(
+        `Failed to aggregate weather records: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
 
   public async getRainInsights(targetDateStr: string): Promise<
     Record<
@@ -35,8 +106,8 @@ export class MongoDbStationDailyMetricsRepository {
         STATION_DAILY_METRICS_COLLECTION_NAME
       );
 
-      const timeZone = "America/Sao_Paulo";
-      const now = DateTime.fromISO(targetDateStr).setZone(timeZone);
+      const TIME_ZONE = "America/Sao_Paulo";
+      const now = DateTime.fromISO(targetDateStr).setZone(TIME_ZONE);
 
       const cutoff96h = now.minus({ hours: 96 });
       const cutoff24h = now.minus({ hours: 24 });
@@ -72,7 +143,7 @@ export class MongoDbStationDailyMetricsRepository {
 
         for (let i = 0; i < records.length; i++) {
           const doc = records[i];
-          const docDate = DateTime.fromJSDate(doc.date).setZone(timeZone);
+          const docDate = DateTime.fromJSDate(doc.date).setZone(TIME_ZONE);
 
           const isToday = docDate.hasSame(now, "day");
 

@@ -18,9 +18,13 @@ export class PrismaPartnerApiKeysRepository
   ) {}
 
   async findOne(apiKey: string): Promise<PartnerApiKey | null> {
+    this.logger.log("Finding api key", { apiKey });
+
     const partnerApiKey = await this.prisma.partnerApiKey.findUnique({
       where: { key: apiKey },
     });
+
+    this.logger.log("api kye found", { partnerApiKey });
 
     if (!partnerApiKey) {
       return null;

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Inject,
+  Param,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
@@ -19,8 +20,11 @@ export class PartnerMetricsController {
 
   @Get("/:stationSlug")
   @UseInterceptors(CacheInterceptor)
-  findMetricsByStations(): any {
-    return "OK";
-    // return this.mongoDbStationDailyMetricsRepository.getRainInsights();
+  findMetricsByStations(@Param("stationSlug") stationSlug: string): any {
+    const nowStr = new Date().toISOString();
+    return this.mongoDbStationDailyMetricsRepository.getLatestMetricsByStation(
+      stationSlug,
+      nowStr
+    );
   }
 }

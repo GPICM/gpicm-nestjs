@@ -15,8 +15,8 @@ services:
       target: development
     env_file:
       - .env
-    environment:
-      DATABASE_URL: mysql://local:12345678@db:3306/anselmo_telemetria
+    #environment:
+    #  DATABASE_URL: mysql://local:12345678@db:3306/anselmo_telemetria
     volumes:
       - .:/usr/src/app:cached
       - /usr/src/app/node_modules

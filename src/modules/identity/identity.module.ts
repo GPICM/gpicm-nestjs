@@ -43,8 +43,8 @@ import { PartnerApiKeyGuard } from "./presentation/meta/guards/partner-api-key.g
   exports: [
     Encryptor,
     DefaultJwtStrategy,
-    PartnerApiKeyGuard,
     PartnerApiKeysRepository,
+    PartnerApiKeyGuard,
   ],
 })
 export class IdentityModule {}
