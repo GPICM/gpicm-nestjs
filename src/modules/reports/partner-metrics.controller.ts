@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Inject,
+  NotFoundException,
   Param,
   UseGuards,
   UseInterceptors,
@@ -11,7 +12,7 @@ import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongo
 import { PartnerApiKeyGuard } from "../identity/presentation/meta/guards/partner-api-key.guard";
 import { Throttle } from "@nestjs/throttler";
 
-@Controller("partners/metrics")
+@Controller("partners/observations")
 @UseGuards(PartnerApiKeyGuard)
 export class PartnerMetricsController {
   constructor(
@@ -22,11 +23,18 @@ export class PartnerMetricsController {
   @Get("/:stationSlug")
   @UseInterceptors(CacheInterceptor)
   @Throttle({ default: { limit: 6, ttl: 60000 } })
-  findMetricsByStations(@Param("stationSlug") stationSlug: string): any {
+  public async findMetricsByStations(
+    @Param("stationSlug") stationSlug: string
+  ): Promise<any> {
     const nowStr = new Date().toISOString();
-    return this.mongoDbStationDailyMetricsRepository.getLatestMetricsByStation(
-      stationSlug,
-      nowStr
-    );
+    const metrics =
+      await this.mongoDbStationDailyMetricsRepository.getLatestMetricsByStation(
+        stationSlug,
+        nowStr
+      );
+
+    if (!metrics) throw new NotFoundException();
+
+    return metrics;
   }
 }
