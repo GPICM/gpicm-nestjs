@@ -83,7 +83,7 @@ export class IncidentsController {
         incidentDate: body.incidentDate,
         observation: body.observation ?? null,
         reporterName: user?.name ?? "Anonimo",
-        incidentType: body.incidentType,
+        incidentTypeId: body.incidentTypeId,
         author: new AuthorSummary({
           id: user.id!,
           name: user.name ?? "Anônimo",

@@ -42,7 +42,7 @@ export class CreateIncidentDto {
 
   @IsNumber()
   @Type(() => Number)
-  incidentType: number;
+  incidentTypeId: number;
 
   @IsString()
   @IsOptional()

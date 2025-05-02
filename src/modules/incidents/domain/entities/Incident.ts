@@ -28,7 +28,7 @@ export class Incident {
 
   incidentDate: Date;
 
-  incidentType: number;
+  incidentTypeId: number;
 
   imagePreviewUrl: string | null;
 

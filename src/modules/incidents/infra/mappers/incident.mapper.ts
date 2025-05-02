@@ -27,7 +27,7 @@ class IncidentAssembler {
       observation: incident.observation,
       reporterName: incident.reporterName,
       status: incident.status,
-      incidentType: incident.incidentType,
+      incidentTypeId: incident.incidentTypeId,
       authorId: incident.author.id,
     };
   }
@@ -59,7 +59,7 @@ class IncidentAssembler {
       observation: prismaData.observation,
       reporterName: prismaData.reporterName,
       status: prismaData.status,
-      incidentType: prismaData.incidentType,
+      incidentTypeId: prismaData.incidentTypeId,
       author,
     });
   }
