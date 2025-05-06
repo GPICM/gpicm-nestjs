@@ -61,3 +61,12 @@ services:
       - '3002:3001'
     networks:
       - gpicm-production
+
+  worker3:
+    image: fonsecabarreto/gpicm-backup-manager:latest
+    container_name: gpicm-backup-manager
+    restart: always
+    ports:
+      - '3003:4500'
+    networks:
+      - gpicm-production
