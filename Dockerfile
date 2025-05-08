@@ -1,4 +1,4 @@
-FROM node:slim AS development
+FROM node:20-slim AS development
 
 
 RUN apt-get update -y \
@@ -24,7 +24,7 @@ EXPOSE 3000
 CMD ["sh", "-c", "npm run db:deploy && yarn start:dev"]
 
 
-FROM node:slim  AS build
+FROM node:20-slim AS build
 
 WORKDIR /usr/src/app
 
@@ -44,7 +44,7 @@ RUN yarn install --frozen-lockfile --production && yarn cache clean
 
 USER node
 
-FROM node:slim  AS production
+FROM node:20-slim AS production
 
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
