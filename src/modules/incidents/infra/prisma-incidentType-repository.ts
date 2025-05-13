@@ -1,6 +1,6 @@
 import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-import { IncidentType } from "@/modules/incidents/domain/entities/incidentType";
+import { IncidentType } from "@/modules/incidents/domain/entities/IncidentType";
 
 import { IncidentTypeAssembler } from "./mappers/incidentType.mapper";
 

@@ -12,7 +12,7 @@ import {
   Delete,
 } from "@nestjs/common";
 import { IncidentTypeRepository } from "../../domain/interfaces/repositories/incidentType-repository";
-import { IncidentType } from "../../domain/entities/incidentType";
+import { IncidentType } from "../../domain/entities/IncidentType";
 import { CreateIncidentTypeDto } from "./dtos/create-incidentType.dto";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 import { UpdateIncidentTypeDto } from "./dtos/update-incidentType.dto";
@@ -36,7 +36,6 @@ export class IncidentTypeController {
         name: body.name,
         description: body.description,
         internalId: body.internalId,
-        incidents: [],
       });
 
       await this.incidentTypeRepository.add(newIncidentType);

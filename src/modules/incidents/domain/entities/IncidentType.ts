@@ -1,7 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
 export class IncidentType {
-  id: number;
+  id?: number;
   name: string;
   description: string;
   internalId: number;

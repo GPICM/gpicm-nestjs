@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IncidentTypes as PrismaIncidentType } from "@prisma/client";
 
-import { IncidentType } from "../../domain/entities/incidentType";
+import { IncidentType } from "../../domain/entities/IncidentType";
 
 /* export const incidentTypeInclude = Prisma.validator<Prisma.IncidentTypesInclude>()({
   Incident: false,
@@ -15,7 +15,7 @@ type IncidentTypeJoinModel = Prisma.IncidentTypesGetPayload<{
 class IncidentTypeAssembler {
   public static toPrisma(incidentType: IncidentType): PrismaIncidentType {
     return {
-      id: incidentType.id,
+      id: incidentType.id!,
       name: incidentType.name,
       description: incidentType.description,
       internalId: incidentType.internalId,
