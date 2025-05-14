@@ -71,17 +71,23 @@ export class IncidentsController {
 
       let imageUrl: string | null = null;
       if (file) {
+        this.logger.log("Uploading image", { body });
         imageUrl = await this.uploadImage(user, file);
       }
 
+      this.logger.log("Looking for incident type", { body });
       const incidentType = await this.incidentTypeRepository.findById(
         body.incidentTypeId
       );
 
       if (!incidentType) {
+        this.logger.log("Invalid incident type", {
+          incidentTypeId: body.incidentTypeId,
+        });
         throw new BadRequestException("Tipo de incidente Invalido");
       }
 
+      this.logger.log("Creating Incident");
       const incident = new Incident({
         id: randomUUID(),
         title: body.title,
@@ -103,6 +109,8 @@ export class IncidentsController {
         }),
         status: 1,
       });
+
+      this.logger.log("Creating Post out of Incident");
 
       const post = incident.publish();
 
@@ -130,6 +138,8 @@ export class IncidentsController {
   }
 
   private async uploadImage(user: User, file: any) {
+    this.logger.log("(uploadImage) Uploading image", { user, file });
+
     const fileKey = `${user.id}_${Date.now()}_${file.originalname}`;
     const addParams: BlobStorageRepositoryTypes.AddParams = {
       key: fileKey,
@@ -138,7 +148,12 @@ export class IncidentsController {
     };
 
     // Add file
+
+    this.logger.log("(uploadImage) Storing image blob", { fileKey });
+
     await this.blobRepository.add(addParams);
+
+    this.logger.log("(uploadImage) Generating image url", {});
 
     const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
 
