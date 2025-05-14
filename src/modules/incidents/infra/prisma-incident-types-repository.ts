@@ -2,7 +2,7 @@ import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { IncidentType } from "@/modules/incidents/domain/entities/IncidentType";
 
-import { IncidentTypeAssembler } from "./mappers/incidentType.mapper";
+import { IncidentTypeAssembler } from "./mappers/incident-type.mapper";
 
 import { IncidentTypeRepository } from "../domain/interfaces/repositories/incidentType-repository";
 
@@ -20,7 +20,7 @@ export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
     try {
       this.logger.log(`Adding new incident type: ${incidentType.name}`);
 
-      await this.prisma.incidentTypes.create({
+      await this.prisma.incidentType.create({
         data: IncidentTypeAssembler.toPrisma(incidentType),
       });
 
@@ -34,7 +34,7 @@ export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
   async update(incidentType: IncidentType): Promise<void> {
     try {
       this.logger.log(`Updating incident type: ${incidentType.id}`);
-      await this.prisma.incidentTypes.update({
+      await this.prisma.incidentType.update({
         where: { id: incidentType.id },
         data: IncidentTypeAssembler.toPrisma(incidentType),
       });
@@ -50,7 +50,7 @@ export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
   async delete(incidentTypeId: number): Promise<void> {
     try {
       this.logger.log(`Deleting incident type: ${incidentTypeId}`);
-      await this.prisma.incidentTypes.delete({
+      await this.prisma.incidentType.delete({
         where: { id: incidentTypeId },
       });
       this.logger.log(`Incident type deleted successfully: ${incidentTypeId}`);
@@ -65,7 +65,7 @@ export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
   async findById(incidentTypeId: number): Promise<IncidentType | null> {
     try {
       this.logger.log(`Fetching incident type by ID: ${incidentTypeId}`);
-      const modelData = await this.prisma.incidentTypes.findUnique({
+      const modelData = await this.prisma.incidentType.findUnique({
         where: { id: incidentTypeId },
       });
 
@@ -88,7 +88,7 @@ export class PrismaIncidentTypeRepository implements IncidentTypeRepository {
   async listAll(): Promise<IncidentType[]> {
     try {
       this.logger.log("Fetching all incident types...");
-      const resultData = await this.prisma.incidentTypes.findMany({
+      const resultData = await this.prisma.incidentType.findMany({
         orderBy: { name: "asc" },
       });
 

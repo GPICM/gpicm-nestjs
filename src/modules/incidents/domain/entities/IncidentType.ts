@@ -1,10 +1,12 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
 export class IncidentType {
-  id?: number;
-  name: string;
-  description: string;
-  internalId: number;
+  public id?: number;
+  public name: string;
+  public slug: string;
+  public imageUrl: string | null;
+  public description: string;
+  public internalId: number;
 
   constructor(props: NonFunctionProperties<IncidentType>) {
     Object.assign(this, props);
