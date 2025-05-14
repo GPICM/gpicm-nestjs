@@ -18,7 +18,7 @@ import { PrismaIncidentTypeRepository } from "./infra/prisma-incident-types-repo
       provide: PostRepository,
       useClass: PrismaPostRepository,
     },
-    /* Incidnets */
+    /* Incidents */
     {
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,

@@ -41,3 +41,10 @@ docker compose up --build
 
 - Inicia os containers com a nova configuração atualizada.
 
+
+
+## Problemas em fazer upload de iamgem
+
+```
+chmod 777 -R public/assets
+```
