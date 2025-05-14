@@ -193,4 +193,71 @@ export class MongoDbStationDailyMetricsRepository {
       );
     }
   }
+
+  public async getTemperatureInsights(targetDateStr: string): Promise<any> {
+    try {
+      this.db = this.mongoService.getDatabase();
+
+      const collection = this.db.collection<MongoStationDailyMetrics>(
+        STATION_DAILY_METRICS_COLLECTION_NAME
+      );
+
+      const TIME_ZONE = "America/Sao_Paulo";
+      const now = DateTime.fromISO(targetDateStr).setZone(TIME_ZONE);
+
+      const cutoff30days = now.minus({ days: 7 });
+
+      const docs = await collection
+        .aggregate([
+          {
+            $match: {
+              date: { $gte: cutoff30days.toUTC().toJSDate() },
+              $or: [
+                { avgTemperature: { $ne: null } },
+                { minTemperature: { $ne: null } },
+                { maxTemperature: { $ne: null } },
+                { latestTemperature: { $ne: null } },
+              ],
+            },
+          },
+          {
+            $project: {
+              stationSlug: 1,
+              date: 1,
+              avgTemperature: 1,
+              minTemperature: 1,
+              maxTemperature: 1,
+              latestTemperature: 1,
+            },
+          },
+          {
+            $sort: { date: -1 },
+          },
+          {
+            $group: {
+              _id: "$stationSlug",
+              records: {
+                $push: {
+                  date: "$date",
+                  avgTemperature: "$avgTemperature",
+                  minTemperature: "$minTemperature",
+                  maxTemperature: "$maxTemperature",
+                  latestTemperature: "$latestTemperature",
+                },
+              },
+            },
+          },
+        ])
+        .toArray();
+
+      return docs;
+    } catch (error: unknown) {
+      console.error("Failed to aggregate weather records", { error });
+      throw new Error(
+        `Failed to aggregate weather records: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
 }

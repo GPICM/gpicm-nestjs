@@ -52,4 +52,12 @@ export class WeatherReportsController {
       new Date().toISOString()
     );
   }
+
+  @Get("/metrics/temperature/insights")
+  @UseInterceptors(CacheInterceptor)
+  async getTemperatureMetricsInsights(): Promise<any> {
+    return this.mongoDbStationDailyMetricsRepository.getTemperatureInsights(
+      new Date().toISOString()
+    );
+  }
 }
