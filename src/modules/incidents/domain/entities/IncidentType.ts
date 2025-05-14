@@ -10,5 +10,15 @@ export class IncidentType {
 
   constructor(props: NonFunctionProperties<IncidentType>) {
     Object.assign(this, props);
+    this.slug = this.generateSlug(props.name);
+  }
+
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/--+/g, "-");
   }
 }

@@ -36,6 +36,8 @@ export class IncidentTypeController {
         name: body.name,
         description: body.description,
         internalId: body.internalId,
+        imageUrl: null,
+        slug: "",
       });
 
       await this.incidentTypeRepository.add(newIncidentType);

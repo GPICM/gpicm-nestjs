@@ -33,6 +33,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { PostRepository } from "../../domain/interfaces/repositories/post-repository";
 import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
+import { IncidentTypeRepository } from "../../domain/interfaces/repositories/incidentType-repository";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 const photoValidation = new ParseFilePipe({
@@ -49,6 +50,8 @@ export class IncidentsController {
   constructor(
     @Inject(IncidentsRepository)
     private readonly incidentsRepository: IncidentsRepository,
+    @Inject(IncidentTypeRepository)
+    private readonly incidentTypeRepository: IncidentTypeRepository,
     @Inject(PostRepository)
     private readonly postRepository: PostRepository,
     @Inject(BlobStorageRepository)
@@ -71,6 +74,14 @@ export class IncidentsController {
         imageUrl = await this.uploadImage(user, file);
       }
 
+      const incidentType = await this.incidentTypeRepository.findById(
+        body.incidentTypeId
+      );
+
+      if (!incidentType) {
+        throw new BadRequestException("Tipo de incidente Invalido");
+      }
+
       const incident = new Incident({
         id: randomUUID(),
         title: body.title,
@@ -83,7 +94,7 @@ export class IncidentsController {
         incidentDate: body.incidentDate,
         observation: body.observation ?? null,
         reporterName: user?.name ?? "Anonimo",
-        incidentTypeId: body.incidentTypeId,
+        incidentType,
         author: new AuthorSummary({
           id: user.id!,
           name: user.name ?? "Anônimo",
