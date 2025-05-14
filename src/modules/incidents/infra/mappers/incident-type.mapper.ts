@@ -1,24 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { IncidentTypes as PrismaIncidentType } from "@prisma/client";
-
-import { IncidentType } from "../../domain/entities/incidentType";
-
-/* export const incidentTypeInclude = Prisma.validator<Prisma.IncidentTypesInclude>()({
-  Incident: false,
-});
-
-type IncidentTypeJoinModel = Prisma.IncidentTypesGetPayload<{
-  include: typeof incidentTypeInclude;
-}>; */
+import { IncidentType as PrismaIncidentType } from "@prisma/client";
+import { IncidentType } from "../../domain/entities/IncidentType";
 
 class IncidentTypeAssembler {
   public static toPrisma(incidentType: IncidentType): PrismaIncidentType {
     return {
-      id: incidentType.id,
+      id: incidentType.id!,
       name: incidentType.name,
       description: incidentType.description,
       internalId: incidentType.internalId,
+      imageUrl: incidentType.imageUrl,
+      slug: incidentType.slug,
     };
   }
 
@@ -32,6 +25,8 @@ class IncidentTypeAssembler {
       name: prismaData.name,
       description: prismaData.description,
       internalId: prismaData.internalId,
+      imageUrl: prismaData.imageUrl,
+      slug: prismaData.slug,
     });
   }
 

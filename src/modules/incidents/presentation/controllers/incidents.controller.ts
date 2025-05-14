@@ -33,6 +33,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { PostRepository } from "../../domain/interfaces/repositories/post-repository";
 import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
+import { IncidentTypeRepository } from "../../domain/interfaces/repositories/incidentType-repository";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 const photoValidation = new ParseFilePipe({
@@ -49,6 +50,8 @@ export class IncidentsController {
   constructor(
     @Inject(IncidentsRepository)
     private readonly incidentsRepository: IncidentsRepository,
+    @Inject(IncidentTypeRepository)
+    private readonly incidentTypeRepository: IncidentTypeRepository,
     @Inject(PostRepository)
     private readonly postRepository: PostRepository,
     @Inject(BlobStorageRepository)
@@ -68,9 +71,23 @@ export class IncidentsController {
 
       let imageUrl: string | null = null;
       if (file) {
+        this.logger.log("Uploading image", { body });
         imageUrl = await this.uploadImage(user, file);
       }
 
+      this.logger.log("Looking for incident type", { body });
+      const incidentType = await this.incidentTypeRepository.findById(
+        body.incidentTypeId
+      );
+
+      if (!incidentType) {
+        this.logger.log("Invalid incident type", {
+          incidentTypeId: body.incidentTypeId,
+        });
+        throw new BadRequestException("Tipo de incidente Invalido");
+      }
+
+      this.logger.log("Creating Incident");
       const incident = new Incident({
         id: randomUUID(),
         title: body.title,
@@ -83,7 +100,7 @@ export class IncidentsController {
         incidentDate: body.incidentDate,
         observation: body.observation ?? null,
         reporterName: user?.name ?? "Anonimo",
-        incidentType: body.incidentType,
+        incidentType,
         author: new AuthorSummary({
           id: user.id!,
           name: user.name ?? "Anônimo",
@@ -92,6 +109,8 @@ export class IncidentsController {
         }),
         status: 1,
       });
+
+      this.logger.log("Creating Post out of Incident");
 
       const post = incident.publish();
 
@@ -119,6 +138,8 @@ export class IncidentsController {
   }
 
   private async uploadImage(user: User, file: any) {
+    this.logger.log("(uploadImage) Uploading image", { user, file });
+
     const fileKey = `${user.id}_${Date.now()}_${file.originalname}`;
     const addParams: BlobStorageRepositoryTypes.AddParams = {
       key: fileKey,
@@ -127,7 +148,12 @@ export class IncidentsController {
     };
 
     // Add file
+
+    this.logger.log("(uploadImage) Storing image blob", { fileKey });
+
     await this.blobRepository.add(addParams);
+
+    this.logger.log("(uploadImage) Generating image url", {});
 
     const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
 

@@ -19,6 +19,12 @@ GRANT ALL PRIVILEGES ON *.* TO 'local'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 ```
 
+ou simplesmente rode:
+
+```
+yarn run db:local
+```
+
 
 ### Apos instalar dependencias novas Rodar: 
 
@@ -41,3 +47,10 @@ docker compose up --build
 
 - Inicia os containers com a nova configuração atualizada.
 
+
+
+## Problemas em fazer upload de iamgem
+
+```
+chmod 777 -R public/assets
+```

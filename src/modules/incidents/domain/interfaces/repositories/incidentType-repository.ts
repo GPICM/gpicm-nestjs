@@ -1,4 +1,4 @@
-import { IncidentType } from "../../entities/incidentType";
+import { IncidentType } from "../../entities/IncidentType";
 
 export abstract class IncidentTypeRepository {
   abstract add(incidentType: IncidentType): Promise<void>;

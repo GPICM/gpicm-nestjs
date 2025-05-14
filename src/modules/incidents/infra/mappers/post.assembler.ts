@@ -8,7 +8,7 @@ import { Incident } from "../../domain/entities/Incident";
 import { IncidentAssembler } from "./incident.mapper";
 
 export const postInclude = Prisma.validator<Prisma.PostInclude>()({
-  Incident: { include: { Author: true } },
+  Incident: { include: { Author: true, IncidentType: true } },
   Author: true,
 });
 

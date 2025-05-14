@@ -115,7 +115,7 @@ model Incident {
 
   authorId Int @map("author_id")
 
-  incidentType Int @map("incident_type")
+  incidentTypeId Int @map("incident_type_id")
 
   incidentDate DateTime @map("incident_date")
 
@@ -128,20 +128,28 @@ model Incident {
   observation String?
 
   // Relations
+  IncidentType IncidentType @relation(fields: [incidentTypeId], references: [id])
   Author User   @relation(fields: [authorId], references: [id])
   Posts  Post[]
 
   @@map("incidents")
 }
 
-model IncidentTypes {
+model IncidentType {
   id Int @id @default(autoincrement())
 
   name String @db.LongText
 
+  slug String @db.LongText
+
+  imageUrl String? @map("image_url")
+
   description String @db.LongText
 
   internalId Int @map("internal_id")
+
+  // Relations
+  Incidents Incident[]
 
   @@map("incident_types")
 }

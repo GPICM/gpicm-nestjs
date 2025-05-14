@@ -1,6 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { Post, PostStatusEnum, PostTypeEnum } from "./Post";
 import { AuthorSummary } from "../object-values/AuthorSumary";
+import { IncidentType } from "./IncidentType";
 
 export enum IncidentStatus {
   PENDING = 1,
@@ -28,8 +29,6 @@ export class Incident {
 
   incidentDate: Date;
 
-  incidentType: number;
-
   imagePreviewUrl: string | null;
 
   reporterName: string | null;
@@ -37,6 +36,8 @@ export class Incident {
   observation: string | null;
 
   author: AuthorSummary;
+
+  incidentType: IncidentType;
 
   constructor(args: NonFunctionProperties<Incident>) {
     Object.assign(this, args);

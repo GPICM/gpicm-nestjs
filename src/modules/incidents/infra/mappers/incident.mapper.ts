@@ -4,9 +4,11 @@ import { Prisma, Incident as PrismaIncident } from "@prisma/client";
 
 import { Incident } from "../../domain/entities/Incident";
 import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
+import { IncidentType } from "../../domain/entities/IncidentType";
 
 export const incidentInclude = Prisma.validator<Prisma.IncidentInclude>()({
   Author: true,
+  IncidentType: true,
 });
 
 type IncidentJoinModel = Prisma.IncidentGetPayload<{
@@ -27,7 +29,7 @@ class IncidentAssembler {
       observation: incident.observation,
       reporterName: incident.reporterName,
       status: incident.status,
-      incidentType: incident.incidentType,
+      incidentTypeId: incident.incidentType.id!,
       authorId: incident.author.id,
     };
   }
@@ -46,6 +48,15 @@ class IncidentAssembler {
       publicId: Author.publicId,
     });
 
+    const incidentType = new IncidentType({
+      id: prismaData.incidentTypeId,
+      name: prismaData.IncidentType.name,
+      description: prismaData.IncidentType.description,
+      imageUrl: prismaData.IncidentType.imageUrl,
+      internalId: prismaData.IncidentType.internalId,
+      slug: prismaData.IncidentType.slug,
+    });
+
     return new Incident({
       id: prismaData.id,
       title: prismaData.title,
@@ -59,7 +70,7 @@ class IncidentAssembler {
       observation: prismaData.observation,
       reporterName: prismaData.reporterName,
       status: prismaData.status,
-      incidentType: prismaData.incidentType,
+      incidentType,
       author,
     });
   }
