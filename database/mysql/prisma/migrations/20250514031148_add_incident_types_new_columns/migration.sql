@@ -6,12 +6,6 @@
   - Added the required column `incident_type_id` to the `incidents` table without a default value. This is not possible if the table is not empty.
 
 */
--- DropForeignKey
-ALTER TABLE `incidents` DROP FOREIGN KEY `incidents_incident_type_fkey`;
-
--- DropIndex
-DROP INDEX `incidents_incident_type_fkey` ON `incidents`;
-
 -- AlterTable
 ALTER TABLE `incident_types` ADD COLUMN `image_url` VARCHAR(191) NULL,
     ADD COLUMN `slug` LONGTEXT NOT NULL;
