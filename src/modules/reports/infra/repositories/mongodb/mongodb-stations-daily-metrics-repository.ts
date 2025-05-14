@@ -238,13 +238,20 @@ export class MongoDbStationDailyMetricsRepository {
               _id: "$stationSlug",
               records: {
                 $push: {
-                  date: "$date",
+                  timestamp: "$date",
                   avgTemperature: "$avgTemperature",
                   minTemperature: "$minTemperature",
                   maxTemperature: "$maxTemperature",
                   latestTemperature: "$latestTemperature",
                 },
               },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              slug: "$_id",
+              records: 1,
             },
           },
         ])
