@@ -19,6 +19,12 @@ GRANT ALL PRIVILEGES ON *.* TO 'local'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 ```
 
+ou simplesmente rode:
+
+```
+yarn run db:local
+```
+
 
 ### Apos instalar dependencias novas Rodar: 
 
