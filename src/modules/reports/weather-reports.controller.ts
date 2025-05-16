@@ -12,6 +12,7 @@ import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mong
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 import { WeatherMetricsRequestQuery } from "./dtos/weather-reports-metrics-request";
 import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
+import { MongoDbDailyRankingsRepository } from "./infra/repositories/mongodb/mongodb-daily-rankings-repository";
 
 @Controller("weather")
 @UseGuards(JwtAuthGuard)
@@ -21,6 +22,8 @@ export class WeatherReportsController {
     private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository,
     @Inject(MongoDbDailyMetricsRepository)
     private readonly mongoDbDailyMetricsRepository: MongoDbDailyMetricsRepository,
+    @Inject(MongoDbDailyRankingsRepository)
+    private readonly mongoDbDailyRankingsRepository: MongoDbDailyRankingsRepository,
     @Inject(MongoDbStationDailyMetricsRepository)
     private readonly mongoDbStationDailyMetricsRepository: MongoDbStationDailyMetricsRepository
   ) {}
@@ -29,6 +32,18 @@ export class WeatherReportsController {
   @UseInterceptors(CacheInterceptor)
   async findLatestGlobalMetrics(): Promise<any> {
     return this.mongoDbDailyMetricsRepository.getLatest();
+  }
+
+  @Get("/metrics/region/:region")
+  @UseInterceptors(CacheInterceptor)
+  async findLatestRegionMetrics(): Promise<any> {
+    return this.mongoDbDailyMetricsRepository.getLatest();
+  }
+
+  @Get("/metrics/region/:region/rankings")
+  @UseInterceptors(CacheInterceptor)
+  async findLatestRegionRankingMetrics(): Promise<any> {
+    return this.mongoDbDailyRankingsRepository.getLatest();
   }
 
   @Get("/metrics/rain")

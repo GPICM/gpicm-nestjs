@@ -65,6 +65,8 @@ services:
   worker3:
     image: fonsecabarreto/gpicm-backup-manager:latest
     container_name: gpicm-backup-manager
+    env_file:
+      - .env.production
     restart: always
     ports:
       - '3003:4500'

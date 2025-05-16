@@ -5,6 +5,7 @@ import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mong
 import { WeatherTimeSeriesMetricsController } from "./weather-time-series-metrics.controller";
 import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
 import { PartnerMetricsController } from "./partner-metrics.controller";
+import { MongoDbDailyRankingsRepository } from "./infra/repositories/mongodb/mongodb-daily-rankings-repository";
 
 @Module({
   controllers: [
@@ -14,6 +15,7 @@ import { PartnerMetricsController } from "./partner-metrics.controller";
   ],
   providers: [
     MongoDbDailyMetricsRepository,
+    MongoDbDailyRankingsRepository,
     MongoDbWeatherRecordsRepository,
     MongoDbStationDailyMetricsRepository,
   ],
