@@ -31,6 +31,21 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async updateLikesCount(postId: number, count: number): Promise<void> {
+    try {
+      this.logger.log(`Updating likes count for postId: ${postId}`);
+      await this.prisma.post.update({
+        where: { id: postId },
+        data: { countLikes: count },
+      });
+
+      this.logger.log(`Likes count updated successfully for postId: ${postId}`);
+    } catch (error: unknown) {
+      this.logger.error("Failed to update likes count", { postId, error });
+      throw new Error("Failed to update likes count");
+    }
+  }
+
   public async findBySlug(slug: string): Promise<Post | null> {
     try {
       this.logger.log(`Fetching post by slug: ${slug}`);

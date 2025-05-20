@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Post } from "../../entities/Post";
 
 export abstract class PostRepository {
@@ -9,6 +10,9 @@ export abstract class PostRepository {
     filters: BaseRepositoryFindManyFilters,
     options?: { transactionContext?: unknown }
   ): Promise<BaseRepositoryFindManyResult<Post>>;
+  
+  abstract updateLikesCount(postId: number, count: number): Promise<void>
+  ;
 }
 
 // TODO: MOVE TO SOMEWHERE ELSE

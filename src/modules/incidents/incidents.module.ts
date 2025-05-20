@@ -9,6 +9,8 @@ import { PostController } from "./presentation/controllers/post.controller";
 import { IncidentTypeController } from "./presentation/controllers/incident-types.controller";
 import { IncidentTypeRepository } from "./domain/interfaces/repositories/incidentType-repository";
 import { PrismaIncidentTypeRepository } from "./infra/prisma-incident-types-repository";
+import { PostLikesRepository } from "./domain/interfaces/repositories/post-likes-repository";
+import { PostLikesPrismaRepository } from "./infra/prisma-post-likes-repository";
 
 @Module({
   controllers: [IncidentsController, IncidentTypeController, PostController],
@@ -17,6 +19,10 @@ import { PrismaIncidentTypeRepository } from "./infra/prisma-incident-types-repo
     {
       provide: PostRepository,
       useClass: PrismaPostRepository,
+    },
+    {
+      provide: PostLikesRepository,
+      useClass: PostLikesPrismaRepository,
     },
     /* Incidents */
     {

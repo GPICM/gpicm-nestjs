@@ -32,6 +32,8 @@ export class Post {
 
   public readonly incident: Incident | null;
 
+  public readonly countLikes: number;
+
   constructor(args: NonFunctionProperties<Post>) {
     Object.assign(this, args);
   }
