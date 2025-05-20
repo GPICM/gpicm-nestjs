@@ -54,6 +54,7 @@ export class Incident {
       publishedAt: new Date(),
       author: this.author,
       incident: this,
+      countLikes: 0,
     });
   }
 }

@@ -66,6 +66,7 @@ class PostAssembler {
       slug: prismaData.slug,
       incident,
       author,
+      countLikes: prismaData.countLikes,
     });
   }
 
