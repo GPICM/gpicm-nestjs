@@ -1,4 +1,5 @@
-import { Controller, Get, UseGuards, UseInterceptors } from "@nestjs/common";
+/* eslint-disable prettier/prettier */
+import { Controller, Get, Param, UseGuards, UseInterceptors } from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
@@ -14,4 +15,12 @@ export class StationController {
     const stations = await this.stationRepository.listAll();
     return stations;
   }
+
+  @Get(":slug")
+  @UseInterceptors(CacheInterceptor)
+  async findOne(@Param("slug") slug: string): Promise<any> {
+    const stations = await this.stationRepository.findBySlug(slug);
+    return stations;
+  }
+
 }
