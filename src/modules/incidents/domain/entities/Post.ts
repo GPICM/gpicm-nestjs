@@ -34,6 +34,8 @@ export class Post {
 
   public readonly countLikes: number;
 
+  public readonly likedByCurrentUser?: boolean;
+
   constructor(args: NonFunctionProperties<Post>) {
     Object.assign(this, args);
   }

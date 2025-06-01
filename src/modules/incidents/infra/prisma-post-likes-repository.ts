@@ -67,4 +67,21 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
     });
   }
 
+  async findLikedPostIdsByUser(userId: number, postIds: number[]): Promise<number[]> {
+    if (!postIds.length) return [];
+    try {
+      const likes = await this.prisma.postLikes.findMany({
+        where: {
+          userId,
+          postId: { in: postIds },
+        },
+        select: { postId: true },
+      });
+      return likes.map(like => like.postId);
+    } catch (error) {
+      this.logger.error("Failed to find liked post IDs", { userId, postIds, error });
+      throw new Error("Failed to find liked post IDs");
+    }
+  }
+
 }
