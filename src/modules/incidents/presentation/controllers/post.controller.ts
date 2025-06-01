@@ -20,8 +20,9 @@ export class PostController {
     private readonly postLikesRepository: PostLikesRepository
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  async list(@Query() query: ListPostQueryDto) {
+  async list(@Query() query: ListPostQueryDto, @CurrentUser() user?: User) {
     this.logger.log("Fetching all posts");
 
     const filters = {
@@ -40,13 +41,38 @@ export class PostController {
       search: filters.search,
     });
 
-    return new PaginatedResponse(records, total, limit, page, filters);
+    let recordsWithLike = records;
+    if (user && records.length > 0) {
+      const postIds = records.map((post: any) => Number(post.id));
+      const likedPostIds = await this.postLikesRepository.findLikedPostIdsByUser(user.id, postIds);
+      this.logger.log(`User ${user.id} liked posts: ${likedPostIds.join(", ")}`);
+      recordsWithLike = records.map((post: any) => ({
+        ...post,
+        likedByCurrentUser: likedPostIds.includes(Number(post.id)),
+      }));
+    }
+
+    return new PaginatedResponse(recordsWithLike, total, limit, page, filters);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(":postSlug")
-  async getOne(@Param("postSlug") postSlug: string) {
+  async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user?: User) {
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
-    return await this.postRepository.findBySlug(postSlug);
+    const post = await this.postRepository.findBySlug(postSlug);
+
+    if (!post) return null;
+
+    let likedByCurrentUser = false;
+    if (user) {
+      likedByCurrentUser = await this.postLikesRepository.exists(Number(post.id), user.id);
+      this.logger.log(`User ${user.id} liked post ${post.id}: ${likedByCurrentUser}`);
+    }
+
+    return {
+      ...post,
+      likedByCurrentUser,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

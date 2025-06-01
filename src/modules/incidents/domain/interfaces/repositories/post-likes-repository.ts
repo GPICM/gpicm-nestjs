@@ -4,4 +4,5 @@ export abstract class PostLikesRepository {
   abstract exists(postId: number, userId: number): Promise<boolean>;
   abstract countByPost(postId: number): Promise<number>;
   abstract findByPost(postId: number, limit: number, offset: number): Promise<{ userId: number, createdAt: Date }[]>;
+  abstract findLikedPostIdsByUser(userId: number, postIds: number[]): Promise<number[]>;
 }
