@@ -81,7 +81,7 @@ export class MongoDbStationsRepository implements StationsRepository {
             },
           },
         ])
-        .next(); // Use next() ao invés de toArray() para pegar um único documento
+        .next();
 
       if (!result) return null;
 
