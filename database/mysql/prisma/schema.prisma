@@ -187,6 +187,17 @@ model Partner {
   @@map("partners")
 }
 
+model CivilDefenseAlert {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime     @default(now())
+  gravityLvl  GravityLevel
+  status      AlertStatus
+
+  @@map("civil_defense_alerts")
+}
+
 model PartnerApiKey {
   id        Int      @id @default(autoincrement()) @map("id")
   key       String   @unique @map("key")
@@ -232,4 +243,17 @@ enum UserRoles {
   USER
   GUEST
   ADMIN
+}
+
+enum AlertStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GravityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+  EXTREME
 }
