@@ -26,14 +26,10 @@ import {
 import { randomUUID } from "crypto";
 import { Incident } from "../../domain/entities/Incident";
 import { User } from "@/modules/identity/domain/entities/User";
-import {
-  BlobStorageRepository,
-  BlobStorageRepositoryTypes,
-} from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { PostRepository } from "../../domain/interfaces/repositories/post-repository";
 import { AuthorSummary } from "../../domain/object-values/AuthorSumary";
 import { IncidentTypeRepository } from "../../domain/interfaces/repositories/incidentType-repository";
+import { UploadService } from "@/modules/assets/application/upload.service";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 const photoValidation = new ParseFilePipe({
@@ -52,10 +48,8 @@ export class IncidentsController {
     private readonly incidentsRepository: IncidentsRepository,
     @Inject(IncidentTypeRepository)
     private readonly incidentTypeRepository: IncidentTypeRepository,
-    @Inject(PostRepository)
-    private readonly postRepository: PostRepository,
-    @Inject(BlobStorageRepository)
-    private readonly blobRepository: BlobStorageRepository
+    @Inject(UploadService)
+    private readonly uploadService: UploadService
   ) {}
 
   @Post()
@@ -72,7 +66,7 @@ export class IncidentsController {
       let imageUrl: string | null = null;
       if (file) {
         this.logger.log("Uploading image", { body });
-        imageUrl = await this.uploadImage(user, file);
+        imageUrl = await this.uploadService.uploadImage(user, file);
       }
 
       this.logger.log("Looking for incident type", { body });
@@ -112,11 +106,9 @@ export class IncidentsController {
 
       this.logger.log("Creating Post out of Incident");
 
-      const post = incident.publish();
-
       await this.incidentsRepository.add(incident);
-
-      await this.postRepository.add(post);
+      // const post = incident.publish();
+      /* await this.postRepository.add(post); */
 
       return incident;
     } catch (error) {
@@ -135,28 +127,5 @@ export class IncidentsController {
   async getOne(@Param("incidentId") incidentId: string) {
     this.logger.log(`Fetching incident with id: ${incidentId}`);
     return await this.incidentsRepository.findById(incidentId);
-  }
-
-  private async uploadImage(user: User, file: any) {
-    this.logger.log("(uploadImage) Uploading image", { user, file });
-
-    const fileKey = `${user.id}_${Date.now()}_${file.originalname}`;
-    const addParams: BlobStorageRepositoryTypes.AddParams = {
-      key: fileKey,
-      contentType: file.mimetype,
-      buffer: Buffer.from(file.buffer),
-    };
-
-    // Add file
-
-    this.logger.log("(uploadImage) Storing image blob", { fileKey });
-
-    await this.blobRepository.add(addParams);
-
-    this.logger.log("(uploadImage) Generating image url", {});
-
-    const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
-
-    return imageUrl;
   }
 }
