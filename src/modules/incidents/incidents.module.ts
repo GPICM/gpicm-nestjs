@@ -7,6 +7,7 @@ import { IncidentTypeController } from "./presentation/controllers/incident-type
 import { IncidentTypeRepository } from "./domain/interfaces/repositories/incidentType-repository";
 import { PrismaIncidentTypeRepository } from "./infra/prisma-incident-types-repository";
 import { AssetsModule } from "../assets/assets.module";
+import { IncidentsService } from "./application/incidents.service";
 
 @Module({
   controllers: [IncidentsController, IncidentTypeController],
@@ -20,8 +21,9 @@ import { AssetsModule } from "../assets/assets.module";
       provide: IncidentTypeRepository,
       useClass: PrismaIncidentTypeRepository,
     },
+    IncidentsService,
   ],
   imports: [SharedModule, AssetsModule],
-  exports: [],
+  exports: [IncidentsService],
 })
 export class IncidentsModule {}
