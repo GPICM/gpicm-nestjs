@@ -3,27 +3,14 @@ import { SharedModule } from "../shared/shared.module";
 import { IncidentsRepository } from "./domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "./infra/prisma-incidents-repository";
 import { IncidentsController } from "./presentation/controllers/incidents.controller";
-import { PostRepository } from "./domain/interfaces/repositories/post-repository";
-import { PrismaPostRepository } from "./infra/prisma-post-repository";
-import { PostController } from "./presentation/controllers/post.controller";
 import { IncidentTypeController } from "./presentation/controllers/incident-types.controller";
 import { IncidentTypeRepository } from "./domain/interfaces/repositories/incidentType-repository";
 import { PrismaIncidentTypeRepository } from "./infra/prisma-incident-types-repository";
-import { PostLikesRepository } from "./domain/interfaces/repositories/post-likes-repository";
-import { PostLikesPrismaRepository } from "./infra/prisma-post-likes-repository";
+import { AssetsModule } from "../assets/assets.module";
 
 @Module({
-  controllers: [IncidentsController, IncidentTypeController, PostController],
+  controllers: [IncidentsController, IncidentTypeController],
   providers: [
-    /* todo: criar um modulo para post depois */
-    {
-      provide: PostRepository,
-      useClass: PrismaPostRepository,
-    },
-    {
-      provide: PostLikesRepository,
-      useClass: PostLikesPrismaRepository,
-    },
     /* Incidents */
     {
       provide: IncidentsRepository,
@@ -34,7 +21,7 @@ import { PostLikesPrismaRepository } from "./infra/prisma-post-likes-repository"
       useClass: PrismaIncidentTypeRepository,
     },
   ],
-  imports: [SharedModule],
+  imports: [SharedModule, AssetsModule],
   exports: [],
 })
 export class IncidentsModule {}

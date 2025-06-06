@@ -15,7 +15,7 @@ export class UploadService {
     private readonly blobRepository: BlobStorageRepository
   ) {}
 
-  private async uploadImage(user: User, file: any) {
+  public async uploadImage(user: User, file: any): Promise<string> {
     this.logger.log("(uploadImage) Uploading image", { user, file });
 
     const fileKey = `${user.id}_${Date.now()}_${file.originalname}`;
@@ -25,14 +25,17 @@ export class UploadService {
       buffer: Buffer.from(file.buffer),
     };
 
-    this.logger.log("(uploadImage) Storing image blob", { fileKey });
+    try {
+      this.logger.log("(uploadImage) Storing image blob", { fileKey });
+      await this.blobRepository.add(addParams);
 
-    await this.blobRepository.add(addParams);
+      this.logger.log("(uploadImage) Generating image url", {});
+      const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
 
-    this.logger.log("(uploadImage) Generating image url", {});
-
-    const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
-
-    return imageUrl;
+      return imageUrl;
+    } catch (error) {
+      this.logger.error("(uploadImage) Failed to upload image", error as Error);
+      throw new Error("Failed to upload image. Please try again later.");
+    }
   }
 }
