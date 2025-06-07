@@ -22,8 +22,7 @@ import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
   imports: [
     BullModule.forRoot({
       connection: {
-        host: "redis",
-        port: 6379,
+        url: String(process.env.REDIS_URL),
       },
     }),
     BullModule.registerQueue({
