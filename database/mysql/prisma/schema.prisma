@@ -162,7 +162,7 @@ model Post {
   content     String     @db.LongText
   isPinned    Boolean    @default(false) @map("is_pinned")
   isVerified  Boolean    @default(false) @map("is_verified")
-  status      PostStatus @default(PENDING)
+  status      PostStatus @default(DRAFT)
   type        PostType   @default(INCIDENT)
   publishedAt DateTime?  @map("published_at")
   authorId    Int        @map("author_id")
@@ -267,8 +267,10 @@ enum PostType {
 }
 
 enum PostStatus {
-  PENDING
+  DRAFT
+  PUBLISHING
   PUBLISHED
+  UNLISTED
   ARCHIVED
 }
 
