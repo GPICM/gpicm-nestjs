@@ -158,4 +158,20 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
       throw new Error("Failed to list posts votes");
     }
   }
+
+  public async refreshPostScore(postId: number): Promise<void> {
+    const [upVotes, downVotes] = await Promise.all([
+      this.prisma.postVote.count({ where: { postId, value: 1 } }),
+      this.prisma.postVote.count({ where: { postId, value: -1 } }),
+    ]);
+
+    await this.prisma.post.update({
+      where: { id: postId },
+      data: {
+        upVotes,
+        downVotes,
+        score: upVotes - downVotes,
+      },
+    });
+  }
 }

@@ -31,4 +31,6 @@ export abstract class PostVotesRepository {
     filters: BaseRepositoryFindManyFilters,
     userId?: number
   ): Promise<BaseRepositoryFindManyResult<PostVote>>;
+
+  abstract refreshPostScore(postId: number): Promise<void>;
 }
