@@ -25,20 +25,20 @@ export class PrismaPostRepository implements PostRepository {
     const prisma = options?.transactionContext ?? this.prisma;
 
     try {
-      this.logger.log(`Adding new post with ID: ${post.id}`);
-      const parsedData = PostAssembler.toPrisma(post);
+      this.logger.log(`Adding new post with ID: ${post.title}`);
+      const sql = PostAssembler.toSqlInsert(post);
 
-      this.logger.debug(
-        `Parsed post data: ${JSON.stringify(parsedData, null, 4)}`
-      );
+      this.logger.debug(`Parsed post data: ${sql}`);
 
-      const created = await prisma.post.create({
-        data: parsedData,
-      });
+      const created = await prisma.$executeRawUnsafe(sql);
+      if (created !== 1) throw new Error("Failed to add post");
 
-      this.logger.log(`Post added successfully with ID: ${created.id}`);
+      const result = await prisma.$queryRaw`SELECT LAST_INSERT_ID() as id;`;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const insertedId = Number((result as any)[0]!.id);
+      this.logger.log(`Successfully stored post: ${insertedId}`);
 
-      return created.id;
+      return insertedId;
     } catch (error: unknown) {
       this.logger.error("Failed to add post", { post, error });
       throw new Error("Failed to add post");
@@ -57,7 +57,7 @@ export class PrismaPostRepository implements PostRepository {
       );
       await prisma.post.update({
         where: { id: post.id! },
-        data: PostAssembler.toPrisma(post),
+        data: PostAssembler.toPrismaUpdate(post),
       });
 
       this.logger.log(`Post updated successfully with ID: ${post.id}`);

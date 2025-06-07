@@ -3,6 +3,8 @@ import { Type } from "class-transformer";
 import {
   IsDate,
   IsEnum,
+  IsLatitude,
+  IsLongitude,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -32,11 +34,11 @@ export class CreatePostDto {
   @IsNotEmpty()
   address: string;
 
-  @IsNumber()
+  @IsLatitude()
   @Type(() => Number)
   latitude: number;
 
-  @IsNumber()
+  @IsLongitude()
   @Type(() => Number)
   longitude: number;
 

@@ -20,7 +20,7 @@ type PostJoinModel = Prisma.PostGetPayload<{
 }>;
 
 class PostAssembler {
-  public static toPrisma(post: Post): Prisma.PostCreateInput {
+  public static toPrismaCreate(post: Post): Prisma.PostCreateInput {
     return {
       title: post.title,
       content: post.content,
@@ -33,11 +33,96 @@ class PostAssembler {
       downVotes: post.downVotes,
       upVotes: post.upVotes,
       score: post.score,
+      locationAddress: post.address,
       Author: {
         connect: {
           id: post.author.id,
         },
       },
+      Incident:
+        post.type === PostTypeEnum.INCIDENT && post.attachment
+          ? {
+              connect: {
+                id: post.attachment.id,
+              },
+            }
+          : undefined,
+    };
+  }
+
+  public static toSqlInsert(post: Post): string {
+    const { address, location } = post;
+
+    // Construct the POINT value as a WKT (Well-Known Text) string
+    const pointWKT = location
+      ? `ST_GeomFromText('POINT(${location.longitude} ${location.latitude})', 4326)`
+      : "NULL";
+
+    // Format the publishedAt date to ISO string or set to NULL
+    const publishedAtValue = post.publishedAt
+      ? `'${post.publishedAt.toISOString().slice(0, 19).replace("T", " ")}'`
+      : "NULL";
+
+    const escapeString = (str: string) => str.replace(/'/g, "''");
+
+    const sql = `
+      INSERT INTO posts (
+        uuid,
+        title,
+        content,
+        slug,
+        type,
+        status,
+        published_at,
+        updated_at,
+        is_pinned,
+        is_verified,
+        down_votes,
+        up_votes,
+        score,
+        location_address,
+        author_id,
+        location
+      ) VALUES (
+        '${post.uuid}',
+        '${escapeString(post.title)}',
+        '${escapeString(post.content)}',
+        '${escapeString(post.slug)}',
+        '${post.type}',
+        '${post.status}',
+        ${publishedAtValue},
+        NOW(),
+        ${post.isPinned ? 1 : 0},
+        ${post.isVerified ? 1 : 0},
+        ${post.downVotes ?? 0},
+        ${post.upVotes ?? 0},
+        ${post.score ?? 0},
+        ${post.address ? `'${escapeString(address)}'` : "NULL"},
+        '${post.author.id}',
+        ${pointWKT}
+      );
+    `;
+
+    console.log(sql);
+    return sql.trim();
+  }
+
+  public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
+    return {
+      status: post.status as PostStatus,
+      isPinned: post.isPinned || false,
+      isVerified: post.isVerified || false,
+      downVotes: post.downVotes,
+      upVotes: post.upVotes,
+      score: post.score,
+      Incident:
+        post.type === PostTypeEnum.INCIDENT && post.attachment
+          ? {
+              connect: {
+                id: post.attachment.id,
+              },
+            }
+          : undefined,
     };
   }
 
@@ -85,6 +170,8 @@ class PostAssembler {
         isVerified: prismaData.isVerified,
         coverImageUrl: "",
         medias: [],
+        address: "",
+        location: null,
         author,
       },
       userId,
