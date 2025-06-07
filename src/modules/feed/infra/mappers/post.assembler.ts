@@ -25,8 +25,8 @@ class PostAssembler {
       type: post.type as PostType,
       status: post.status as PostStatus,
       publishedAt: post.publishedAt,
-      isPinned: post.isPinned,
-      isVerified: post.isVerified,
+      isPinned: post.isPinned || false,
+      isVerified: post.isVerified || false,
       downVotes: post.downVotes,
       upVotes: post.upVotes,
       score: post.score,
@@ -35,14 +35,14 @@ class PostAssembler {
           id: post.author.id,
         },
       },
-      Incident:
+      /*  Incident:
         post.type === PostTypeEnum.INCIDENT && post.attachment
           ? {
               connect: {
                 id: post.attachment.id,
               },
             }
-          : undefined,
+          : undefined, */
     };
   }
 

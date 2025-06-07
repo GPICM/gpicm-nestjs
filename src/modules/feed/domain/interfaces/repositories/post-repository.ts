@@ -6,7 +6,7 @@ export abstract class PostRepository {
   abstract add(
     post: Post,
     options?: { transactionContext?: unknown }
-  ): Promise<void>;
+  ): Promise<number>;
 
   abstract update(
     post: Post,

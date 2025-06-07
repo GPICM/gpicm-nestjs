@@ -3,8 +3,8 @@ import { User } from "@/modules/identity/domain/entities/User";
 
 import { PostAuthor } from "./PostAuthor";
 import { PostAttachment } from "../object-values/PostAttchment";
-import { randomUUID } from "crypto";
 import { Media } from "@/modules/assets/domain/entities/Media";
+import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -20,7 +20,7 @@ export enum PostTypeEnum {
 }
 
 export class Post<A = unknown> {
-  public readonly id: number | null;
+  public id: number | null;
 
   public readonly title: string;
 
@@ -28,7 +28,7 @@ export class Post<A = unknown> {
 
   public readonly content: string;
 
-  public readonly status: PostStatusEnum;
+  public status: PostStatusEnum;
 
   public readonly publishedAt: Date | null;
 
@@ -36,7 +36,7 @@ export class Post<A = unknown> {
 
   public readonly type: PostTypeEnum;
 
-  public readonly attachment: PostAttachment<A> | null;
+  public attachment: PostAttachment<A> | null;
 
   public readonly upVotes: number;
 
@@ -56,6 +56,20 @@ export class Post<A = unknown> {
     Object.assign(this, args);
   }
 
+  public setAttachment(newAttachment: PostAttachment<A>): void {
+    this.attachment = newAttachment;
+  }
+
+  public setStatus(newStatus: PostStatusEnum): void {
+    this.status = newStatus;
+  }
+
+  public setId(newId: number): void {
+    if (this.id === null) {
+      this.id = newId;
+    }
+  }
+
   public static createSlug(user: User, text: string): string {
     const sanitized = text
       .toLowerCase()
@@ -65,7 +79,9 @@ export class Post<A = unknown> {
       .replace(/^-+|-+$/g, "")
       .slice(0, 100);
 
-    return `${user.publicId}_${sanitized}_${randomUUID()}`;
+    const numericDate = formatDateToNumber(new Date());
+
+    return `${sanitized}_${numericDate}_${user.publicId}`;
   }
 }
 
