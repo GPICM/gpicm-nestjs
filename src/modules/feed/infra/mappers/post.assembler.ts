@@ -1,0 +1,99 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Prisma, PostStatus, PostType } from "@prisma/client";
+
+import { Post, PostStatusEnum, PostTypeEnum } from "../../domain/entities/Post";
+import { PostAuthor } from "../../domain/entities/PostAuthor";
+import { IncidentAssembler } from "@/modules/incidents/infra/mappers/incident.mapper";
+import { PostAttachment } from "../../domain/object-values/PostAttchment";
+
+export const postInclude = Prisma.validator<Prisma.PostInclude>()({
+  Incident: { include: { Author: true, IncidentType: true } },
+  Author: true,
+});
+
+type PostJoinModel = Prisma.PostGetPayload<{
+  include: typeof postInclude;
+}>;
+
+class PostAssembler {
+  public static toPrisma(post: Post): Prisma.PostCreateInput {
+    return {
+      title: post.title,
+      content: post.content,
+      slug: post.slug,
+      type: post.type as PostType,
+      status: post.status as PostStatus,
+      publishedAt: post.publishedAt,
+      isPinned: post.isPinned,
+      isVerified: post.isVerified,
+      downVotes: post.downVotes,
+      upVotes: post.upVotes,
+      score: post.score,
+      Author: {
+        connect: {
+          id: post.author.id,
+        },
+      },
+      Incident:
+        post.type === PostTypeEnum.INCIDENT && post.attachment
+          ? {
+              connect: {
+                id: post.attachment.id,
+              },
+            }
+          : undefined,
+    };
+  }
+
+  public static fromPrisma(prismaData?: PostJoinModel | null): Post | null {
+    if (!prismaData) return null;
+
+    const { Author } = prismaData;
+
+    const author = new PostAuthor({
+      id: Author.id,
+      name: Author.name ?? "Anônimo",
+      profilePicture: Author.profilePicture ?? "",
+      publicId: Author.publicId,
+    });
+
+    let attachment;
+    if (prismaData.type == PostType.INCIDENT && prismaData.Incident) {
+      const incident = IncidentAssembler.fromPrisma(prismaData.Incident);
+      if (incident) {
+        attachment = new PostAttachment(incident?.id, incident);
+      }
+    }
+
+    return new Post({
+      id: prismaData.id,
+      title: prismaData.title,
+      type: prismaData.type as PostTypeEnum,
+      status: prismaData.status as PostStatusEnum,
+      content: prismaData.content,
+      publishedAt: prismaData.publishedAt,
+      slug: prismaData.slug,
+      attachment,
+      downVotes: prismaData.downVotes,
+      upVotes: prismaData.upVotes,
+      score: prismaData.score,
+      isPinned: prismaData.isPinned,
+      isVerified: prismaData.isVerified,
+      author,
+    });
+  }
+
+  public static fromPrismaMany(prismaDataArray: PostJoinModel[]): Post[] {
+    const posts: Post[] = [];
+    for (const prismaData of prismaDataArray) {
+      const post = this.fromPrisma(prismaData);
+      if (post) {
+        posts.push(post);
+      }
+    }
+    return posts;
+  }
+}
+
+export { PostAssembler };
