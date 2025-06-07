@@ -2,18 +2,18 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { Post } from "./Post";
 import { VoteValue } from "./PostVote";
 
-export class UserPost<A> extends Post<A> {
+export class ViewerPost<A = unknown> extends Post<A> {
   public readonly userId: number;
 
-  public readonly vote?: VoteValue;
+  public readonly userVote: VoteValue | null;
 
   public constructor(
     args: NonFunctionProperties<Post<A>>,
     _userId: number,
-    _vote: VoteValue
+    _vote?: VoteValue
   ) {
     super(args);
     this.userId = _userId;
-    this.vote = _vote;
+    this.userVote = _vote ?? null;
   }
 }
