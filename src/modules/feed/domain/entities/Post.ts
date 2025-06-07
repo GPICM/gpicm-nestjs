@@ -83,7 +83,7 @@ export class Post<A = unknown> {
 
     const numericDate = formatDateToNumber(new Date());
 
-    return `${sanitized}_${numericDate}_${user.publicId}`;
+    return `${sanitized}_${numericDate}_${user.publicId.slice(0, 6)}`;
   }
 }
 

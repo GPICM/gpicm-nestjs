@@ -1,7 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
-import { UserSummary } from "./UserSummary";
+import { UserShallow } from "./UserShallow";
 
-export class PostAuthor extends UserSummary {
+export class PostAuthor extends UserShallow {
   public constructor(args: NonFunctionProperties<PostAuthor>) {
     super(args);
   }
