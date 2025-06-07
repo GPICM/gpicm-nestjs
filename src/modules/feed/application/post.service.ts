@@ -10,6 +10,9 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostVote, VoteValue } from "../domain/entities/PostVote";
+import { UserShallow } from "../domain/entities/UserShallow";
+import { randomUUID } from "crypto";
+import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -35,20 +38,23 @@ export class PostServices {
 
       const post = new Post({
         id: null,
-        type: dto.type,
-        isPinned: false,
-        isVerified: false,
+        author,
         title: dto.title,
+        uuid: randomUUID(),
         content: dto.content,
+        coverImageUrl: dto.imageUrl,
         publishedAt: new Date(),
-        slug: Post.createSlug(user, dto.title),
         status: PostStatusEnum.PUBLISHING,
+        slug: Post.createSlug(user, dto.title),
+        location: new GeoPosition(dto.latitude, dto.longitude),
+        address: dto.address ?? "",
+        isVerified: false,
+        isPinned: false,
+        type: dto.type,
         attachment: null,
         downVotes: 0,
         upVotes: 0,
         score: 0,
-        author,
-        coverImageUrl: "",
         medias: [],
       });
 
@@ -76,12 +82,16 @@ export class PostServices {
               imagePreviewUrl: undefined,
               imageUrl: dto.imageUrl,
             });
+
             post.setAttachment(new PostAttachment(incident.id, incident));
             post.setStatus(PostStatusEnum.PUBLISHED);
+
             await this.postRepository.update(post, { transactionContext });
           }
         }
       );
+
+      this.logger.log("post created successfully", { post });
       return post;
     } catch (error: unknown) {
       this.logger.error(
@@ -116,9 +126,9 @@ export class PostServices {
 
         await this.postVotesRepository.upsert(
           new PostVote({
-            userId,
             postId: post.id!,
             value: updatedVote,
+            user: UserShallow.fromUser(user),
           }),
           { transactionContext }
         );

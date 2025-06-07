@@ -5,6 +5,7 @@ import { PostAuthor } from "./PostAuthor";
 import { PostAttachment } from "../object-values/PostAttchment";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
+import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -53,6 +54,10 @@ export class Post<A = unknown> {
   public readonly coverImageUrl?: string;
 
   public readonly medias?: PostMedia[];
+
+  public readonly location: GeoPosition | null;
+
+  public readonly address: string;
 
   constructor(args: NonFunctionProperties<Post<A>>) {
     Object.assign(this, args);
