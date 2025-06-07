@@ -1,9 +1,16 @@
+/*
+  Warnings:
+
+  - You are about to alter the column `status` on the `posts` table. The data in that column could be lost. The data in that column will be cast from `Enum(EnumId(3))` to `Enum(EnumId(4))`.
+
+*/
 -- AlterTable
 ALTER TABLE `posts` ADD COLUMN `down_votes` INTEGER NOT NULL DEFAULT 0,
     ADD COLUMN `is_pinned` BOOLEAN NOT NULL DEFAULT false,
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT false,
     ADD COLUMN `score` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `up_votes` INTEGER NOT NULL DEFAULT 0;
+    ADD COLUMN `up_votes` INTEGER NOT NULL DEFAULT 0,
+    MODIFY `status` ENUM('DRAFT', 'PUBLISHING', 'PUBLISHED', 'UNLISTED', 'ARCHIVED') NOT NULL DEFAULT 'DRAFT';
 
 -- CreateTable
 CREATE TABLE `post_medias` (

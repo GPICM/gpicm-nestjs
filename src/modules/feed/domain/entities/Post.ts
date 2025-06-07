@@ -7,8 +7,10 @@ import { randomUUID } from "crypto";
 import { Media } from "@/modules/assets/domain/entities/Media";
 
 export enum PostStatusEnum {
-  PENDING = "PENDING",
+  DRAFT = "DRAFT",
+  PUBLISHING = "PUBLISHING",
   PUBLISHED = "PUBLISHED",
+  UNLISTED = "UNLISTED",
   ARCHIVED = "ARCHIVED",
 }
 
@@ -46,7 +48,7 @@ export class Post<A = unknown> {
 
   public readonly isVerified?: boolean;
 
-  public readonly coverImage?: boolean;
+  public readonly coverImageUrl?: string;
 
   public readonly medias?: PostMedia[];
 
