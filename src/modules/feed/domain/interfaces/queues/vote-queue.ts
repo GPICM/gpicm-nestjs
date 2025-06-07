@@ -1,7 +1,7 @@
 export type VoteQueueDto = {
-  postId: string;
+  postId: number;
 };
 
-export interface VoteQueue {
-  addVoteJob(dto: VoteQueueDto): Promise<void>;
+export abstract class VoteQueue {
+  abstract addVoteJob(dto: VoteQueueDto): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import {
@@ -8,9 +8,14 @@ import {
 
 @Injectable()
 export class BullMqVoteQueueAdapter implements VoteQueue {
+  private readonly logger: Logger = new Logger(BullMqVoteQueueAdapter.name);
   constructor(@InjectQueue("vote-events") private voteQueue: Queue) {}
 
   async addVoteJob(dto: VoteQueueDto) {
-    await this.voteQueue.add("postVoteCreated", { ...dto });
+    try {
+      await this.voteQueue.add("postVoteCreated", { ...dto });
+    } catch (error: unknown) {
+      this.logger.error("Failed to add postId to the queue", { error });
+    }
   }
 }
