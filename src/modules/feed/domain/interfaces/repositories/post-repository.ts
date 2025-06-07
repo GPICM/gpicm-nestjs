@@ -14,6 +14,8 @@ export abstract class PostRepository {
     options?: { transactionContext?: unknown }
   ): Promise<void>;
 
+  abstract findByUuid(uuid: string, userId: number): Promise<ViewerPost | null>;
+
   abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
 
   abstract listAll(

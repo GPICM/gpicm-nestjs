@@ -20,10 +20,5 @@ export abstract class PostVotesRepository {
     postId: number,
     limit: number,
     offset: number
-  ): Promise<{ userId: number; createdAt: Date }[]>;
-
-  abstract findLikedPostIdsByUser(
-    userId: number,
-    postIds: number[]
-  ): Promise<number[]>;
+  ): Promise<PostVote[]>;
 }
