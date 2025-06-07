@@ -83,6 +83,8 @@ export class PostController {
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts");
 
+
+    // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
     const filters = {
       page: query.page,
       limit: query.limit,

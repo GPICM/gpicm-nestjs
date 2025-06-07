@@ -13,6 +13,7 @@ import { PostVote, VoteValue } from "../domain/entities/PostVote";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { randomUUID } from "crypto";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
+import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -22,7 +23,9 @@ export class PostServices {
     private readonly postRepository: PostRepository,
     private readonly incidentsService: IncidentsService,
     private readonly prismaService: PrismaService,
-    private readonly postVotesRepository: PostVotesRepository
+    private readonly postVotesRepository: PostVotesRepository,
+    @Inject(VoteQueue)
+    private voteQueue: VoteQueue
   ) {}
 
   async create(user: User, dto: CreatePostDto) {
@@ -115,13 +118,13 @@ export class PostServices {
         throw new BadRequestException("Post not found");
       }
 
+      const postId = post.id!;
+
       const updatedVote = post.toggleVote(voteValue);
 
       // TODO: add queue to update post vote async
 
       await this.prismaService.openTransaction(async (transactionContext) => {
-        await this.postRepository.update(post);
-
         if (updatedVote === null) {
           await this.postVotesRepository.delete(userId, post.id!, {
             transactionContext,
@@ -131,13 +134,15 @@ export class PostServices {
 
         await this.postVotesRepository.upsert(
           new PostVote({
-            postId: post.id!,
+            postId,
             value: updatedVote,
             user: UserShallow.fromUser(user),
           }),
           { transactionContext }
         );
       });
+
+      await this.voteQueue.addVoteJob({ postId: postId });
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
