@@ -14,6 +14,7 @@ import {
   Get,
   Query,
   Param,
+  Patch,
 } from "@nestjs/common";
 
 import {
@@ -64,7 +65,6 @@ export class PostController {
         body.imageUrl = await this.uploadService.uploadImage(user, file);
       }
 
-
       this.logger.log("Creating an post", { body });
 
       const post = await this.postService.create(user, body);
@@ -78,7 +78,6 @@ export class PostController {
 
   @Get()
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
-    
     this.logger.log("Fetching all posts");
 
     const filters = {
@@ -109,46 +108,23 @@ export class PostController {
     return this.postService.findOne(postSlug, user);
   }
 
-  /*   @UseGuards(JwtAuthGuard)
-  @Patch("vote/:postSlug/:value")
-  async likePost(
+  @UseGuards(JwtAuthGuard)
+  @Patch(":postSlug/vote/up")
+  async upVote(
     @Param("postSlug") postSlug: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: User
   ) {
-    const post = await this.postRepository.findBySlug(postSlug);
-
-    const alreadyLiked = await this.postLikesRepository.exists(Number(post?.id), user.id);
-
-    if (alreadyLiked) {
-      throw new BadRequestException("User already liked this post");
-    }
-
-    await this.postLikesRepository.create(Number(post?.id), user.id);
-    const count = await this.postLikesRepository.countByPost(Number(post?.id));
-    await this.postRepository.updateLikesCount(Number(post?.id), count);
-    return { message: "Post liked successfully" };
+    return this.postService.vote(user, postSlug, 1);
   }
-
 
   @UseGuards(JwtAuthGuard)
-  @Delete("dislike/:postSlug")
-  async removeLikePost(
+  @Patch(":postSlug/vote/down")
+  async downVote(
     @Param("postSlug") postSlug: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: User
   ) {
-    const post = await this.postRepository.findBySlug(postSlug)
-    const alreadyLiked = await this.postLikesRepository.exists(Number(post?.id), user.id);
-
-    if (!alreadyLiked) {
-      throw new BadRequestException("User didn't like this post");
-    }
-
-    await this.postLikesRepository.delete(Number(post?.id), user.id);
-    const count = await this.postLikesRepository.countByPost(Number(post?.id));
-    await this.postRepository.updateLikesCount(Number(post?.id), count);
-    return { message: "Post disliked successfully" };
+    return this.postService.vote(user, postSlug, -1);
   }
- */
 
   /*   @UseGuards(JwtAuthGuard)
   @Get("listLikes/:postSlug")

@@ -38,11 +38,11 @@ export class Post<A = unknown> {
 
   public attachment: PostAttachment<A> | null;
 
-  public readonly upVotes: number;
+  public upVotes: number;
 
-  public readonly downVotes: number;
+  public downVotes: number;
 
-  public readonly score: number;
+  public score: number;
 
   public readonly isPinned?: boolean;
 

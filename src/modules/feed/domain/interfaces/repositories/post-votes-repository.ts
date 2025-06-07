@@ -5,7 +5,16 @@ export abstract class PostVotesRepository {
 
   abstract update(postVote: PostVote): Promise<void>;
 
-  abstract delete(postVote: PostVote): Promise<void>;
+  abstract upsert(
+    postVote: PostVote,
+    options?: { transactionContext?: unknown }
+  ): Promise<void>;
+
+  abstract delete(
+    userId: number,
+    postId: number,
+    options?: { transactionContext?: unknown }
+  ): Promise<void>;
 
   abstract findByPostId(
     postId: number,
