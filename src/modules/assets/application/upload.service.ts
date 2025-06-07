@@ -5,6 +5,7 @@ import {
   BlobStorageRepository,
   BlobStorageRepositoryTypes,
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
+import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { Inject, Logger } from "@nestjs/common";
 
 export class UploadService {
@@ -15,10 +16,12 @@ export class UploadService {
     private readonly blobRepository: BlobStorageRepository
   ) {}
 
-  public async uploadImage(user: User, file: any): Promise<string> {
+  public async uploadImage(user: User, file: any, index = 1): Promise<string> {
     this.logger.log("(uploadImage) Uploading image", { user, file });
 
-    const fileKey = `${user.id}_${Date.now()}_${file.originalname}`;
+    const numericDate = formatDateToNumber(new Date());
+
+    const fileKey = `${user.publicId}_${file.originalname}_${numericDate}-${index}`;
     const addParams: BlobStorageRepositoryTypes.AddParams = {
       key: fileKey,
       contentType: file.mimetype,
@@ -38,4 +41,5 @@ export class UploadService {
       throw new Error("Failed to upload image. Please try again later.");
     }
   }
+
 }
