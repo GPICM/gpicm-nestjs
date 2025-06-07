@@ -11,10 +11,30 @@ import { IncidentsService } from "../incidents/application/incidents.service";
 import { IncidentsRepository } from "../incidents/domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "../incidents/infra/prisma-incidents-repository";
 import { IncidentsModule } from "../incidents/incidents.module";
+import { RedisAdapter } from "../shared/infra/lib/redis/redis-adapter";
+import { BullModule } from "@nestjs/bullmq";
+import { PostScoreProcessor } from "./application/ post-score.processor";
+import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
+import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
 
 @Module({
   controllers: [PostController],
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: "redis",
+        port: 6379,
+      },
+    }),
+    BullModule.registerQueue({
+      name: "vote-events",
+    }),
+    SharedModule,
+    IncidentsModule,
+  ],
   providers: [
+    PostScoreProcessor,
+    { provide: VoteQueue, useClass: BullMqVoteQueueAdapter },
     {
       provide: PostRepository,
       useClass: PrismaPostRepository,
@@ -30,8 +50,9 @@ import { IncidentsModule } from "../incidents/incidents.module";
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
     },
+    RedisAdapter,
   ],
-  imports: [SharedModule, IncidentsModule],
+
   exports: [],
 })
 export class FeedModule {}
