@@ -167,17 +167,58 @@ model Post {
   publishedAt DateTime?  @map("published_at")
   authorId    Int        @map("author_id")
   incidentId  String?    @map("incident_id")
-  upVotes     Int        @default(0)@map("up_votes")
-  downVotes   Int        @default(0)@map("down_votes")
-  score       Int        @default(0)@map("score")
+  upVotes     Int        @default(0) @map("up_votes")
+  downVotes   Int        @default(0) @map("down_votes")
+  score       Int        @default(0) @map("score")
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
-  Author   User      @relation(fields: [authorId], references: [id])
-  Incident Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  Votes PostVote[]
+  Author     User        @relation(fields: [authorId], references: [id])
+  Incident   Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Votes      PostVote[]
+  PostMedias PostMedia[] @relation("PostToPostMedia")
 
   @@map("posts")
+}
+
+model PostMedia {
+  mediaId Int
+  postId  Int
+  order   Int?
+
+  Media Media @relation("MediaToPostMedia", fields: [mediaId], references: [id])
+  Post  Post  @relation("PostToPostMedia", fields: [postId], references: [id])
+
+  @@id([mediaId, postId])
+  @@map("post_medias")
+}
+
+model Media {
+  id          Int          @id @default(autoincrement())
+  url         String
+  filename    String
+  contentType String
+  size        Int?
+  type        MediaType
+  provider    MediaStorage @default(LOCAL)
+  createdAt   DateTime     @default(now())
+
+  PostMedias PostMedia[] @relation("MediaToPostMedia")
+
+  @@map("medias")
+}
+
+enum MediaStorage {
+  LOCAL
+  S3
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
 }
 
 /**
@@ -207,14 +248,14 @@ model PartnerApiKey {
 }
 
 model PostVote {
-  postId   Int      @map("post_id")
-  userId   Int      @map("user_id")
-  value     Int    
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  value     Int
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   Post Post @relation(fields: [postId], references: [id])
   User User @relation(fields: [userId], references: [id])
-  
+
   @@id([postId, userId])
   @@map("post_votes")
 }
