@@ -1,12 +1,17 @@
+import { Prisma, PrismaClient } from "@prisma/client";
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
+
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { PostVote } from "../domain/entities/PostVote";
-import { PrismaClient } from "@prisma/client";
 import {
   PostVoteAssembler,
   postVoteInclude,
 } from "./mappers/post-vote.assembler";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../domain/interfaces/dto/base-repository-filters";
 
 @Injectable()
 export class PrismaPostVotesRepository implements PostVotesRepository {
@@ -104,6 +109,53 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
         error,
       });
       throw new Error("Failed to fetch votes");
+    }
+  }
+
+  public async listAllByPostId(
+    postId: number,
+    filters: BaseRepositoryFindManyFilters,
+    userId?: number
+  ): Promise<BaseRepositoryFindManyResult<PostVote>> {
+    try {
+      const skip = filters.offset;
+      const take = filters.limit;
+      const sort = filters.sort ?? "createdAt";
+      const order = filters.order ?? "desc";
+
+      const where: Prisma.PostVoteWhereInput = {
+        postId: postId,
+      };
+
+      if (filters.search) {
+        where.OR = [{ User: { name: { contains: filters.search } } }];
+      }
+
+      this.logger.log(
+        `Listing posts votes with filters: skip=${skip}, take=${take}, sort=${sort}, order=${order}, search=${filters.search ?? "none"}`
+      );
+
+      const [prismaResult, count] = await Promise.all([
+        this.prisma.postVote.findMany({
+          where,
+          take,
+          skip,
+          orderBy: { [sort]: order },
+          include: { ...postVoteInclude },
+        }),
+        this.prisma.postVote.count({ where }),
+      ]);
+
+      const records = PostVoteAssembler.fromPrismaMany(prismaResult);
+
+      this.logger.log(
+        `Listed ${records.length} posts votes out of total ${count}`
+      );
+
+      return { records, count };
+    } catch (error: unknown) {
+      this.logger.error("Failed to list posts votes", { error });
+      throw new Error("Failed to list posts votes");
     }
   }
 }

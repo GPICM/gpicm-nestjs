@@ -1,4 +1,8 @@
 import { PostVote } from "../../entities/PostVote";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../dto/base-repository-filters";
 
 export abstract class PostVotesRepository {
   abstract add(postVote: PostVote): Promise<void>;
@@ -21,4 +25,10 @@ export abstract class PostVotesRepository {
     limit: number,
     offset: number
   ): Promise<PostVote[]>;
+
+  abstract listAllByPostId(
+    postId: number,
+    filters: BaseRepositoryFindManyFilters,
+    userId?: number
+  ): Promise<BaseRepositoryFindManyResult<PostVote>>;
 }

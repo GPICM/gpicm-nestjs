@@ -19,4 +19,13 @@ export class UserShallow {
       publicId: user.publicId,
     });
   }
+
+  public toJSON() {
+    const serialized: Record<string, unknown> = { ...this } as Record<
+      string,
+      unknown
+    >;
+    delete serialized.id;
+    return serialized;
+  }
 }
