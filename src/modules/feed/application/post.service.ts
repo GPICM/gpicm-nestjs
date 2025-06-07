@@ -29,6 +29,9 @@ export class PostServices {
     try {
       this.logger.log("Creating post", { dto });
 
+      // TODO: ADD UNIQUE COLUMNS VALIDATION
+      // TODO: ADD MULTIPLES IMAGES
+
       const author = new PostAuthor({
         id: user.id!,
         name: user.name ?? "Anonimo",
@@ -102,17 +105,19 @@ export class PostServices {
     }
   }
 
-  async vote(user: User, postSlug: string, voteValue: VoteValue) {
+  async vote(user: User, postUuid: string, voteValue: VoteValue) {
     try {
       const userId = user.id!;
-      this.logger.log("Creating post", { userId, postSlug, voteValue });
+      this.logger.log("Creating post", { userId, postUuid, voteValue });
 
-      const post = await this.postRepository.findBySlug(postSlug, user.id!);
+      const post = await this.postRepository.findByUuid(postUuid, user.id!);
       if (!post) {
         throw new BadRequestException("Post not found");
       }
 
       const updatedVote = post.toggleVote(voteValue);
+
+      // TODO: add queue to update post vote async
 
       await this.prismaService.openTransaction(async (transactionContext) => {
         await this.postRepository.update(post);

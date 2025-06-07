@@ -69,6 +69,7 @@ export class PostController {
 
       const post = await this.postService.create(user, body);
 
+      this.logger.log("Post successfully created", { post });
       return post;
     } catch (error: unknown) {
       this.logger.error("Error creating post", { error });
@@ -102,47 +103,45 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(":postSlug")
   getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
     return this.postService.findOne(postSlug, user);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(":postSlug/vote/up")
+  @Patch(":uuid/vote/up")
   async upVote(
-    @Param("postSlug") postSlug: string,
+    @Param("uuid") uuid: string,
     @CurrentUser() user: User
   ) {
-    return this.postService.vote(user, postSlug, 1);
+    return this.postService.vote(user, uuid, 1);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(":postSlug/vote/down")
+  @Patch(":uuid/vote/down")
   async downVote(
-    @Param("postSlug") postSlug: string,
+    @Param("uuid") uuid: string,
     @CurrentUser() user: User
   ) {
-    return this.postService.vote(user, postSlug, -1);
+    return this.postService.vote(user, uuid, -1);
   }
 
-  /*   @UseGuards(JwtAuthGuard)
-  @Get("listLikes/:postSlug")
-  async listLikesPost(
+ /*  @Get(":postSlug/likes")
+  async listPostLikes(
     @Param("postSlug") postSlug: string,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
+    @CurrentUser() user: User,
   ) {
-    const post = await this.postRepository.findBySlug(postSlug);
-    const postId = Number(post?.id);
+    const post = await this.postRepository.findBySlug(postSlug, user.id!);
 
-    if (!postId) {
+    if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }
 
+    const postId = Number(post?.id);
     const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 20;
+    const limitNumber = Number(limit) || 10;
 
+    // Todo implement it here
     const [likes, total] = await Promise.all([
       this.postLikesRepository.findByPost(postId, limitNumber, (pageNumber - 1) * limitNumber),
       this.postLikesRepository.countByPost(postId),
