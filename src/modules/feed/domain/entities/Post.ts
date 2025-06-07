@@ -26,6 +26,8 @@ export class Post<A = unknown> {
 
   public readonly slug: string;
 
+  public readonly uuid: string;
+
   public readonly content: string;
 
   public status: PostStatusEnum;

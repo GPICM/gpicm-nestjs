@@ -94,6 +94,30 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  async findByUuid(uuid: string, userId: number): Promise<ViewerPost | null> {
+    try {
+      this.logger.log(`Fetching post by uuid: ${uuid}`);
+      const modelData = await this.prisma.post.findUnique({
+        where: { uuid },
+        include: {
+          ...postInclude,
+          Votes: { where: { userId }, select: { value: true, userId: true } },
+        },
+      });
+
+      if (!modelData) {
+        this.logger.warn(`No post found for uuid: ${uuid}`);
+        return null;
+      }
+
+      this.logger.log(`Post found for uuid: ${uuid}`);
+      return PostAssembler.fromPrisma(modelData, userId);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to find post by uuid: ${uuid}`, { error });
+      throw new Error("Failed to find post by uuid");
+    }
+  }
+
   public async listAll(
     filters: BaseRepositoryFindManyFilters,
     userId: number
