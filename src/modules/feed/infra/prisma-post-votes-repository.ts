@@ -160,18 +160,26 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
   }
 
   public async refreshPostScore(postId: number): Promise<void> {
-    const [upVotes, downVotes] = await Promise.all([
-      this.prisma.postVote.count({ where: { postId, value: 1 } }),
-      this.prisma.postVote.count({ where: { postId, value: -1 } }),
-    ]);
+    try {
+      this.logger.log("Refreshing post score");
+      const [upVotes, downVotes] = await Promise.all([
+        this.prisma.postVote.count({ where: { postId, value: 1 } }),
+        this.prisma.postVote.count({ where: { postId, value: -1 } }),
+      ]);
 
-    await this.prisma.post.update({
-      where: { id: postId },
-      data: {
-        upVotes,
-        downVotes,
-        score: upVotes - downVotes,
-      },
-    });
+      this.logger.log(`Result: ${upVotes} ${downVotes}`);
+
+      await this.prisma.post.update({
+        where: { id: postId },
+        data: {
+          upVotes,
+          downVotes,
+          score: upVotes - downVotes,
+        },
+      });
+    } catch (error: unknown) {
+      this.logger.error("Failed to refresh posts votes", { error });
+      throw new Error("Failed to refresh posts votes");
+    }
   }
 }
