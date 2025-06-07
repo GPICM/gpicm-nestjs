@@ -29,6 +29,7 @@ import { PostRepository } from "../domain/interfaces/repositories/post-repositor
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
+import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -47,6 +48,7 @@ export class PostController {
   constructor(
     private readonly uploadService: UploadService,
     private readonly postRepository: PostRepository,
+    private readonly postVotes: PostVotesRepository,
     private readonly postService: PostServices
   ) {}
 
@@ -124,35 +126,39 @@ export class PostController {
     return this.postService.vote(user, uuid, -1);
   }
 
- /*  @Get(":postSlug/likes")
-  async listPostLikes(
-    @Param("postSlug") postSlug: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+  @Get(":uuid/likes")
+  async listPostVotes(
+    @Param("uuid") uuid: string,
+    @Query() query: ListPostQueryDto,
     @CurrentUser() user: User,
   ) {
-    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    const post = await this.postRepository.findByUuid(uuid, user.id!);
 
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }
 
     const postId = Number(post?.id);
-    const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 10;
 
-    // Todo implement it here
-    const [likes, total] = await Promise.all([
-      this.postLikesRepository.findByPost(postId, limitNumber, (pageNumber - 1) * limitNumber),
-      this.postLikesRepository.countByPost(postId),
-    ]);
-
-    return {
-      data: likes,
-      total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limit),
+    const filters = {
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
     };
-  } */
+
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } = await this.postVotes.listAllByPostId(
+      postId,
+      {
+        limit,
+        offset,
+        search: filters.search,
+      },
+    );
+
+    return new PaginatedResponse(records, total, limit, page, filters);
+  }
 }

@@ -2,6 +2,10 @@
 
 import { Post } from "../../entities/Post";
 import { ViewerPost } from "../../entities/ViewerPost";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../dto/base-repository-filters";
 
 export abstract class PostRepository {
   abstract add(
@@ -24,16 +28,4 @@ export abstract class PostRepository {
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 }
 
-// TODO: MOVE TO SOMEWHERE ELSE
-export interface BaseRepositoryFindManyFilters {
-  search?: string;
-  offset?: number;
-  limit?: number;
-  sort?: string;
-  order?: "asc" | "desc";
-}
-
-export interface BaseRepositoryFindManyResult<Model> {
-  count: number;
-  records: Model[];
-}
+export * from "../dto/base-repository-filters";
