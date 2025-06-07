@@ -2,12 +2,49 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { PostVote } from "../domain/entities/PostVote";
+import { PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaPostVotesRepository implements PostVotesRepository {
   private readonly logger: Logger = new Logger(PrismaPostVotesRepository.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  public async upsert(
+    postVote: PostVote,
+    options?: { transactionContext?: PrismaClient }
+  ): Promise<void> {
+    const prisma = options?.transactionContext ?? this.prisma;
+
+    try {
+      this.logger.log(
+        `Upserting vote for postId=${postVote.postId}, userId=${postVote.userId}`
+      );
+      await prisma.postVote.upsert({
+        where: {
+          postId_userId: { postId: postVote.postId, userId: postVote.userId },
+        },
+        create: {
+          postId: postVote.postId,
+          userId: postVote.userId,
+          value: postVote.value,
+        },
+        update: {
+          value: postVote.value,
+        },
+      });
+
+      this.logger.log(
+        `Vote upserted successfully for postId=${postVote.postId}, userId=${postVote.userId}`
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to upsert vote for postId=${postVote.postId}, userId=${postVote.userId}`,
+        { error }
+      );
+      throw new Error("Failed to upsert vote");
+    }
+  }
 
   async add(postVote: PostVote): Promise<void> {
     try {
@@ -18,10 +55,12 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
           value: postVote.value,
         },
       });
-      this.logger.log(`Like created`);
+      this.logger.log(
+        `Vote created for postId=${postVote.postId}, userId=${postVote.userId}`
+      );
     } catch (error: unknown) {
-      this.logger.error("Failed to create like", { postVote, error });
-      throw new Error("Failed to create like");
+      this.logger.error("Failed to create vote", { postVote, error });
+      throw new Error("Failed to create vote");
     }
   }
 
@@ -35,24 +74,26 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
           value: postVote.value,
         },
       });
-      this.logger.log(`Like created`);
+      this.logger.log(
+        `Vote updated for postId=${postVote.postId}, userId=${postVote.userId}`
+      );
     } catch (error: unknown) {
-      this.logger.error("Failed to create like", { postVote, error });
-      throw new Error("Failed to create like");
+      this.logger.error("Failed to update vote", { postVote, error });
+      throw new Error("Failed to update vote");
     }
   }
 
-  async delete(postVote: PostVote): Promise<void> {
+  async delete(userId: number, postId: number): Promise<void> {
     try {
       await this.prisma.postVote.delete({
         where: {
-          postId_userId: { postId: postVote.postId, userId: postVote.userId },
+          postId_userId: { postId, userId },
         },
       });
-      this.logger.log(`Like deleted:`);
+      this.logger.log(`Vote deleted for postId=${postId}, userId=${userId}`);
     } catch (error: unknown) {
-      this.logger.error("Failed to delete like", { postVote, error });
-      throw new Error("Failed to delete like");
+      this.logger.error("Failed to delete vote", { postId, userId, error });
+      throw new Error("Failed to delete vote");
     }
   }
 
@@ -61,21 +102,41 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
     limit: number,
     offset: number
   ): Promise<{ userId: number; createdAt: Date }[]> {
-    return this.prisma.postVote.findMany({
-      where: { postId },
-      select: { userId: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
-      skip: offset,
-      take: limit,
-    });
+    try {
+      this.logger.log(
+        `Fetching votes for postId=${postId}, limit=${limit}, offset=${offset}`
+      );
+      const votes = await this.prisma.postVote.findMany({
+        where: { postId },
+        select: { userId: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
+      });
+      this.logger.log(`Fetched ${votes.length} votes for postId=${postId}`);
+      return votes;
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch votes for postId=${postId}`, {
+        error,
+      });
+      throw new Error("Failed to fetch votes");
+    }
   }
 
   async findLikedPostIdsByUser(
     userId: number,
     postIds: number[]
   ): Promise<number[]> {
-    if (!postIds.length) return [];
+    if (!postIds.length) {
+      this.logger.log(
+        `No postIds provided to find liked posts for userId=${userId}`
+      );
+      return [];
+    }
     try {
+      this.logger.log(
+        `Fetching liked post IDs for userId=${userId} in posts: [${postIds.join(", ")}]`
+      );
       const likes = await this.prisma.postVote.findMany({
         where: {
           userId,
@@ -83,7 +144,11 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
         },
         select: { postId: true },
       });
-      return likes.map((like) => like.postId);
+      const likedPostIds = likes.map((like) => like.postId);
+      this.logger.log(
+        `Found ${likedPostIds.length} liked posts for userId=${userId}`
+      );
+      return likedPostIds;
     } catch (error: unknown) {
       this.logger.error("Failed to find liked post IDs", {
         userId,

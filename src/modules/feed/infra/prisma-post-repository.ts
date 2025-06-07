@@ -18,7 +18,6 @@ export class PrismaPostRepository implements PostRepository {
     private readonly prisma: PrismaService
   ) {}
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async add(
     post: Post,
     options?: { transactionContext?: PrismaClient }
@@ -26,16 +25,18 @@ export class PrismaPostRepository implements PostRepository {
     const prisma = options?.transactionContext ?? this.prisma;
 
     try {
-      this.logger.log(`Adding new post:`, { post });
+      this.logger.log(`Adding new post with ID: ${post.id}`);
       const parsedData = PostAssembler.toPrisma(post);
 
-      this.logger.log(`Parsed data: ${JSON.stringify(parsedData, null, 4)}`);
+      this.logger.debug(
+        `Parsed post data: ${JSON.stringify(parsedData, null, 4)}`
+      );
 
       const created = await prisma.post.create({
         data: parsedData,
       });
 
-      this.logger.log(`post added successfully: ${post.id}`);
+      this.logger.log(`Post added successfully with ID: ${created.id}`);
 
       return created.id;
     } catch (error: unknown) {
@@ -51,16 +52,18 @@ export class PrismaPostRepository implements PostRepository {
     const prisma = options?.transactionContext ?? this.prisma;
 
     try {
-      this.logger.log(`Adding new post: ${post.title}`);
+      this.logger.log(
+        `Updating post with ID: ${post.id}, Title: ${post.title}`
+      );
       await prisma.post.update({
         where: { id: post.id! },
         data: PostAssembler.toPrisma(post),
       });
 
-      this.logger.log(`post added successfully: ${post.id}`);
+      this.logger.log(`Post updated successfully with ID: ${post.id}`);
     } catch (error: unknown) {
-      this.logger.error("Failed to add post", { post, error });
-      throw new Error("Failed to add post");
+      this.logger.error("Failed to update post", { post, error });
+      throw new Error("Failed to update post");
     }
   }
 
@@ -78,12 +81,15 @@ export class PrismaPostRepository implements PostRepository {
         },
       });
 
-      this.logger.log(`post found: ${slug}`);
+      if (!modelData) {
+        this.logger.warn(`No post found for slug: ${slug}`);
+        return null;
+      }
+
+      this.logger.log(`Post found for slug: ${slug}`);
       return PostAssembler.fromPrisma(modelData, userId);
     } catch (error: unknown) {
-      this.logger.error(`Failed to find post by slug: ${slug}`, {
-        error,
-      });
+      this.logger.error(`Failed to find post by slug: ${slug}`, { error });
       throw new Error("Failed to find post by slug");
     }
   }
@@ -107,6 +113,10 @@ export class PrismaPostRepository implements PostRepository {
         ];
       }
 
+      this.logger.log(
+        `Listing posts with filters: skip=${skip}, take=${take}, sort=${sort}, order=${order}, search=${filters.search ?? "none"}`
+      );
+
       const [prismaResult, count] = await Promise.all([
         this.prisma.post.findMany({
           where,
@@ -118,12 +128,13 @@ export class PrismaPostRepository implements PostRepository {
             Votes: { where: { userId }, select: { value: true, userId: true } },
           },
         }),
-        this.prisma.post.count({
-          where,
-        }),
+        this.prisma.post.count({ where }),
       ]);
 
       const records = PostAssembler.fromPrismaMany(prismaResult, userId);
+
+      this.logger.log(`Listed ${records.length} posts out of total ${count}`);
+
       return { records, count };
     } catch (error: unknown) {
       this.logger.error("Failed to list posts", { error });

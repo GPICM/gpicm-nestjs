@@ -1,5 +1,5 @@
 import { User } from "@/modules/identity/domain/entities/User";
-import { Inject, Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Logger } from "@nestjs/common";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { Post, PostStatusEnum, PostTypeEnum } from "../domain/entities/Post";
@@ -9,6 +9,7 @@ import { IncidentsService } from "@/modules/incidents/application/incidents.serv
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { ViewerPost } from "../domain/entities/ViewerPost";
+import { PostVote, VoteValue } from "../domain/entities/PostVote";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -80,6 +81,51 @@ export class PostServices {
             await this.postRepository.update(post, { transactionContext });
           }
         }
+      );
+      return post;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error creating post: ${JSON.stringify(error, null, 4)}`,
+        { error }
+      );
+      throw new Error("Failed to create post");
+    }
+  }
+
+  async vote(user: User, postSlug: string, voteValue: VoteValue) {
+    try {
+      const userId = user.id!;
+      this.logger.log("Creating post", { userId, postSlug, voteValue });
+
+      const post = await this.postRepository.findBySlug(postSlug, user.id!);
+      if (!post) {
+        throw new BadRequestException("Post not found");
+      }
+
+      const updatedVote = post.toggleVote(voteValue);
+
+      await this.prismaService.openTransaction(async (transactionContext) => {
+        await this.postRepository.update(post);
+
+        if (updatedVote === null) {
+          await this.postVotesRepository.delete(userId, post.id!, {
+            transactionContext,
+          });
+          return;
+        }
+
+        await this.postVotesRepository.upsert(
+          new PostVote({
+            userId,
+            postId: post.id!,
+            value: updatedVote,
+          }),
+          { transactionContext }
+        );
+      });
+
+      this.logger.log(
+        `Storing post to the database: ${JSON.stringify(post, null, 4)}`
       );
       return post;
     } catch (error: unknown) {
