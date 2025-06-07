@@ -8,6 +8,7 @@ import {
 import { Post } from "../domain/entities/Post";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PostAssembler, postInclude } from "./mappers/post.assembler";
+import { ViewerPost } from "../domain/entities/ViewerPost";
 
 export class PrismaPostRepository implements PostRepository {
   private readonly logger: Logger = new Logger(PrismaPostRepository.name);
@@ -63,16 +64,22 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  public async findBySlug(slug: string): Promise<Post | null> {
+  public async findBySlug(
+    slug: string,
+    userId: number
+  ): Promise<ViewerPost | null> {
     try {
       this.logger.log(`Fetching post by slug: ${slug}`);
       const modelData = await this.prisma.post.findUnique({
         where: { slug },
-        include: postInclude,
+        include: {
+          ...postInclude,
+          Votes: { where: { userId }, select: { value: true, userId: true } },
+        },
       });
 
       this.logger.log(`post found: ${slug}`);
-      return PostAssembler.fromPrisma(modelData);
+      return PostAssembler.fromPrisma(modelData, userId);
     } catch (error: unknown) {
       this.logger.error(`Failed to find post by slug: ${slug}`, {
         error,
@@ -82,8 +89,9 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   public async listAll(
-    filters: BaseRepositoryFindManyFilters
-  ): Promise<BaseRepositoryFindManyResult<Post>> {
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
     try {
       const skip = filters.offset;
       const take = filters.limit;
@@ -105,14 +113,17 @@ export class PrismaPostRepository implements PostRepository {
           take,
           skip,
           orderBy: { [sort]: order },
-          include: postInclude,
+          include: {
+            ...postInclude,
+            Votes: { where: { userId }, select: { value: true, userId: true } },
+          },
         }),
         this.prisma.post.count({
           where,
         }),
       ]);
 
-      const records = PostAssembler.fromPrismaMany(prismaResult);
+      const records = PostAssembler.fromPrismaMany(prismaResult, userId);
       return { records, count };
     } catch (error: unknown) {
       this.logger.error("Failed to list posts", { error });

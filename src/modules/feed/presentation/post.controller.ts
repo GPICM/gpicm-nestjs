@@ -91,30 +91,21 @@ export class PostController {
     const limit = filters.limit ?? 16;
     const offset = limit * (page - 1);
 
-    const { records, count: total } = await this.postRepository.listAll({
-      limit,
-      offset,
-      search: filters.search,
-    });
-
-    /*  let recordsWithLike = records;
-    if (user && records.length > 0) {
-      const postIds = records.map((post: any) => Number(post.id));
-
-      const likedPostIds = await this.postLikesRepository.findLikedPostIdsByUser(user.id, postIds);
-      this.logger.log(`User ${user.id} liked posts: ${likedPostIds.join(", ")}`);
-      recordsWithLike = records.map((post: any) => ({
-        ...post,
-        likedByCurrentUser: likedPostIds.includes(Number(post.id)),
-      }));
-    } */
+    const { records, count: total } = await this.postRepository.listAll(
+      {
+        limit,
+        offset,
+        search: filters.search,
+      },
+      user.id!
+    );
 
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(":postSlug")
-  async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
+  getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
     return this.postService.findOne(postSlug, user);
   }
 

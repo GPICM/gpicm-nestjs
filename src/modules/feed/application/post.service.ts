@@ -7,6 +7,8 @@ import { CreatePostDto } from "../presentation/dtos/create-post.dto";
 import { PostAuthor } from "../domain/entities/PostAuthor";
 import { IncidentsService } from "@/modules/incidents/application/incidents.service";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
+import { PostAttachment } from "../domain/object-values/PostAttchment";
+import { ViewerPost } from "../domain/entities/ViewerPost";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -39,7 +41,7 @@ export class PostServices {
         content: dto.content,
         publishedAt: new Date(),
         slug: Post.createSlug(user, dto.title),
-        status: PostStatusEnum.PUBLISHED,
+        status: PostStatusEnum.PUBLISHING,
         attachment: null,
         downVotes: 0,
         upVotes: 0,
@@ -55,10 +57,13 @@ export class PostServices {
 
       await this.prismaService.openTransaction(
         async (transactionContext: PrismaService) => {
-          await this.postRepository.add(post, { transactionContext });
+          const postId = await this.postRepository.add(post, {
+            transactionContext,
+          });
+          post.setId(postId);
 
           if (dto.type == PostTypeEnum.INCIDENT) {
-            await this.incidentsService.create(user, {
+            const incident = await this.incidentsService.create(user, {
               title: post.title,
               address: dto.address,
               latitude: dto.latitude,
@@ -70,6 +75,9 @@ export class PostServices {
               imagePreviewUrl: undefined,
               imageUrl: dto.imageUrl,
             });
+            post.setAttachment(new PostAttachment(incident.id, incident));
+            post.setStatus(PostStatusEnum.PUBLISHED);
+            await this.postRepository.update(post, { transactionContext });
           }
         }
       );
@@ -83,27 +91,15 @@ export class PostServices {
     }
   }
 
-  public async findOne(postSlug: string, user: User) {
+  public async findOne(
+    postSlug: string,
+    user: User
+  ): Promise<ViewerPost | null> {
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
-    const post = await this.postRepository.findBySlug(postSlug);
+    const post = await this.postRepository.findBySlug(postSlug, user.id!);
 
     if (!post) return null;
 
-    const likedByCurrentUser = false;
-
-    /* if (user) {
-      likedByCurrentUser = await this.postVotesRepository.exists(
-        Number(post.id),
-        user.id!
-      );
-      this.logger.log(
-        `User ${user.id} liked post ${post.id}: ${likedByCurrentUser}`
-      );
-    }
- */
-    return {
-      ...post,
-      likedByCurrentUser,
-    };
+    return post;
   }
 }

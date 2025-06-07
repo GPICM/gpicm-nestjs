@@ -85,22 +85,6 @@ export class Post<A = unknown> {
   }
 }
 
-export class UserPost<A = unknown> extends Post<A> {
-  public readonly userId: number;
-
-  public readonly liked?: boolean;
-
-  public constructor(
-    args: NonFunctionProperties<Post<A>>,
-    _userId: number,
-    _liked: boolean
-  ) {
-    super(args);
-    this.userId = _userId;
-    this.liked = _liked;
-  }
-}
-
 export class PostMedia extends Media {
   public constructor(args: NonFunctionProperties<Media>) {
     super(args);

@@ -24,6 +24,6 @@ import { IncidentsService } from "./application/incidents.service";
     IncidentsService,
   ],
   imports: [SharedModule, AssetsModule],
-  exports: [IncidentsService],
+  exports: [IncidentsService, IncidentTypeRepository],
 })
 export class IncidentsModule {}

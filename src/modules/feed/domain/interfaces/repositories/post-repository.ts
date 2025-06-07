@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { Post } from "../../entities/Post";
+import { ViewerPost } from "../../entities/ViewerPost";
 
 export abstract class PostRepository {
   abstract add(
@@ -13,11 +14,12 @@ export abstract class PostRepository {
     options?: { transactionContext?: unknown }
   ): Promise<void>;
 
-  abstract findBySlug(slug: string): Promise<Post | null>;
+  abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
 
   abstract listAll(
-    filters: BaseRepositoryFindManyFilters
-  ): Promise<BaseRepositoryFindManyResult<Post>>;
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 }
 
 // TODO: MOVE TO SOMEWHERE ELSE

@@ -6,9 +6,12 @@ import { Post, PostStatusEnum, PostTypeEnum } from "../../domain/entities/Post";
 import { PostAuthor } from "../../domain/entities/PostAuthor";
 import { IncidentAssembler } from "@/modules/incidents/infra/mappers/incident.mapper";
 import { PostAttachment } from "../../domain/object-values/PostAttchment";
+import { ViewerPost } from "../../domain/entities/ViewerPost";
+import { VoteValue } from "../../domain/entities/PostVote";
 
 export const postInclude = Prisma.validator<Prisma.PostInclude>()({
   Incident: { include: { Author: true, IncidentType: true } },
+  Votes: { select: { value: true, userId: true } },
   Author: true,
 });
 
@@ -46,7 +49,10 @@ class PostAssembler {
     };
   }
 
-  public static fromPrisma(prismaData?: PostJoinModel | null): Post | null {
+  public static fromPrisma(
+    prismaData: PostJoinModel | null,
+    userId: number
+  ): ViewerPost | null {
     if (!prismaData) return null;
 
     const { Author } = prismaData;
@@ -66,28 +72,40 @@ class PostAssembler {
       }
     }
 
-    return new Post({
-      id: prismaData.id,
-      title: prismaData.title,
-      type: prismaData.type as PostTypeEnum,
-      status: prismaData.status as PostStatusEnum,
-      content: prismaData.content,
-      publishedAt: prismaData.publishedAt,
-      slug: prismaData.slug,
-      attachment,
-      downVotes: prismaData.downVotes,
-      upVotes: prismaData.upVotes,
-      score: prismaData.score,
-      isPinned: prismaData.isPinned,
-      isVerified: prismaData.isVerified,
-      author,
-    });
+    console.log(JSON.stringify(prismaData, null, 4));
+    const voteValue = (prismaData.Votes ?? [])?.[0];
+
+    return new ViewerPost(
+      {
+        id: prismaData.id,
+        title: prismaData.title,
+        type: prismaData.type as PostTypeEnum,
+        status: prismaData.status as PostStatusEnum,
+        content: prismaData.content,
+        publishedAt: prismaData.publishedAt,
+        slug: prismaData.slug,
+        attachment,
+        downVotes: prismaData.downVotes,
+        upVotes: prismaData.upVotes,
+        score: prismaData.score,
+        isPinned: prismaData.isPinned,
+        isVerified: prismaData.isVerified,
+        coverImageUrl: "",
+        medias: [],
+        author,
+      },
+      userId,
+      voteValue?.value as VoteValue
+    );
   }
 
-  public static fromPrismaMany(prismaDataArray: PostJoinModel[]): Post[] {
-    const posts: Post[] = [];
+  public static fromPrismaMany(
+    prismaDataArray: PostJoinModel[],
+    userId: number
+  ): ViewerPost[] {
+    const posts: ViewerPost[] = [];
     for (const prismaData of prismaDataArray) {
-      const post = this.fromPrisma(prismaData);
+      const post = this.fromPrisma(prismaData, userId);
       if (post) {
         posts.push(post);
       }

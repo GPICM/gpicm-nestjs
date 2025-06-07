@@ -19,7 +19,7 @@ export class IncidentsService {
     private readonly incidentTypeRepository: IncidentTypeRepository
   ) {}
 
-  async create(user: User, dto: CreateIncidentDto) {
+  async create(user: User, dto: CreateIncidentDto): Promise<Incident> {
     try {
       this.logger.log("Creating Incident", { dto });
 
@@ -63,6 +63,8 @@ export class IncidentsService {
       await this.incidentsRepository.add(incident);
 
       this.logger.log("Creating of Incident");
+
+      return incident;
     } catch (error) {
       this.logger.error("Error creating Incident", error);
       throw new Error("Failed to create Incident");
