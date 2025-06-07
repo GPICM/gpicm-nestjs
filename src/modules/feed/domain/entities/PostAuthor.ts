@@ -1,12 +1,8 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+import { UserSummary } from "./UserSummary";
 
-export class PostAuthor {
-  id: number;
-  name: string;
-  publicId: string;
-  profilePicture: string;
-
-  constructor(args: NonFunctionProperties<PostAuthor>) {
-    Object.assign(this, args);
+export class PostAuthor extends UserSummary {
+  public constructor(args: NonFunctionProperties<PostAuthor>) {
+    super(args);
   }
 }

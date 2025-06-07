@@ -38,14 +38,6 @@ class PostAssembler {
           id: post.author.id,
         },
       },
-      /*  Incident:
-        post.type === PostTypeEnum.INCIDENT && post.attachment
-          ? {
-              connect: {
-                id: post.attachment.id,
-              },
-            }
-          : undefined, */
     };
   }
 
@@ -78,12 +70,13 @@ class PostAssembler {
     return new ViewerPost(
       {
         id: prismaData.id,
+        uuid: prismaData.uuid,
+        slug: prismaData.slug,
         title: prismaData.title,
         type: prismaData.type as PostTypeEnum,
         status: prismaData.status as PostStatusEnum,
         content: prismaData.content,
         publishedAt: prismaData.publishedAt,
-        slug: prismaData.slug,
         attachment,
         downVotes: prismaData.downVotes,
         upVotes: prismaData.upVotes,

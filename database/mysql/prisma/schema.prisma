@@ -157,8 +157,9 @@ model IncidentType {
 
 model Post {
   id          Int        @id @default(autoincrement())
-  title       String     @db.LongText
+  uuid        String     @unique @default(uuid())
   slug        String     @unique
+  title       String     @db.LongText
   content     String     @db.LongText
   isPinned    Boolean    @default(false) @map("is_pinned")
   isVerified  Boolean    @default(false) @map("is_verified")
@@ -252,6 +253,7 @@ model PostVote {
   userId    Int      @map("user_id")
   value     Int
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   Post Post @relation(fields: [postId], references: [id])
   User User @relation(fields: [userId], references: [id])
