@@ -6,8 +6,8 @@ import {
   PostRepository,
 } from "../domain/interfaces/repositories/post-repository";
 import { Post } from "../domain/entities/Post";
-import { Prisma, PrismaClient } from "@prisma/client";
-import { PostAssembler, postInclude } from "./mappers/post.assembler";
+import { PrismaClient } from "@prisma/client";
+import { PostAssembler } from "./mappers/post.assembler";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 
 export class PrismaPostRepository implements PostRepository {
@@ -76,24 +76,7 @@ export class PrismaPostRepository implements PostRepository {
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.prisma.$queryRawUnsafe<any>(
-        `
-        SELECT  
-          p.*,  
-          a.name AS author_name,
-          a.public_id AS author_public_id,
-          a.profile_picture AS author_profile_picture,
-          IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
-          IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
-          IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location),'longitude', ST_X(p.location) ), NULL) AS location_obj
-        FROM posts p
-          LEFT JOIN incidents i ON p.incident_id = i.id
-          LEFT JOIN users ia ON i.author_id = ia.id
-          LEFT JOIN incident_types it ON i.incident_type_id = it.id
-          LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
-          LEFT JOIN users a ON p.author_id = a.id
-        WHERE p.slug = ?
-        GROUP BY p.id;
-        `,
+        this.buildBasePostSelectQuery(`WHERE p.slug = ? GROUP BY p.id`),
         userId,
         slug
       );
@@ -114,24 +97,7 @@ export class PrismaPostRepository implements PostRepository {
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.prisma.$queryRawUnsafe<any>(
-        `
-        SELECT  
-          p.*,  
-          a.name AS author_name,
-          a.public_id AS author_public_id,
-          a.profile_picture AS author_profile_picture,
-          IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
-          IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
-          IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location),'longitude', ST_X(p.location) ), NULL) AS location_obj
-        FROM posts p
-          LEFT JOIN incidents i ON p.incident_id = i.id
-          LEFT JOIN users ia ON i.author_id = ia.id
-          LEFT JOIN incident_types it ON i.incident_type_id = it.id
-          LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
-          LEFT JOIN users a ON p.author_id = a.id
-        WHERE p.uuid = ?
-        GROUP BY p.id;
-        `,
+        this.buildBasePostSelectQuery(`WHERE p.uuid = ? GROUP BY p.id`),
         userId,
         uuid
       );
@@ -174,30 +140,13 @@ export class PrismaPostRepository implements PostRepository {
         `Listing posts with filters: skip=${skip}, take=${take}, sort=${sort}, order=${order}, search=${filters.search ?? "none"}`
       );
 
+      const query =
+        this.buildBasePostSelectQuery(whereSearch) +
+        ` ORDER BY p.${sort} ${order} LIMIT ? OFFSET ?`;
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const [result, countResult] = await Promise.all([
-        this.prisma.$queryRawUnsafe<any>(
-          `
-          SELECT  
-            p.*,  
-            a.name AS author_name,
-            a.public_id AS author_public_id,
-            a.profile_picture AS author_profile_picture,
-            IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug ), NULL) AS incident_obj,
-            IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id ), NULL) AS vote_obj,
-            IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location) ), NULL) AS location_obj
-          FROM posts p
-            LEFT JOIN incidents i ON p.incident_id = i.id
-            LEFT JOIN users ia ON i.author_id = ia.id
-            LEFT JOIN incident_types it ON i.incident_type_id = it.id
-            LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
-            LEFT JOIN users a ON p.author_id = a.id
-          ${whereSearch}
-          ORDER BY p.${sort} ${order}
-          LIMIT ? OFFSET ?;
-          `,
-          ...params
-        ),
+        this.prisma.$queryRawUnsafe<any>(query, ...params),
         this.prisma.$queryRawUnsafe<any>(
           `
           SELECT COUNT(*) AS total
@@ -218,5 +167,25 @@ export class PrismaPostRepository implements PostRepository {
       this.logger.error("Failed to list posts", { error });
       throw new Error("Failed to list posts");
     }
+  }
+
+  private buildBasePostSelectQuery(whereClause: string): string {
+    return `
+      SELECT  
+        p.*,  
+        a.name AS author_name,
+        a.public_id AS author_public_id,
+        a.profile_picture AS author_profile_picture,
+        IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
+        IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
+        IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj
+      FROM posts p
+        LEFT JOIN incidents i ON p.incident_id = i.id
+        LEFT JOIN users ia ON i.author_id = ia.id
+        LEFT JOIN incident_types it ON i.incident_type_id = it.id
+        LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
+        LEFT JOIN users a ON p.author_id = a.id
+      ${whereClause}
+    `;
   }
 }
