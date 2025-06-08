@@ -1,4 +1,5 @@
 import { IsOptional, IsString, IsInt } from "class-validator";
+
 export class UpdateIncidentTypeDto {
   @IsString()
   @IsOptional()
