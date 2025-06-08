@@ -33,7 +33,7 @@ model User {
   UserAgreements UserAgreement[]
   Incidents      Incident[]
   Posts          Post[]
-  PostLikes      PostLikes[]
+  PostLikes      PostLike[]
 
   @@unique([publicId])
   @@map("users")
@@ -171,7 +171,7 @@ model Post {
 
   Author   User      @relation(fields: [authorId], references: [id])
   Incident Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  PostLikes PostLikes[]
+  PostLikes PostLike[]
 
   @@map("posts")
 }
@@ -202,15 +202,13 @@ model PartnerApiKey {
   @@map("partner_api_keys")
 }
 
-model PostLikes {
+model PostLike {
   postId   Int      @map("post_id")
   userId   Int      @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   Post Post @relation(fields: [postId], references: [id])
   User User @relation(fields: [userId], references: [id])
   @@id([postId, userId])
-  @@index([postId])
-  @@index([userId])
   @@map("post_likes")
 }
 

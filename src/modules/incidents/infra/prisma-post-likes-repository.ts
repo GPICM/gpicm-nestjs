@@ -12,7 +12,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
 
   async create(postId: number, userId: number): Promise<void> {
     try {
-      await this.prisma.postLikes.create({
+      await this.prisma.postLike.create({
         data: { postId, userId },
       });
       this.logger.log(`Like created: postId=${postId}, userId=${userId}`);
@@ -24,7 +24,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
 
   async delete(postId: number, userId: number): Promise<void> {
     try {
-      await this.prisma.postLikes.delete({
+      await this.prisma.postLike.delete({
         where: { postId_userId: { postId, userId } },
       });
       this.logger.log(`Like deleted: postId=${postId}, userId=${userId}`);
@@ -36,7 +36,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
 
   async exists(postId: number, userId: number): Promise<boolean> {
     try {
-      const like = await this.prisma.postLikes.findUnique({
+      const like = await this.prisma.postLike.findUnique({
         where: { postId_userId: { postId, userId } },
       });
       return !!like;
@@ -48,7 +48,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
 
   async countByPost(postId: number): Promise<number> {
     try {
-      return await this.prisma.postLikes.count({
+      return await this.prisma.postLike.count({
         where: { postId },
       });
     } catch (error) {
@@ -58,7 +58,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
   }
 
   async findByPost(postId: number, limit: number, offset: number): Promise<{ userId: number, createdAt: Date }[]> {
-    return this.prisma.postLikes.findMany({
+    return this.prisma.postLike.findMany({
       where: { postId },
       select: { userId: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
@@ -70,7 +70,7 @@ export class PostLikesPrismaRepository implements PostLikesRepository {
   async findLikedPostIdsByUser(userId: number, postIds: number[]): Promise<number[]> {
     if (!postIds.length) return [];
     try {
-      const likes = await this.prisma.postLikes.findMany({
+      const likes = await this.prisma.postLike.findMany({
         where: {
           userId,
           postId: { in: postIds },
