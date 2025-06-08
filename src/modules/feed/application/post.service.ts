@@ -89,7 +89,9 @@ export class PostServices {
               imageUrl: dto.imageUrl,
             });
 
-            post.setAttachment(new PostAttachment(incident.id, incident));
+            post.setAttachment(
+              new PostAttachment(incident.id, incident, "Incident")
+            );
             post.setStatus(PostStatusEnum.PUBLISHED);
 
             await this.postRepository.update(post, { transactionContext });
