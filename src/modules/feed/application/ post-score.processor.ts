@@ -9,7 +9,7 @@ import { PostVotesRepository } from "../domain/interfaces/repositories/post-vote
 @Processor("vote-events")
 export class PostScoreProcessor extends WorkerHost {
   private postsToUpdate = new Set<number>();
-  private readonly debounceTimeMs = 5000;
+  private readonly debounceTimeMs = 500;
 
   constructor(private readonly postVotesRepository: PostVotesRepository) {
     super();
