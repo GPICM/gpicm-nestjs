@@ -4,10 +4,17 @@ import { Prisma, PostStatus, PostType } from "@prisma/client";
 
 import { Post, PostStatusEnum, PostTypeEnum } from "../../domain/entities/Post";
 import { PostAuthor } from "../../domain/entities/PostAuthor";
-import { IncidentAssembler } from "@/modules/incidents/infra/mappers/incident.mapper";
 import { PostAttachment } from "../../domain/object-values/PostAttchment";
 import { ViewerPost } from "../../domain/entities/ViewerPost";
 import { VoteValue } from "../../domain/entities/PostVote";
+import {
+  IncidentQueryData,
+  LocationObjectQueryData,
+  PostRawQuery,
+  VoteQueryData,
+} from "../dto/post-raw-query";
+import { IncidentShallow } from "../../domain/entities/IncidentShallow";
+import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 
 export const postInclude = Prisma.validator<Prisma.PostInclude>()({
   Incident: { include: { Author: true, IncidentType: true } },
@@ -20,25 +27,14 @@ type PostJoinModel = Prisma.PostGetPayload<{
 }>;
 
 class PostAssembler {
-  public static toPrismaCreate(post: Post): Prisma.PostCreateInput {
+  public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
     return {
-      title: post.title,
-      content: post.content,
-      slug: post.slug,
-      type: post.type as PostType,
       status: post.status as PostStatus,
-      publishedAt: post.publishedAt,
       isPinned: post.isPinned || false,
       isVerified: post.isVerified || false,
       downVotes: post.downVotes,
       upVotes: post.upVotes,
       score: post.score,
-      locationAddress: post.address,
-      Author: {
-        connect: {
-          id: post.author.id,
-        },
-      },
       Incident:
         post.type === PostTypeEnum.INCIDENT && post.attachment
           ? {
@@ -106,53 +102,46 @@ class PostAssembler {
     return sql.trim();
   }
 
-  public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
-    return {
-      status: post.status as PostStatus,
-      isPinned: post.isPinned || false,
-      isVerified: post.isVerified || false,
-      downVotes: post.downVotes,
-      upVotes: post.upVotes,
-      score: post.score,
-      Incident:
-        post.type === PostTypeEnum.INCIDENT && post.attachment
-          ? {
-              connect: {
-                id: post.attachment.id,
-              },
-            }
-          : undefined,
-    };
-  }
-
-  public static fromPrisma(
-    prismaData: PostJoinModel | null,
+  public static fromSqlSelect(
+    sqlData: PostRawQuery[],
     userId: number
   ): ViewerPost | null {
-    if (!prismaData) return null;
-
-    const { Author } = prismaData;
+    const data = sqlData?.[0];
+    if (!data) return null;
 
     const author = new PostAuthor({
-      id: Author.id,
-      name: Author.name ?? "Anônimo",
-      profilePicture: Author.profilePicture ?? "",
-      publicId: Author.publicId,
+      id: data.author_id,
+      name: data.author_name ?? "Anônimo",
+      profilePicture: data.author_profile_picture ?? "",
+      publicId: data.author_public_id,
     });
 
     let attachment;
-    if (prismaData.type == PostType.INCIDENT && prismaData.Incident) {
-      const incident = IncidentAssembler.fromPrisma(prismaData.Incident);
+    let coverImageUrl = "";
+    if (data.type == PostType.INCIDENT && data.incident_obj) {
+      const parsedIncident = JSON.parse(data.incident_obj) as IncidentQueryData;
+
+      const incident = new IncidentShallow({
+        id: parsedIncident.id,
+        imageUrl: parsedIncident?.image_url ?? "",
+        incidentDate: new Date(parsedIncident.incident_date),
+        incidentTypeSlug: parsedIncident?.incident_type_slug,
+      });
       if (incident) {
-        attachment = new PostAttachment(incident?.id, incident);
+        attachment = new PostAttachment(incident?.id, incident, "Incident");
+        coverImageUrl = incident?.imageUrl ?? "";
       }
     }
 
-    const voteValue = ((prismaData.Votes ?? [])?.[0]?.value ??
-      VoteValue.NULL) as VoteValue;
+    let voteValue = VoteValue.NULL;
+    if (data.vote_obj) {
+      const parsedVote = JSON.parse(data.vote_obj) as VoteQueryData;
+      voteValue = parsedVote.value ?? VoteValue.NULL;
+    }
 
-    let upVotes = prismaData.upVotes;
-    let downVotes = prismaData.downVotes;
+    let upVotes = Number(data.up_votes);
+    let downVotes = Number(data.down_votes);
+    const score = Number(data.score);
 
     // Optimistic vote adjustment:
     // If the user has voted but the vote counts (upVotes and downVotes) have not yet been updated (still zero),
@@ -165,27 +154,33 @@ class PostAssembler {
       }
     }
 
+    let location: GeoPosition | null = null;
+    const locationAddress = data.location_address ?? "";
+    if (data.location_obj) {
+      location = this.parseLocationObjectToGeoPosition(data.location_obj);
+    }
+
     return new ViewerPost(
       {
-        id: prismaData.id,
-        uuid: prismaData.uuid,
-        slug: prismaData.slug,
-        title: prismaData.title,
-        type: prismaData.type as PostTypeEnum,
-        status: prismaData.status as PostStatusEnum,
-        content: prismaData.content,
-        publishedAt: prismaData.publishedAt,
-        attachment,
-        downVotes: prismaData.downVotes,
-        upVotes: prismaData.upVotes,
-        score: prismaData.score,
-        isPinned: prismaData.isPinned,
-        isVerified: prismaData.isVerified,
-        coverImageUrl: "",
-        medias: [],
-        address: "",
-        location: null,
+        id: data.id,
+        uuid: data.uuid,
+        slug: data.slug,
+        title: data.title,
+        type: data.type as PostTypeEnum,
+        status: data.status as PostStatusEnum,
+        content: data.content,
+        publishedAt: new Date(data.published_at),
+        score,
+        upVotes: upVotes,
+        downVotes: downVotes,
+        isPinned: !!data.is_pinned,
+        isVerified: !!data.is_verified,
+        coverImageUrl,
+        address: locationAddress,
+        location,
         author,
+        attachment,
+        medias: [],
       },
       userId,
       voteValue
@@ -198,12 +193,27 @@ class PostAssembler {
   ): ViewerPost[] {
     const posts: ViewerPost[] = [];
     for (const prismaData of prismaDataArray) {
-      const post = this.fromPrisma(prismaData, userId);
+      /* const post = this.fromPrisma(prismaData, userId);
       if (post) {
         posts.push(post);
-      }
+      } */
     }
     return posts;
+  }
+
+  public static parseLocationObjectToGeoPosition(
+    locationObjectJson: string
+  ): GeoPosition | null {
+    try {
+      const parsedLocation = JSON.parse(
+        locationObjectJson
+      ) as LocationObjectQueryData;
+
+      return new GeoPosition(parsedLocation.latitude, parsedLocation.longitude);
+    } catch (error: unknown) {
+      console.error("Failed to parse MySQL Point to GeoLocation", { error });
+      return null;
+    }
   }
 }
 
