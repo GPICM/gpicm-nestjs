@@ -119,13 +119,10 @@ export class PostServices {
       }
 
       const postId = post.id!;
-
       const updatedVote = post.toggleVote(voteValue);
 
-      // TODO: add queue to update post vote async
-
       await this.prismaService.openTransaction(async (transactionContext) => {
-        if (updatedVote === null) {
+        if (updatedVote === VoteValue.NULL) {
           await this.postVotesRepository.delete(userId, post.id!, {
             transactionContext,
           });
