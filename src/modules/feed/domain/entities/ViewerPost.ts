@@ -5,21 +5,21 @@ import { VoteValue } from "./PostVote";
 export class ViewerPost<A = unknown> extends Post<A> {
   public readonly userId: number;
 
-  public userVote: VoteValue | null;
+  public userVote: VoteValue;
 
   public constructor(
     args: NonFunctionProperties<Post<A>>,
     _userId: number,
-    _vote?: VoteValue
+    _vote: VoteValue
   ) {
     super(args);
     this.userId = _userId;
-    this.userVote = _vote ?? null;
+    this.userVote = _vote ?? VoteValue.NULL;
   }
 
-  public toggleVote(nextVote: VoteValue | null): VoteValue | null {
+  public toggleVote(nextVote: VoteValue): VoteValue {
     const prevVote = this.userVote;
-    const updatedVote = prevVote === nextVote ? null : nextVote;
+    const updatedVote = prevVote === nextVote ? 0 : nextVote;
 
     this.updateVoteCounts(prevVote, updatedVote);
     this.userVote = updatedVote;
@@ -27,15 +27,12 @@ export class ViewerPost<A = unknown> extends Post<A> {
     return updatedVote;
   }
 
-  private updateVoteCounts(
-    previous: VoteValue | null,
-    next: VoteValue | null
-  ): void {
-    if (previous === 1) this.upVotes--;
-    if (previous === -1) this.downVotes--;
+  private updateVoteCounts(previous: VoteValue, next: VoteValue): void {
+    if (previous === VoteValue.UP) this.upVotes--;
+    if (previous === VoteValue.DOWN) this.downVotes--;
 
-    if (next === 1) this.upVotes++;
-    if (next === -1) this.downVotes++;
+    if (next === VoteValue.UP) this.upVotes++;
+    if (next === VoteValue.DOWN) this.downVotes++;
 
     this.score = this.upVotes - this.downVotes;
   }

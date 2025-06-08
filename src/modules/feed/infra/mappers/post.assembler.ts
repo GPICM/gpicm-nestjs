@@ -103,7 +103,6 @@ class PostAssembler {
       );
     `;
 
-    console.log(sql);
     return sql.trim();
   }
 
@@ -149,8 +148,22 @@ class PostAssembler {
       }
     }
 
-    console.log(JSON.stringify(prismaData, null, 4));
-    const voteValue = (prismaData.Votes ?? [])?.[0];
+    const voteValue = ((prismaData.Votes ?? [])?.[0]?.value ??
+      VoteValue.NULL) as VoteValue;
+
+    let upVotes = prismaData.upVotes;
+    let downVotes = prismaData.downVotes;
+
+    // Optimistic vote adjustment:
+    // If the user has voted but the vote counts (upVotes and downVotes) have not yet been updated (still zero),
+    // simulate the vote locally by incrementing the appropriate count.
+    if (voteValue !== VoteValue.NULL) {
+      if (voteValue === VoteValue.UP && upVotes === 0) {
+        upVotes += 1;
+      } else if (voteValue === VoteValue.DOWN && downVotes === 0) {
+        downVotes += 1;
+      }
+    }
 
     return new ViewerPost(
       {
@@ -175,7 +188,7 @@ class PostAssembler {
         author,
       },
       userId,
-      voteValue?.value as VoteValue
+      voteValue
     );
   }
 
