@@ -73,23 +73,40 @@ export class PrismaPostRepository implements PostRepository {
   ): Promise<ViewerPost | null> {
     try {
       this.logger.log(`Fetching post by slug: ${slug}`);
-      const modelData = await this.prisma.post.findUnique({
-        where: { slug },
-        include: {
-          ...postInclude,
-          Votes: { where: { userId }, select: { value: true, userId: true } },
-        },
-      });
 
-      if (!modelData) {
-        this.logger.warn(`No post found for slug: ${slug}`);
-        return null;
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const result = await this.prisma.$queryRawUnsafe<any>(
+        `
+        SELECT  
+          p.*,  
+          a.name AS author_name,
+          a.public_id AS author_public_id,
+          a.profile_picture AS author_profile_picture,
+          IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
+          IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
+          IF(p.location IS NOT NULL, JSON_OBJECT(
+            'latitude', ST_Y(p.location),
+            'longitude', ST_X(p.location)
+          ), NULL) AS location_obj
+        FROM posts p
+          LEFT JOIN incidents i ON p.incident_id = i.id
+          LEFT JOIN users ia ON i.author_id = ia.id
+          LEFT JOIN incident_types it ON i.incident_type_id = it.id
+          LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
+          LEFT JOIN users a ON p.author_id = a.id
+        WHERE p.slug = ?
+        GROUP BY p.id;
+        `,
+        userId,
+        slug
+      );
 
-      this.logger.log(`Post found for slug: ${slug}`);
-      return PostAssembler.fromPrisma(modelData, userId);
+      const parsed = PostAssembler.fromSqlSelect(result, userId);
+
+      return parsed;
     } catch (error: unknown) {
       this.logger.error(`Failed to find post by slug: ${slug}`, { error });
+      console.log(error);
       throw new Error("Failed to find post by slug");
     }
   }
@@ -97,21 +114,38 @@ export class PrismaPostRepository implements PostRepository {
   async findByUuid(uuid: string, userId: number): Promise<ViewerPost | null> {
     try {
       this.logger.log(`Fetching post by uuid: ${uuid}`);
-      const modelData = await this.prisma.post.findUnique({
-        where: { uuid },
-        include: {
-          ...postInclude,
-          Votes: { where: { userId }, select: { value: true, userId: true } },
-        },
-      });
 
-      if (!modelData) {
-        this.logger.warn(`No post found for uuid: ${uuid}`);
-        return null;
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const result = await this.prisma.$queryRawUnsafe<any>(
+        `
+        SELECT  
+          p.*,  
+          a.name AS author_name,
+          a.public_id AS author_public_id,
+          a.profile_picture AS author_profile_picture,
+          IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
+          IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
+          IF(p.location IS NOT NULL, JSON_OBJECT(
+            'latitude', ST_Y(p.location),
+            'longitude', ST_X(p.location)
+          ), NULL) AS location_obj
+        FROM posts p
+          LEFT JOIN incidents i ON p.incident_id = i.id
+          LEFT JOIN users ia ON i.author_id = ia.id
+          LEFT JOIN incident_types it ON i.incident_type_id = it.id
+          LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
+          LEFT JOIN users a ON p.author_id = a.id
+        WHERE p.uuid = ?
+        GROUP BY p.id;
+        `,
+        userId,
+        uuid
+      );
+
+      const parsed = PostAssembler.fromSqlSelect(result, userId);
 
       this.logger.log(`Post found for uuid: ${uuid}`);
-      return PostAssembler.fromPrisma(modelData, userId);
+      return parsed;
     } catch (error: unknown) {
       this.logger.error(`Failed to find post by uuid: ${uuid}`, { error });
       throw new Error("Failed to find post by uuid");

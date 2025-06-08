@@ -1,0 +1,52 @@
+export type PostRawQuery = {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  status: string; // e.g. "PUBLISHED"
+  type: string; // e.g. "INCIDENT"
+  published_at: string | Date;
+  incident_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+  down_votes: number;
+  is_pinned: number;
+  is_verified: number;
+  score: number;
+  up_votes: number;
+  uuid: string;
+  location: Uint8Array;
+  location_address: string | null;
+
+  /* Author */
+  author_id: number;
+  author_name: string;
+  author_public_id: string;
+  author_profile_picture: string | null;
+
+  /* Location */
+  location_obj: string | null;
+
+  /* Attached Incident */
+  incident_obj: string | null; // JSON string – should be parsed
+
+  /* Current User Votes */
+  vote_obj: string | null; // JSON string – should be parsed
+};
+
+export type IncidentQueryData = {
+  id: string;
+  image_url: string;
+  incident_date: string;
+  incident_type_slug: string;
+};
+
+export type VoteQueryData = {
+  value: number | null;
+  userId: number | null;
+};
+
+export type LocationObjectQueryData = {
+  latitude: number;
+  longitude: number;
+};
