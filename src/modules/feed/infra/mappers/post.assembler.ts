@@ -187,16 +187,16 @@ class PostAssembler {
     );
   }
 
-  public static fromPrismaMany(
-    prismaDataArray: PostJoinModel[],
+  public static fromSqlMany(
+    sqlDataArray: PostRawQuery[],
     userId: number
   ): ViewerPost[] {
     const posts: ViewerPost[] = [];
-    for (const prismaData of prismaDataArray) {
-      /* const post = this.fromPrisma(prismaData, userId);
+    for (const sqlData of sqlDataArray) {
+      const post = this.fromSqlSelect([sqlData], userId);
       if (post) {
         posts.push(post);
-      } */
+      }
     }
     return posts;
   }
