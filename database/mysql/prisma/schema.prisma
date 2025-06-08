@@ -33,6 +33,7 @@ model User {
   UserAgreements UserAgreement[]
   Incidents      Incident[]
   Posts          Post[]
+  PostVotes      PostVote[]
 
   @@unique([publicId])
   @@map("users")
@@ -155,22 +156,72 @@ model IncidentType {
 }
 
 model Post {
-  id          Int        @id @default(autoincrement())
-  title       String     @db.LongText
-  slug        String     @unique
-  content     String     @db.LongText
-  status      PostStatus @default(PENDING)
-  type        PostType   @default(INCIDENT)
-  publishedAt DateTime?  @map("published_at")
-  authorId    Int        @map("author_id")
-  incidentId  String?    @map("incident_id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  id              Int                   @id @default(autoincrement())
+  uuid            String                @unique @default(uuid())
+  slug            String                @unique
+  title           String                @db.LongText
+  content         String                @db.LongText
+  isPinned        Boolean               @default(false) @map("is_pinned")
+  isVerified      Boolean               @default(false) @map("is_verified")
+  status          PostStatus            @default(DRAFT)
+  type            PostType              @default(INCIDENT)
+  publishedAt     DateTime?             @map("published_at")
+  authorId        Int                   @map("author_id")
+  incidentId      String?               @map("incident_id")
+  upVotes         Int                   @default(0) @map("up_votes")
+  downVotes       Int                   @default(0) @map("down_votes")
+  score           Int                   @default(0) @map("score")
+  location        Unsupported("POINT")?
+  locationAddress String?               @map("location_address")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
 
-  Author   User      @relation(fields: [authorId], references: [id])
-  Incident Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Author     User        @relation(fields: [authorId], references: [id])
+  Incident   Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Votes      PostVote[]
+  PostMedias PostMedia[] @relation("PostToPostMedia")
 
   @@map("posts")
+}
+
+model PostMedia {
+  mediaId Int
+  postId  Int
+  order   Int?
+
+  Media Media @relation("MediaToPostMedia", fields: [mediaId], references: [id])
+  Post  Post  @relation("PostToPostMedia", fields: [postId], references: [id])
+
+  @@id([mediaId, postId])
+  @@map("post_medias")
+}
+
+model Media {
+  id          Int          @id @default(autoincrement())
+  url         String
+  filename    String
+  contentType String
+  size        Int?
+  type        MediaType
+  provider    MediaStorage @default(LOCAL)
+  createdAt   DateTime     @default(now())
+
+  PostMedias PostMedia[] @relation("MediaToPostMedia")
+
+  @@map("medias")
+}
+
+enum MediaStorage {
+  LOCAL
+  S3
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
 }
 
 /**
@@ -199,6 +250,20 @@ model PartnerApiKey {
   @@map("partner_api_keys")
 }
 
+model PostVote {
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  value     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  Post Post @relation(fields: [postId], references: [id])
+  User User @relation(fields: [userId], references: [id])
+
+  @@id([postId, userId])
+  @@map("post_votes")
+}
+
 // Enums
 
 enum PostType {
@@ -206,8 +271,10 @@ enum PostType {
 }
 
 enum PostStatus {
-  PENDING
+  DRAFT
+  PUBLISHING
   PUBLISHED
+  UNLISTED
   ARCHIVED
 }
 
