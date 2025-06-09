@@ -107,6 +107,34 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
+  @Get("hot")
+  async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
+    this.logger.log("Fetching all posts");
+
+    // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
+    const filters = {
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+    };
+
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } = await this.postRepository.listByRelevance(
+      {
+        limit,
+        offset,
+        search: filters.search,
+      },
+      user.id!
+    );
+
+    return new PaginatedResponse(records, total, limit, page, filters);
+  }
+
+
   @Get(":postSlug")
   getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
     return this.postService.findOne(postSlug, user);
