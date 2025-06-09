@@ -169,6 +169,59 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async listByRelevance(
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
+    try {
+      const skip = filters.offset ?? 0;
+      const take = filters.limit ?? 10;
+
+      const searchFilter = filters.search ? `%${filters.search}%` : null;
+
+      this.logger.log(
+        `Listing posts (raw) with filters: skip=${skip}, take=${take}, search=${filters.search ?? "none"}`
+      );
+
+      const whereSearch = searchFilter
+        ? `WHERE (p.title LIKE ? OR p.content LIKE ?)`
+        : "";
+
+      const params = searchFilter
+        ? [userId, searchFilter, searchFilter, take, skip]
+        : [userId, take, skip];
+
+      const relevanceOrder = `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at))`;
+
+      const query =
+        this.buildBasePostSelectQuery(whereSearch) +
+        ` ORDER BY ${relevanceOrder} DESC, p.published_at DESC LIMIT ? OFFSET ?`;
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const [result, countResult] = await Promise.all([
+        this.prisma.$queryRawUnsafe<any>(query, ...params),
+        this.prisma.$queryRawUnsafe<any>(
+          `
+          SELECT COUNT(*) AS total
+          FROM posts p
+            ${searchFilter ? "WHERE (p.title LIKE ? OR p.content LIKE ?)" : ""}
+          `,
+          ...(searchFilter ? [searchFilter, searchFilter] : [])
+        ),
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const count = Number(countResult[0]?.total ?? 0);
+      const records = PostAssembler.fromSqlMany(result, userId);
+
+      return { records: records, count };
+    } catch (error: unknown) {
+      console.log(error);
+      this.logger.error("Failed to list posts", { error });
+      throw new Error("Failed to list posts");
+    }
+  }
+
   private buildBasePostSelectQuery(whereClause: string): string {
     return `
       SELECT  
