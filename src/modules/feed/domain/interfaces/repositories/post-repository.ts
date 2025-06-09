@@ -26,6 +26,11 @@ export abstract class PostRepository {
     filters: BaseRepositoryFindManyFilters,
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
+
+  abstract listByRelevance(
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 }
 
 export * from "../dto/base-repository-filters";
