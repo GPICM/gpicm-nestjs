@@ -1,4 +1,10 @@
-import { Controller, Get, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
 import { StationsRepository } from "./interfaces/stations-repository";
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
@@ -10,7 +16,7 @@ export class StationController {
 
   @Get()
   @UseInterceptors(CacheInterceptor)
-  async finalAll(): Promise<any> {
+  async findAll(): Promise<any> {
     const stations = await this.stationRepository.listAll();
     return stations;
   }

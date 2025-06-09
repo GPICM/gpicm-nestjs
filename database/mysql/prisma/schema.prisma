@@ -264,6 +264,16 @@ model PostVote {
   @@map("post_votes")
 }
 
+model Test {
+  id          Int      @id @default(autoincrement()) @map("id")
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("tests")
+}
+
 // Enums
 
 enum PostType {

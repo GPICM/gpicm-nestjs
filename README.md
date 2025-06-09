@@ -23,6 +23,7 @@ ou simplesmente rode:
 
 ```
 yarn run db:local
+
 ```
 
 
