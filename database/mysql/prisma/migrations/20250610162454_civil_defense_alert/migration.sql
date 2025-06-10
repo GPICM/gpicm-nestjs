@@ -3,8 +3,8 @@ CREATE TABLE `civil_defense_alerts` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `gravityLvl` ENUM('LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH', 'EXTREME') NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `gravity_level` ENUM('LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH', 'EXTREME') NOT NULL,
     `status` ENUM('ACTIVE', 'INACTIVE') NOT NULL,
 
     PRIMARY KEY (`id`)

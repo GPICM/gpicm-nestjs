@@ -21,7 +21,7 @@
 
     description: string;
 
-    gravityLvl: GravityLevel;
+    gravityLevel: GravityLevel;
 
     createdAt: Date | null;
 

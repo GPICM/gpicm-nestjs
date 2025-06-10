@@ -242,10 +242,9 @@ model CivilDefenseAlert {
   id          Int          @id @default(autoincrement())
   title       String
   description String
-  createdAt   DateTime     @default(now())
-  gravityLvl  GravityLevel
+  createdAt   DateTime     @default(now()) @map("created_at")
+  gravityLevel  GravityLevel  @map("gravity_level")
   status      AlertStatus
-
   @@map("civil_defense_alerts")
 }
 

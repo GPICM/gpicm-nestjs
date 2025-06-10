@@ -24,7 +24,7 @@ export class PrismaCivilDefenseAlertsRepository implements CivilDefenseAlertsRep
         return new CivilDefenseAlerts({
                 id: v.id,
                 title: v.title,
-                gravityLvl: v.gravityLvl as GravityLevel,
+                gravityLevel: v.gravityLevel as GravityLevel,
                 description : v.description,
                 status: v.status as AlertStatus,
                 createdAt : v.createdAt
