@@ -17,6 +17,7 @@ export class StationController {
   }
 
   @Get(":slug")
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(CacheInterceptor)
   async findOne(@Param("slug") slug: string): Promise<any> {
     const stations = await this.stationRepository.findBySlug(slug);
