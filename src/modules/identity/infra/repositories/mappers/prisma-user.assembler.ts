@@ -54,6 +54,9 @@ export class UserAssembler {
         profilePicture: prismaData.profilePicture,
         status: prismaData.status as UserStatus,
         credentials: [],
+        latitude: prismaData.latitude,
+        longitude: prismaData.longitude,
+        locationUpdatedAt: prismaData.locationUpdatedAt,
       });
     }
 
@@ -74,6 +77,11 @@ export class UserAssembler {
       profilePicture: prismaData.profilePicture,
       status: prismaData.status as UserStatus,
       credentials,
+      latitude: prismaData.latitude,
+      longitude: prismaData.longitude,
+      locationUpdatedAt: prismaData.locationUpdatedAt,
+      
+      
     });
   }
 
