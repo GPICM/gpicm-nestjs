@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
 import { Station } from "../../../domain/Station";
 import { StationsRepository } from "../../../interfaces/stations-repository";
@@ -33,6 +34,64 @@ export class MongoDbStationsRepository implements StationsRepository {
       throw new Error("Failed to find station by id");
     }
   }
+
+  public async findBySlug(stationSlug: string): Promise<Station | null> {
+    try {
+      this.db = this.mongoService.getDatabase();
+      const collection = this.db.collection("stations");
+
+      const result = await collection
+        .aggregate<MongoStationProjection>([
+          {
+            $match: {
+              slug: stationSlug,
+            },
+          },
+          {
+            $lookup: {
+              from: STATION_DAILY_METRICS_COLLECTION_NAME,
+              let: { stationSlug: "$slug" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ["$stationSlug", "$$stationSlug"] },
+                  },
+                },
+                { $sort: { date: -1 } },
+                { $limit: 1 },
+              ],
+              as: "latestMetrics",
+            },
+          },
+          {
+            $unwind: {
+              path: "$latestMetrics",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $addFields: {
+              isOnline: {
+                $cond: {
+                  if: { $ne: ["$latestMetrics.isOnline", null] },
+                  then: "$latestMetrics.isOnline",
+                  else: false,
+                },
+              },
+            },
+          },
+        ])
+        .next();
+
+      if (!result) return null;
+
+      return MongoDbStationMapper.fromMongo(result);
+    } catch (error) {
+      this.logger.error("Failed to find station", error);
+      throw new Error("Failed to find station by slug");
+    }
+  }
+
 
   public async listAll(): Promise<Station[]> {
     try {
