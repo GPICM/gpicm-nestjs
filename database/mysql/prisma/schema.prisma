@@ -239,12 +239,15 @@ model Partner {
 }
 
 model CivilDefenseAlert {
-  id          Int          @id @default(autoincrement())
-  title       String
-  description String
-  createdAt   DateTime     @default(now()) @map("created_at")
-  gravityLevel  GravityLevel  @map("gravity_level")
-  status      AlertStatus
+  id          Int      @id @default(autoincrement())
+  title       String   @db.LongText
+  description String   @db.LongText
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  gravityLevel GravityLevel @map("gravity_level")
+  status       AlertStatus
+
   @@map("civil_defense_alerts")
 }
 

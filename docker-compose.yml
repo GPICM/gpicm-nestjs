@@ -17,7 +17,7 @@ services:
       DATABASE_URL: mysql://local:12345678@db:3306/anselmo_telemetria
     volumes:
       - .:/usr/src/app:cached
-      - /usr/src/app/node_modules
+      - node-modules:/usr/src/app/node_modules
       - ./public/assets:/usr/src/app/public/assets
     ports:
       - '9000:9000'
@@ -54,5 +54,7 @@ services:
       - gpicm-development
 
 volumes:
+  node-modules:
+    name: gpicm-node-modules
   mariadb-data:
     name: gpicm-dev-db
