@@ -3,13 +3,12 @@ import { Readable } from "stream";
 
 export namespace BlobStorageRepositoryTypes {
   export interface AddParams {
-    key: string;
-    folder: string;
+    fileName: string;
     buffer: Buffer | Uint8Array | string;
     contentType?: string;
   }
   export interface BlobMetadata {
-    key: string;
+    fileName: string;
     location: string;
     contentType: string;
     size: number;
@@ -21,11 +20,11 @@ export abstract class BlobStorageRepository {
     params: BlobStorageRepositoryTypes.AddParams
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata>;
 
-  public abstract get(fileKey: string): Promise<Buffer | null>;
+  public abstract get(fileName: string): Promise<Buffer | null>;
 
-  public abstract stream(fileKey: string): Promise<Readable | null>;
+  public abstract stream(fileName: string): Promise<Readable | null>;
 
   public abstract getMetadata(
-    fileKey: string
+    fileName: string
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata | null>;
 }

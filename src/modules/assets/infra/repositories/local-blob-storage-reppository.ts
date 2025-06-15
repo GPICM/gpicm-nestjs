@@ -34,22 +34,28 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
   public async add(
     params: BlobStorageRepositoryTypes.AddParams
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
-    const { folder, key, buffer } = params;
+    const { fileName, buffer } = params;
     try {
-      const fullDir = path.join(this.storageDirectory, folder);
-      const filePath = this.getFullPath(folder, key);
+      const folder = fileName.split("/")?.[0];
 
-      fs.mkdirSync(fullDir, { recursive: true });
+      if (folder) {
+        const fullDir = path.join(this.storageDirectory, folder);
+        fs.mkdirSync(fullDir, { recursive: true });
+      }
+
+      const filePath = this.resolveFilePath(fileName);
 
       await promisify(fs.writeFile)(filePath, buffer);
       this.logger.log(`File written: ${filePath}`);
 
       const stats = fs.statSync(filePath);
 
+      const mimeType = mime.lookup(filePath) || "application/octet-stream";
+
       return {
-        key,
-        contentType: "",
-        location: `${process.env.ASSETS_HOST}/${folder}/${key}`,
+        fileName,
+        contentType: mimeType,
+        location: `${process.env.ASSETS_HOST}/${folder}/${filePath}`,
         size: stats.size,
       };
     } catch (error) {
@@ -58,8 +64,8 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
     }
   }
 
-  public async get(fileKey: string): Promise<Buffer | null> {
-    const filePath = path.join(this.storageDirectory, fileKey);
+  public async get(fileName: string): Promise<Buffer | null> {
+    const filePath = this.resolveFilePath(fileName);
     try {
       const data = await promisify(fs.readFile)(filePath);
       this.logger.log(`File read: ${filePath}`);
@@ -71,9 +77,8 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async stream(fileKey: string): Promise<Readable | null> {
-    const filePath = path.join(this.storageDirectory, fileKey);
-
+  public async stream(fileName: string): Promise<Readable | null> {
+    const filePath = this.resolveFilePath(fileName);
     try {
       if (!fs.existsSync(filePath)) {
         this.logger.warn(`File not found: ${filePath}`);
@@ -89,9 +94,9 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
   }
 
   public async getMetadata(
-    fileKey: string
+    fileName: string
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata | null> {
-    const filePath = path.join(this.storageDirectory, fileKey);
+    const filePath = this.resolveFilePath(fileName);
     try {
       const stats = await promisify(fs.stat)(filePath);
 
@@ -100,7 +105,7 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
 
       this.logger.log(`Metadata retrieved for file: ${filePath}`);
       return {
-        key: fileKey,
+        fileName,
         location: filePath,
         contentType: mimeType,
         size: stats.size,
@@ -113,7 +118,7 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
     }
   }
 
-  private getFullPath(dir: string, key: string): string {
-    return path.join(this.storageDirectory, dir, key);
+  private resolveFilePath(fileName: string): string {
+    return path.join(this.storageDirectory, fileName);
   }
 }
