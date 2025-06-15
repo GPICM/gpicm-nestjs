@@ -15,7 +15,11 @@ import { MediaRepository } from "../interfaces/repositories/media-repository";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UploadService } from "./upload.service";
 import { imageTransformMap } from "../domain/constants";
-import { MediaSource } from "../domain/object-values/media-source";
+import {
+  MediaSource,
+  MediaSourceVariant,
+  MediaSourceVariantKey,
+} from "../domain/object-values/media-source";
 
 export class MediaService {
   private readonly logger: Logger = new Logger(MediaService.name);
@@ -36,7 +40,13 @@ export class MediaService {
     target: MediaTargetEnum,
     options?: { transactionContext: unknown }
   ): Promise<Media> {
-    this.logger.log("(uploadFile) Uploading file", { user });
+    this.logger.log("(uploadFile) Uploading file", {
+      user,
+      scope,
+      scopedId,
+      type,
+      target,
+    });
 
     try {
       const media = Media.createDraft(scope, scopedId, type, target);
@@ -89,12 +99,13 @@ export class MediaService {
     mediaId: number,
     file: any
   ): Promise<Media> {
-    this.logger.log("(uploadFile) Uploading file", { user, file });
+    const userId = user.id;
+    this.logger.log("(uploadFile) Uploading file", { userId, mediaId, file });
 
     try {
       const buffer = Buffer.from(file.buffer);
 
-      const media = await this.mediaRepository.findById(mediaId, user.id!);
+      const media = await this.mediaRepository.findById(mediaId);
       if (!media) {
         throw new Error("Media not found");
       }
@@ -112,15 +123,18 @@ export class MediaService {
           transformConfig
         );
 
-        const sources = uploaded.map((dto) => {
-          return new MediaSource({
+        const mediaSource = new MediaSource();
+
+        uploaded.map((dto) => {
+          const variant = new MediaSourceVariant({
             size: 0,
-            alias: dto.alias,
             url: dto.location,
           });
+
+          mediaSource.set(dto.alias as MediaSourceVariantKey, variant);
         });
 
-        media.setSources(sources);
+        media.setSources(mediaSource);
       } else {
         throw new Error("Media not supported yet");
       }

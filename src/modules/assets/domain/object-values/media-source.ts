@@ -8,12 +8,11 @@ export enum MediaSourceVariantKey {
 }
 
 export class MediaSourceVariant {
-  public alias: string;
   public url: string;
-  public size: number;
+  public size?: number;
   public dimensions?: number;
 
-  public constructor(args: NonFunctionProperties<MediaSource>) {
+  public constructor(args: NonFunctionProperties<MediaSourceVariant>) {
     Object.assign(this, args);
   }
 }
@@ -21,4 +20,25 @@ export class MediaSourceVariant {
 export class MediaSource extends Map<
   MediaSourceVariantKey,
   MediaSourceVariant
-> {}
+> {
+  public toJSON(): Record<
+    MediaSourceVariantKey,
+    NonFunctionProperties<MediaSourceVariant>
+  > {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const result: Record<
+      MediaSourceVariantKey,
+      NonFunctionProperties<MediaSourceVariant>
+    > = {} as any;
+
+    for (const [key, variant] of this.entries()) {
+      result[key] = {
+        url: variant.url,
+        size: variant.size,
+        dimensions: variant.dimensions,
+      };
+    }
+
+    return result;
+  }
+}

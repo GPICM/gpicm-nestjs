@@ -32,7 +32,10 @@ class MediaAssembler {
       scope: media.scope as unknown as PrismaMediaScope,
       status: media.status as unknown as PrismaMediaStatus,
       target: media.target as unknown as PrismaMediaTarget,
-      sources: media.sources as unknown as Prisma.InputJsonValue,
+      sources: (media.sources || undefined) as unknown as
+        | Prisma.NullableJsonNullValueInput
+        | Prisma.InputJsonValue
+        | undefined,
     };
   }
 

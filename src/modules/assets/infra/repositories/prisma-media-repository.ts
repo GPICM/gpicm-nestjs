@@ -52,7 +52,10 @@ export class PrismaMediaRepository implements MediaRepository {
 
   public async findById(id: number): Promise<Media | null> {
     try {
+      this.logger.log("Getting media by id", { id });
       const result = await this.prisma.media.findUnique({ where: { id } });
+
+      this.logger.log("Media from prisma", { result });
       return MediaAssembler.fromPrisma(result);
     } catch (error: unknown) {
       this.logger.error(`Failed to find media with ID ${id}`, { error });
