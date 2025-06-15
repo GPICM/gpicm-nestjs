@@ -1,28 +1,10 @@
-import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+import {
+  ImageFormats,
+  ImageTransformConfig,
+} from "../domain/object-values/image-media-source";
 
 /* eslint-disable @typescript-eslint/no-namespace */
 export namespace ImageProcessorTypes {
-  export type ImageFormats = "webp" | "jpeg" | "png";
-
-  export interface ImageDim {
-    width: number;
-    height: number;
-  }
-
-  export class ImageTransformConfig {
-    format: ImageFormats;
-    sizes: {
-      maxWidth?: number;
-      maxHeight?: number;
-      dimension?: ImageDim;
-      alias: string;
-    }[];
-
-    constructor(args: NonFunctionProperties<ImageTransformConfig>) {
-      Object.assign(this, args);
-    }
-  }
-
   export type TransformedImage = {
     buffer: Buffer;
     alias: string;
@@ -42,13 +24,10 @@ export abstract class ImageProcessor {
     maxHeight?: number
   ): Promise<Buffer>;
 
-  abstract convert(
-    buffer: Buffer,
-    format: ImageProcessorTypes.ImageFormats
-  ): Promise<Buffer>;
+  abstract convert(buffer: Buffer, format: ImageFormats): Promise<Buffer>;
 
   abstract process(
     buffer: Buffer,
-    config: ImageProcessorTypes.ImageTransformConfig
+    config: ImageTransformConfig
   ): Promise<ImageProcessorTypes.TransformedImage[]>;
 }

@@ -5,6 +5,7 @@ import {
   ImageProcessor,
   ImageProcessorTypes,
 } from "../interfaces/image-processor";
+import { ImageTransformConfig } from "../domain/object-values/image-media-source";
 
 export class SharpAdapter implements ImageProcessor {
   public scale(
@@ -46,7 +47,7 @@ export class SharpAdapter implements ImageProcessor {
 
   async process(
     buffer: Buffer,
-    config: ImageProcessorTypes.ImageTransformConfig
+    config: ImageTransformConfig
   ): Promise<ImageProcessorTypes.TransformedImage[]> {
     const { format, sizes } = config;
     const results: ImageProcessorTypes.TransformedImage[] = [];
