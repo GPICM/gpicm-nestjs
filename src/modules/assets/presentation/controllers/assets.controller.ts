@@ -21,11 +21,13 @@ export class AssetsController {
     private readonly blobRepository: BlobStorageRepository
   ) {}
 
-  @Get(":fileName")
+  @Get("*filePath")
   public async getOne(
-    @Param("fileName") fileName: string,
+    @Param("filePath") fullPath: string,
     @Res() res: Response
   ) {
+    const fileName = fullPath.split(",").join("/");
+
     this.logger.log(`Fetching file with name: ${fileName}`);
 
     const fileStream = await this.blobRepository.stream(fileName);
