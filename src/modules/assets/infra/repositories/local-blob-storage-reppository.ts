@@ -34,21 +34,26 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
   public async add(
     params: BlobStorageRepositoryTypes.AddParams
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
-    const { key, buffer } = params;
-    const filePath = path.join(this.storageDirectory, key);
-
+    const { folder, key, buffer } = params;
     try {
+      const fullDir = path.join(this.storageDirectory, folder);
+      const filePath = this.getFullPath(folder, key);
+
+      fs.mkdirSync(fullDir, { recursive: true });
+
       await promisify(fs.writeFile)(filePath, buffer);
       this.logger.log(`File written: ${filePath}`);
+
+      const stats = fs.statSync(filePath);
 
       return {
         key,
         contentType: "",
-        location: `${process.env.ASSETS_HOST}/${key}`,
-        size: buffer.length,
+        location: `${process.env.ASSETS_HOST}/${folder}/${key}`,
+        size: stats.size,
       };
     } catch (error) {
-      this.logger.error(`Error writing file [${filePath}]`, { error });
+      this.logger.error(`Error writing file`, { params, error });
       throw error;
     }
   }
@@ -106,5 +111,9 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
       });
       return null;
     }
+  }
+
+  private getFullPath(dir: string, key: string): string {
+    return path.join(this.storageDirectory, dir, key);
   }
 }

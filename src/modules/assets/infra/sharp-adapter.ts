@@ -1,7 +1,10 @@
 // infra/services/sharp-adapter.ts
 
 import sharp from "sharp";
-import { ImageProcessor } from "../interfaces/image-processor";
+import {
+  ImageProcessor,
+  ImageProcessorTypes,
+} from "../interfaces/image-processor";
 
 export class SharpAdapter implements ImageProcessor {
   public scale(
@@ -39,5 +42,40 @@ export class SharpAdapter implements ImageProcessor {
     format: "webp" | "jpeg" | "png"
   ): Promise<Buffer> {
     return sharp(buffer)[format]().toBuffer();
+  }
+
+  async process(
+    buffer: Buffer,
+    config: ImageProcessorTypes.ImageTransformConfig
+  ): Promise<ImageProcessorTypes.TransformedImage[]> {
+    const { format, sizes } = config;
+    const results: ImageProcessorTypes.TransformedImage[] = [];
+
+    for (const size of sizes) {
+      let resized: Buffer;
+
+      if (size.dimension) {
+        resized = await this.resize(
+          buffer,
+          size.dimension.width,
+          size.dimension.height
+        );
+      } else if (size.maxWidth || size.maxHeight) {
+        resized = await this.scale(buffer, size.maxWidth, size.maxHeight);
+      } else {
+        throw new Error(
+          `No valid resizing config provided for alias "${size.alias}"`
+        );
+      }
+
+      const converted = await this.convert(resized, format);
+
+      results.push({
+        buffer: converted,
+        alias: size.alias,
+      });
+    }
+
+    return results;
   }
 }
