@@ -7,6 +7,7 @@ import {
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { Inject, Logger } from "@nestjs/common";
+import path from "path";
 
 export class UploadService {
   private readonly logger: Logger = new Logger(UploadService.name);
@@ -16,24 +17,31 @@ export class UploadService {
     private readonly blobRepository: BlobStorageRepository
   ) {}
 
-  public async uploadImage(user: User, file: any, index = 1): Promise<string> {
+  public async uploadImage(
+    user: User,
+    file: any,
+    fileName?: string
+  ): Promise<string> {
     this.logger.log("(uploadImage) Uploading image", { user, file });
 
     const numericDate = formatDateToNumber(new Date());
 
-    const fileKey = `${user.publicId}_${file.originalname}_${numericDate}-${index}`;
+    const extension = path.extname(file.originalname) || ".bin";
+
+    const resolvedFileName = `${user.publicId}${fileName ? `_${fileName}` : ""}_${numericDate}${extension}`;
+
     const addParams: BlobStorageRepositoryTypes.AddParams = {
-      key: fileKey,
+      key: resolvedFileName,
       contentType: file.mimetype,
       buffer: Buffer.from(file.buffer),
     };
 
     try {
-      this.logger.log("(uploadImage) Storing image blob", { fileKey });
+      this.logger.log("(uploadImage) Storing image blob", { fileName });
       await this.blobRepository.add(addParams);
 
       this.logger.log("(uploadImage) Generating image url", {});
-      const imageUrl = `${process.env.ASSETS_HOST}/${fileKey}`;
+      const imageUrl = `${process.env.ASSETS_HOST}/${fileName}`;
 
       return imageUrl;
     } catch (error) {
@@ -41,5 +49,4 @@ export class UploadService {
       throw new Error("Failed to upload image. Please try again later.");
     }
   }
-
 }

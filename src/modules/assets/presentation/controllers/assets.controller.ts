@@ -28,7 +28,7 @@ export class AssetsController {
   ) {
     this.logger.log(`Fetching file with name: ${fileName}`);
 
-    const fileStream = this.blobRepository.stream(fileName);
+    const fileStream = await this.blobRepository.stream(fileName);
     if (!fileStream) {
       throw new HttpException("File not found", HttpStatus.NOT_FOUND);
     }

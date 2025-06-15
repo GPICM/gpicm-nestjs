@@ -8,9 +8,9 @@ import * as mime from "mime-types";
 import {
   BlobStorageRepository,
   BlobStorageRepositoryTypes,
-} from "../../domain/interfaces/repositories/blob-storage-repository";
-import { ReadStream } from "fs";
+} from "../../../shared/domain/interfaces/repositories/blob-storage-repository";
 import { Logger } from "@nestjs/common";
+import { Readable } from "stream";
 
 export class LocalBlobStorageRepository extends BlobStorageRepository {
   private readonly logger: Logger = new Logger(LocalBlobStorageRepository.name);
@@ -33,13 +33,20 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
 
   public async add(
     params: BlobStorageRepositoryTypes.AddParams
-  ): Promise<void> {
+  ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
     const { key, buffer } = params;
     const filePath = path.join(this.storageDirectory, key);
 
     try {
       await promisify(fs.writeFile)(filePath, buffer);
       this.logger.log(`File written: ${filePath}`);
+
+      return {
+        key,
+        contentType: "",
+        location: `${process.env.ASSETS_HOST}/${key}`,
+        size: buffer.length,
+      };
     } catch (error) {
       this.logger.error(`Error writing file [${filePath}]`, { error });
       throw error;
@@ -58,7 +65,8 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
     }
   }
 
-  public stream(fileKey: string): ReadStream | null {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async stream(fileKey: string): Promise<Readable | null> {
     const filePath = path.join(this.storageDirectory, fileKey);
 
     try {
