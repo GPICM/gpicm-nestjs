@@ -6,12 +6,16 @@ import { AssetsController } from "./presentation/controllers/assets.controller";
 import { UploadService } from "./application/upload.service";
 import { S3Adapter } from "./infra/repositories/s3-adapter";
 import { SharedModule } from "../shared/shared.module";
+import { MediaController } from "./presentation/controllers/media.controller";
+import { ImageProcessor } from "./interfaces/image-processor";
+import { SharpAdapter } from "./infra/sharp-adapter";
 
 @Global()
 @Module({
-  controllers: [AssetsController],
+  controllers: [AssetsController, MediaController],
   providers: [
     UploadService,
+    { provide: ImageProcessor, useClass: SharpAdapter },
     {
       provide: BlobStorageRepository,
       useFactory: () => {
@@ -24,6 +28,6 @@ import { SharedModule } from "../shared/shared.module";
     },
   ],
   imports: [SharedModule],
-  exports: [UploadService, BlobStorageRepository],
+  exports: [UploadService, BlobStorageRepository, ImageProcessor],
 })
 export class AssetsModule {}

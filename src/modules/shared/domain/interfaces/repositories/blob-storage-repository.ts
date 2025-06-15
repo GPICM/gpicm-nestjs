@@ -4,6 +4,7 @@ import { Readable } from "stream";
 export namespace BlobStorageRepositoryTypes {
   export interface AddParams {
     key: string;
+    folder: string;
     buffer: Buffer | Uint8Array | string;
     contentType?: string;
   }
