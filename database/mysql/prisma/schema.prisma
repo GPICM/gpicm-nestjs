@@ -176,39 +176,40 @@ model Post {
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
 
-  Author     User        @relation(fields: [authorId], references: [id])
-  Incident   Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  Votes      PostVote[]
-  PostMedias PostMedia[] @relation("PostToPostMedia")
+  Author   User       @relation(fields: [authorId], references: [id])
+  Incident Incident?  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Votes    PostVote[]
 
   @@map("posts")
 }
 
-model PostMedia {
-  mediaId Int
-  postId  Int
-  order   Int?
-
-  Media Media @relation("MediaToPostMedia", fields: [mediaId], references: [id])
-  Post  Post  @relation("PostToPostMedia", fields: [postId], references: [id])
-
-  @@id([mediaId, postId])
-  @@map("post_medias")
-}
-
 model Media {
   id          Int          @id @default(autoincrement())
-  url         String
+  sources     Json
   filename    String
   contentType String
-  size        Int?
-  type        MediaType
+  altText     String?
+  caption     String?
+  order       Int          @default(0)
+  status      MediaStatus  @default(CREATED)
   provider    MediaStorage @default(LOCAL)
-  createdAt   DateTime     @default(now())
+  target      MediaTarget
+  scope       MediaScope
+  scopeId     Int
 
-  PostMedias PostMedia[] @relation("MediaToPostMedia")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([scope, scopeId])
   @@map("medias")
+}
+
+enum MediaStatus {
+  CREATED
+  UPLOADING
+  ACTIVE
+  FAILED
+  DELETED
 }
 
 enum MediaStorage {
@@ -217,11 +218,16 @@ enum MediaStorage {
   OTHER
 }
 
-enum MediaType {
-  IMAGE
-  AUDIO
-  VIDEO
-  DOCUMENT
+enum MediaScope {
+  POSTS
+  USERS
+}
+
+enum MediaTarget {
+  POSTS_GENERIC_IMAGE
+  POSTS_GENERIC_AUDIO
+  POSTS_GENERIC_DOCUMENT
+  USERS_AVATAR
 }
 
 /**
