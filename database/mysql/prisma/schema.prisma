@@ -184,18 +184,23 @@ model Post {
 }
 
 model Media {
-  id          Int          @id @default(autoincrement())
-  sources     Json
+  id      Int  @id @default(autoincrement())
+  sources Json
+
   filename    String
   contentType String
   altText     String?
   caption     String?
-  order       Int          @default(0)
-  status      MediaStatus  @default(CREATED)
-  provider    MediaStorage @default(LOCAL)
-  target      MediaTarget
-  scope       MediaScope
-  scopeId     Int
+
+  order Int @default(0)
+
+  status MediaStatus @default(CREATED)
+
+  target MediaTarget
+  type   MediaType   @default(OTHER)
+
+  scope   MediaScope
+  scopeId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -212,9 +217,10 @@ enum MediaStatus {
   DELETED
 }
 
-enum MediaStorage {
-  LOCAL
-  S3
+enum MediaType {
+  IMAGE
+  AUDIO
+  DOCUMENT
   OTHER
 }
 

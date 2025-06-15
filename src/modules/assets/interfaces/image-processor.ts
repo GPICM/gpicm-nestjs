@@ -1,7 +1,7 @@
 import {
   ImageFormats,
   ImageTransformConfig,
-} from "../domain/object-values/image-media-source";
+} from "../domain/object-values/image-transform-config";
 
 /* eslint-disable @typescript-eslint/no-namespace */
 export namespace ImageProcessorTypes {

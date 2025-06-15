@@ -7,11 +7,10 @@ import {
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { Inject, Logger } from "@nestjs/common";
-import {
-  ImageProcessor,
-  ImageProcessorTypes,
-} from "../interfaces/image-processor";
+import { ImageProcessor } from "../interfaces/image-processor";
 import { createHash, randomBytes } from "crypto";
+import { DEFAULT_IMAGE_CONFIG } from "../domain/constants";
+import { ImageTransformConfig } from "../domain/object-values/image-transform-config";
 
 export class UploadService {
   private readonly logger: Logger = new Logger(UploadService.name);
@@ -54,69 +53,38 @@ export class UploadService {
 
   public async uploadImage(
     user: User,
-    file: any,
-    target: "users" | "posts"
-  ): Promise<any> {
-    this.logger.log("(uploadImage) Uploading image", { user, file });
+    buffer: Buffer,
+    target: string,
+    config?: ImageTransformConfig
+  ): Promise<Array<{ location: string; alias: string }>> {
+    this.logger.log("(uploadImage) Uploading image", { user, buffer });
 
     try {
-      const buffer = Buffer.from(file.buffer);
-      const result = await this.processImage(user, buffer);
+      const transformConfig = config ?? DEFAULT_IMAGE_CONFIG;
+      const result = await this.imageProcessor.process(buffer, transformConfig);
 
       const imageGrouphash = createHash("sha256")
-        .update(buffer)
+        .update(result[0].buffer)
         .update(Date.now().toString())
         .update(randomBytes(6))
         .digest("hex")
         .slice(0, 12);
 
       const uploadedLocations = await Promise.all(
-        result.map(async ({ alias, buffer }) => {
+        result.map(async ({ alias, buffer: innerBuffer }) => {
           const filename = `${imageGrouphash}_${alias}.webp`;
-          return await this.uploadFile(user, buffer, target, filename);
+
+          const result = await this.uploadFile(
+            user,
+            innerBuffer,
+            target,
+            filename
+          );
+          return { location: result, alias };
         })
       );
 
       return uploadedLocations;
-    } catch (error) {
-      this.logger.error("(uploadImage) Failed to upload image", error as Error);
-      throw new Error("Failed to upload image. Please try again later.");
-    }
-  }
-
-  public async processImage(
-    user: User,
-    buffer: Buffer
-  ): Promise<ImageProcessorTypes.TransformedImage[]> {
-    this.logger.log("(processImage) Processing image", { user });
-
-    const userProfileImageConfig = new ImageProcessorTypes.ImageTransformConfig(
-      {
-        format: "webp",
-        sizes: [
-          {
-            alias: "sm",
-            maxWidth: 128,
-          },
-          {
-            alias: "md",
-            maxWidth: 320,
-          },
-          {
-            alias: "lg",
-            maxWidth: 512,
-          },
-        ],
-      }
-    );
-
-    try {
-      const result = await this.imageProcessor.process(
-        buffer,
-        userProfileImageConfig
-      );
-
-      return result;
     } catch (error) {
       this.logger.error("(uploadImage) Failed to upload image", error as Error);
       throw new Error("Failed to upload image. Please try again later.");

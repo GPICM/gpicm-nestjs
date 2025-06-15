@@ -1,6 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+import { MediaSource } from "../object-values/media-source";
 
-export enum MediaStatus {
+export enum MediaStatusEnum {
   CREATED,
   UPLOADING,
   ACTIVE,
@@ -8,18 +9,19 @@ export enum MediaStatus {
   DELETED,
 }
 
-export enum MediaStorage {
-  LOCAL,
-  S3,
+export enum MediaTypeEnum {
+  IMAGE,
+  AUDIO,
+  DOCUMENT,
   OTHER,
 }
 
-export enum MediaScope {
+export enum MediaScopeEnum {
   POSTS,
   USERS,
 }
 
-export enum MediaTarget {
+export enum MediaTargetEnum {
   POSTS_GENERIC_IMAGE,
   POSTS_GENERIC_AUDIO,
   POSTS_GENERIC_DOCUMENT,
@@ -28,8 +30,6 @@ export enum MediaTarget {
 
 export class Media {
   public readonly id: number | null;
-
-  public readonly sources: MediaSource[] | null;
 
   public readonly filename: string | null;
 
@@ -41,38 +41,49 @@ export class Media {
 
   public readonly order: number | null;
 
-  public readonly target: MediaTarget;
+  public readonly target: MediaTargetEnum;
 
-  public readonly provider: MediaStorage | null;
+  public readonly type: MediaTypeEnum;
 
-  public readonly status: MediaStatus;
+  public readonly scope: MediaScopeEnum;
 
-  public scope: MediaScope;
+  public readonly scopedId: number;
 
-  public scopedId: number;
+  public sources: MediaSource[] | null;
+
+  public status: MediaStatusEnum;
 
   public constructor(args: NonFunctionProperties<Media>) {
     Object.assign(this, args);
   }
 
   public static createDraft(
-    scope: MediaScope,
+    scope: MediaScopeEnum,
     scopedId: number,
-    target: MediaTarget
+    type: MediaTypeEnum,
+    target: MediaTargetEnum
   ) {
     return new Media({
       id: null,
-      altText: null,
-      caption: null,
-      contentType: null,
-      filename: null,
       order: null,
-      provider: null,
-      scope,
-      scopedId,
+      caption: null,
       sources: null,
-      status: MediaStatus.CREATED,
+      altText: null,
+      filename: null,
+      contentType: null,
+      type,
+      scope,
       target,
+      scopedId,
+      status: MediaStatusEnum.CREATED,
     });
+  }
+
+  setSources(value: MediaSource[]) {
+    this.sources = value;
+  }
+
+  setStatus(value: MediaStatusEnum) {
+    this.status = value;
   }
 }

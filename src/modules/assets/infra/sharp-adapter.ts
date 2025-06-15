@@ -5,7 +5,7 @@ import {
   ImageProcessor,
   ImageProcessorTypes,
 } from "../interfaces/image-processor";
-import { ImageTransformConfig } from "../domain/object-values/image-media-source";
+import { ImageTransformConfig } from "../domain/object-values/image-transform-config";
 
 export class SharpAdapter implements ImageProcessor {
   public scale(
