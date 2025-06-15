@@ -1,6 +1,13 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
-export class MediaSource {
+export enum MediaSourceVariantKey {
+  sm = "sm",
+  md = "md",
+  lg = "lg",
+  base = "base",
+}
+
+export class MediaSourceVariant {
   public alias: string;
   public url: string;
   public size: number;
@@ -10,3 +17,8 @@ export class MediaSource {
     Object.assign(this, args);
   }
 }
+
+export class MediaSource extends Map<
+  MediaSourceVariantKey,
+  MediaSourceVariant
+> {}

@@ -13,5 +13,5 @@ export abstract class MediaRepository {
     options?: { transactionContext?: unknown }
   ): Promise<void>;
 
-  abstract findById(id: number, userId: number): Promise<Media | null>;
+  abstract findById(id: number): Promise<Media | null>;
 }

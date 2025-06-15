@@ -1,0 +1,62 @@
+import { Inject, Logger } from "@nestjs/common";
+import { PrismaService } from "@/modules/shared/services/prisma-services";
+import { MediaRepository } from "../../interfaces/repositories/media-repository";
+import { Media } from "../../domain/entities/Media";
+import { MediaAssembler } from "./mappers/media.assembler";
+import { PrismaClient } from "@prisma/client";
+
+export class PrismaMediaRepository implements MediaRepository {
+  private readonly logger: Logger = new Logger(MediaRepository.name);
+
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService
+  ) {}
+
+  public async add(
+    media: Media,
+    options?: { transactionContext?: PrismaClient }
+  ): Promise<number> {
+    const prisma = options?.transactionContext ?? this.prisma;
+
+    try {
+      const data = MediaAssembler.toPrismaCreate(media);
+      const result = await prisma.media.create({ data });
+      return result.id;
+    } catch (error: unknown) {
+      this.logger.error("Failed to add media", { media, error });
+      throw new Error("Failed to add media");
+    }
+  }
+
+  public async update(
+    media: Media,
+    options?: { transactionContext?: PrismaClient }
+  ): Promise<void> {
+    const prisma = options?.transactionContext ?? this.prisma;
+
+    try {
+      const data = MediaAssembler.toPrismaCreate(media);
+      await prisma.media.update({
+        where: { id: media.id! },
+        data,
+      });
+    } catch (error: unknown) {
+      this.logger.error(`Failed to update media with ID ${media.id}`, {
+        media,
+        error,
+      });
+      throw new Error("Failed to update media");
+    }
+  }
+
+  public async findById(id: number): Promise<Media | null> {
+    try {
+      const result = await this.prisma.media.findUnique({ where: { id } });
+      return MediaAssembler.fromPrisma(result);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to find media with ID ${id}`, { error });
+      throw new Error("Failed to find media");
+    }
+  }
+}

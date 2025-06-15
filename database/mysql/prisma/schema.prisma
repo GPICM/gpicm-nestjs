@@ -184,26 +184,20 @@ model Post {
 }
 
 model Media {
-  id      Int  @id @default(autoincrement())
-  sources Json
-
-  filename    String
-  contentType String
-  altText     String?
-  caption     String?
-
-  order Int @default(0)
-
-  status MediaStatus @default(CREATED)
-
-  target MediaTarget
-  type   MediaType   @default(OTHER)
-
-  scope   MediaScope
-  scopeId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int         @id @default(autoincrement())
+  sources      Json?
+  filename     String?
+  contentType  String?     @map("content_type")
+  altText      String?
+  caption      String?
+  displayOrder Int         @default(0) @map("display_order")
+  status       MediaStatus @default(CREATED)
+  target       MediaTarget
+  type         MediaType   @default(OTHER)
+  scope        MediaScope
+  scopeId      Int
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@index([scope, scopeId])
   @@map("medias")

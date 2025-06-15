@@ -2,30 +2,30 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { MediaSource } from "../object-values/media-source";
 
 export enum MediaStatusEnum {
-  CREATED,
-  UPLOADING,
-  ACTIVE,
-  FAILED,
-  DELETED,
+  CREATED = "CREATED",
+  UPLOADING = "UPLOADING",
+  ACTIVE = "ACTIVE",
+  FAILED = "FAILED",
+  DELETED = "DELETED",
 }
 
 export enum MediaTypeEnum {
-  IMAGE,
-  AUDIO,
-  DOCUMENT,
-  OTHER,
+  IMAGE = "IMAGE",
+  AUDIO = "AUDIO",
+  DOCUMENT = "DOCUMENT",
+  OTHER = "OTHER",
 }
 
 export enum MediaScopeEnum {
-  POSTS,
-  USERS,
+  POSTS = "POSTS",
+  USERS = "USERS",
 }
 
 export enum MediaTargetEnum {
-  POSTS_GENERIC_IMAGE,
-  POSTS_GENERIC_AUDIO,
-  POSTS_GENERIC_DOCUMENT,
-  USERS_AVATAR,
+  POSTS_GENERIC_IMAGE = "POSTS_GENERIC_IMAGE",
+  POSTS_GENERIC_AUDIO = "POSTS_GENERIC_AUDIO",
+  POSTS_GENERIC_DOCUMENT = "POSTS_GENERIC_DOCUMENT",
+  USERS_AVATAR = "USERS_AVATAR",
 }
 
 export class Media {
@@ -39,17 +39,17 @@ export class Media {
 
   public readonly caption: string | null;
 
-  public readonly order: number | null;
-
   public readonly target: MediaTargetEnum;
 
   public readonly type: MediaTypeEnum;
 
   public readonly scope: MediaScopeEnum;
 
-  public readonly scopedId: number;
+  public readonly scopeId: number;
 
-  public sources: MediaSource[] | null;
+  public readonly displayOrder: number = 0;
+
+  public sources: MediaSource | null;
 
   public status: MediaStatusEnum;
 
@@ -59,13 +59,12 @@ export class Media {
 
   public static createDraft(
     scope: MediaScopeEnum,
-    scopedId: number,
+    scopeId: number,
     type: MediaTypeEnum,
     target: MediaTargetEnum
   ) {
     return new Media({
       id: null,
-      order: null,
       caption: null,
       sources: null,
       altText: null,
@@ -74,12 +73,13 @@ export class Media {
       type,
       scope,
       target,
-      scopedId,
+      scopeId,
+      displayOrder: 0,
       status: MediaStatusEnum.CREATED,
     });
   }
 
-  setSources(value: MediaSource[]) {
+  setSources(value: MediaSource | null) {
     this.sources = value;
   }
 
