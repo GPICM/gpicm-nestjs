@@ -1,4 +1,10 @@
+import { uuidv7 } from "uuidv7";
+import { createHash, randomBytes } from "crypto";
+
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
+import { User } from "@/modules/identity/domain/entities/User";
+
 import { MediaSource } from "../object-values/media-source";
 
 export enum MediaStatusEnum {
@@ -9,6 +15,11 @@ export enum MediaStatusEnum {
   DELETED = "DELETED",
 }
 
+export enum MediaStorageProviderEnum {
+  S3 = "S3",
+  LOCAL = "LOCAL",
+}
+
 export enum MediaTypeEnum {
   IMAGE = "IMAGE",
   AUDIO = "AUDIO",
@@ -16,74 +27,79 @@ export enum MediaTypeEnum {
   OTHER = "OTHER",
 }
 
-export enum MediaScopeEnum {
-  POSTS = "POSTS",
-  USERS = "USERS",
-}
-
-export enum MediaTargetEnum {
-  POSTS_GENERIC_IMAGE = "POSTS_GENERIC_IMAGE",
-  POSTS_GENERIC_AUDIO = "POSTS_GENERIC_AUDIO",
-  POSTS_GENERIC_DOCUMENT = "POSTS_GENERIC_DOCUMENT",
-  USERS_AVATAR = "USERS_AVATAR",
-}
-
 export class Media {
-  public readonly id: number | null;
-
-  public readonly filename: string | null;
-
-  public readonly contentType: string | null;
-
-  public readonly altText: string | null;
-
-  public readonly caption: string | null;
-
-  public readonly target: MediaTargetEnum;
+  public readonly id: string;
 
   public readonly type: MediaTypeEnum;
 
-  public readonly scope: MediaScopeEnum;
+  public filename: string;
 
-  public readonly scopeId: number;
+  public altText: string | null;
 
-  public readonly displayOrder: number = 0;
+  public caption: string | null;
+
+  public contentType: string;
 
   public sources: MediaSource | null;
 
   public status: MediaStatusEnum;
 
+  public ownerId: number;
+
+  public storageProvider: MediaStorageProviderEnum | null;
+
   public constructor(args: NonFunctionProperties<Media>) {
     Object.assign(this, args);
   }
 
-  public static createDraft(
-    scope: MediaScopeEnum,
-    scopeId: number,
+  public static Create(
+    user: User,
     type: MediaTypeEnum,
-    target: MediaTargetEnum
+    contentType: string,
+    cap?: string,
+    altText?: string
   ) {
+    const numericDate = formatDateToNumber(new Date());
+
+    const fileNameHash = createHash("sha256")
+      .update(user.publicId)
+      .update(Date.now().toString())
+      .update(randomBytes(6).toString("hex"))
+      .digest("hex");
+
+    const resolvedFileName = `${type.toLowerCase()}/${fileNameHash}${numericDate}`;
+
     return new Media({
-      id: null,
-      caption: null,
-      sources: null,
-      altText: null,
-      filename: null,
-      contentType: null,
+      id: uuidv7(),
       type,
-      scope,
-      target,
-      scopeId,
-      displayOrder: 0,
+      contentType,
+      sources: null,
+      caption: cap || null,
+      altText: altText || null,
+      ownerId: user.id!,
+      filename: resolvedFileName,
       status: MediaStatusEnum.CREATED,
+      storageProvider: null,
     });
   }
 
-  setSources(value: MediaSource | null) {
+  public setSources(value: MediaSource | null) {
     this.sources = value;
   }
 
-  setStatus(value: MediaStatusEnum) {
+  public setStatus(value: MediaStatusEnum) {
     this.status = value;
+  }
+
+  public setContentType(newContentType: string) {
+    this.contentType = newContentType;
+  }
+
+  public startUpload(sp: MediaStorageProviderEnum) {
+    if (this.status !== MediaStatusEnum.CREATED)
+      throw new Error("Cannot upload this media");
+
+    this.status = MediaStatusEnum.UPLOADING;
+    this.storageProvider = sp;
   }
 }

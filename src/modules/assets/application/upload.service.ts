@@ -1,92 +1,90 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { User } from "@/modules/identity/domain/entities/User";
 import {
   BlobStorageRepository,
   BlobStorageRepositoryTypes,
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
-import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { Inject, Logger } from "@nestjs/common";
-import { ImageProcessor } from "../interfaces/image-processor";
-import { createHash, randomBytes } from "crypto";
-import { DEFAULT_IMAGE_CONFIG } from "../domain/constants";
-import { ImageTransformConfig } from "../domain/object-values/image-transform-config";
+import {
+  MediaSource,
+  MediaSourceVariant,
+  MediaSourceVariantKey,
+} from "../domain/object-values/media-source";
 
 export class UploadService {
-  private readonly logger: Logger = new Logger(UploadService.name);
+  private readonly logger = new Logger(UploadService.name);
 
   constructor(
     @Inject(BlobStorageRepository)
-    private readonly blobRepository: BlobStorageRepository,
-    @Inject(ImageProcessor)
-    private readonly imageProcessor: ImageProcessor
+    private readonly blobRepository: BlobStorageRepository
   ) {}
 
   public async uploadFile(
     user: User,
     buffer: Buffer,
-    folder: string,
     fileName: string
-  ): Promise<string> {
-    this.logger.log("(uploadFile) Uploading file", { user, buffer });
+  ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
+    const userId = user.id!;
+    this.logger.log(
+      `[uploadFile] Preparing to upload for user ${userId}: ${fileName} (size: ${buffer.length} bytes)`
+    );
 
     try {
-      const numericDate = formatDateToNumber(new Date());
-
-      const resolvedFileName = `${user.publicId}_${numericDate}_${fileName}`;
-
-      const addParams: BlobStorageRepositoryTypes.AddParams = {
-        folder,
-        key: resolvedFileName,
-        buffer: Buffer.from(buffer),
-      };
-
-      this.logger.log("(uploadFile) Storing blob", { fileName });
-      const result = await this.blobRepository.add(addParams);
-
-      return result.location;
-    } catch (error) {
-      this.logger.error("(uploadImage) Failed to upload image", error as Error);
+      const result = await this.blobRepository.add({ fileName, buffer });
+      this.logger.log(`[uploadFile] Successfully uploaded: ${fileName}`, {
+        storageKey: result.storageKey,
+        location: result.location,
+        size: result.size,
+      });
+      return result;
+    } catch (error: unknown) {
+      this.logger.error(`[uploadFile] Failed to upload file: ${fileName}`, {
+        error,
+      });
       throw new Error("Failed to upload image. Please try again later.");
     }
   }
 
   public async uploadImage(
     user: User,
-    buffer: Buffer,
-    target: string,
-    config?: ImageTransformConfig
-  ): Promise<Array<{ location: string; alias: string }>> {
-    this.logger.log("(uploadImage) Uploading image", { user, buffer });
+    baseFileName: string,
+    sources: Array<{ buffer: Buffer; alias: string }>
+  ): Promise<MediaSource> {
+    const userId = user.id!;
+    this.logger.log(
+      `[uploadImage] Starting image upload for user ${userId} with ${sources.length} variants`
+    );
 
     try {
-      const transformConfig = config ?? DEFAULT_IMAGE_CONFIG;
-      const result = await this.imageProcessor.process(buffer, transformConfig);
+      const mediaSource = new MediaSource();
 
-      const imageGrouphash = createHash("sha256")
-        .update(result[0].buffer)
-        .update(Date.now().toString())
-        .update(randomBytes(6))
-        .digest("hex")
-        .slice(0, 12);
-
-      const uploadedLocations = await Promise.all(
-        result.map(async ({ alias, buffer: innerBuffer }) => {
-          const filename = `${imageGrouphash}_${alias}.webp`;
-
-          const result = await this.uploadFile(
-            user,
-            innerBuffer,
-            target,
-            filename
+      await Promise.all(
+        sources.map(async ({ alias, buffer }) => {
+          const filename = `${baseFileName}_${alias}.webp`;
+          this.logger.log(
+            `[uploadImage] Uploading variant: ${alias} → ${filename} (size: ${buffer.length} bytes)`
           );
-          return { location: result, alias };
+
+          const result = await this.uploadFile(user, buffer, filename);
+
+          const variant = new MediaSourceVariant({
+            size: result.size,
+            url: result.location,
+            storageKey: result.storageKey,
+          });
+
+          mediaSource.set(alias as MediaSourceVariantKey, variant);
         })
       );
 
-      return uploadedLocations;
-    } catch (error) {
-      this.logger.error("(uploadImage) Failed to upload image", error as Error);
+      this.logger.log(
+        `[uploadImage] Finished uploading all image variants for base name: ${baseFileName}`
+      );
+      return mediaSource;
+    } catch (error: unknown) {
+      this.logger.error(
+        "[uploadImage] Failed to upload one or more image variants",
+        { error }
+      );
       throw new Error("Failed to upload image. Please try again later.");
     }
   }

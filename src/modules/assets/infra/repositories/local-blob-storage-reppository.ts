@@ -53,8 +53,8 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
       const mimeType = mime.lookup(filePath) || "application/octet-stream";
 
       return {
-        fileName,
         contentType: mimeType,
+        storageKey: filePath,
         location: `${process.env.ASSETS_HOST}/${folder}/${filePath}`,
         size: stats.size,
       };
@@ -105,9 +105,9 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
 
       this.logger.log(`Metadata retrieved for file: ${filePath}`);
       return {
-        fileName,
         location: filePath,
         contentType: mimeType,
+        storageKey: filePath,
         size: stats.size,
       };
     } catch (error) {

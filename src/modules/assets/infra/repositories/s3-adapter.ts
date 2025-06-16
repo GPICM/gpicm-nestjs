@@ -8,7 +8,6 @@ import {
   S3Client,
   GetObjectCommand,
   HeadObjectCommand,
-  ObjectCannedACL,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 
@@ -23,8 +22,6 @@ export class S3Adapter extends BlobStorageRepository {
   private readonly s3Client: S3Client;
   private readonly bucket: string;
 
-  private readonly defaultAlc: ObjectCannedACL = "public-read";
-
   constructor(bucket: string) {
     super();
     this.bucket = bucket;
@@ -36,17 +33,17 @@ export class S3Adapter extends BlobStorageRepository {
   public async add(
     params: BlobStorageRepositoryTypes.AddParams
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
-    const { key, buffer, contentType } = params;
+    const { fileName, buffer, contentType } = params;
 
     try {
       this.logger.log("Uploading blob to s3", { params });
       const resolvedContentType =
-        contentType || mimeType.lookup(key) || "application/octet-stream";
+        contentType || mimeType.lookup(fileName) || "application/octet-stream";
 
       const upload = new Upload({
         client: this.s3Client,
         params: {
-          Key: key,
+          Key: fileName,
           Body: buffer,
           Bucket: this.bucket,
           ContentType: resolvedContentType,
@@ -55,7 +52,7 @@ export class S3Adapter extends BlobStorageRepository {
 
       const result = await upload.done();
 
-      if (!result.Location) {
+      if (!result.Location || !result.Key) {
         this.logger.error("S3 client could not resolve Location", {
           params,
           result,
@@ -66,16 +63,16 @@ export class S3Adapter extends BlobStorageRepository {
       const size =
         typeof buffer === "string" ? Buffer.byteLength(buffer) : buffer.length;
 
-      this.logger.log(`File uploaded to S3: ${key}`);
+      this.logger.log(`File uploaded to S3: ${fileName}`);
 
       return {
-        key,
         size,
+        storageKey: result.Key,
         location: result.Location,
         contentType: resolvedContentType,
       };
     } catch (error) {
-      this.logger.error(`Error uploading file [${key}] to S3`, {
+      this.logger.error(`Error uploading file [${fileName}] to S3`, {
         message: (error as Error).message,
         stack: (error as Error).stack,
       });
@@ -133,28 +130,28 @@ export class S3Adapter extends BlobStorageRepository {
   }
 
   public async getMetadata(
-    fileKey: string
+    storageKey: string
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata | null> {
     try {
       const headResult = await this.s3Client.send(
         new HeadObjectCommand({
           Bucket: this.bucket,
-          Key: fileKey,
+          Key: storageKey,
         })
       );
 
       const resolvedContentType =
-        mimeType.lookup(fileKey) || "application/octet-stream";
+        mimeType.lookup(storageKey) || "application/octet-stream";
 
-      this.logger.log(`Metadata retrieved from S3: ${fileKey}`);
+      this.logger.log(`Metadata retrieved from S3: ${storageKey}`);
       return {
-        key: fileKey,
+        storageKey: storageKey,
         contentType: resolvedContentType,
-        location: `s3://${this.bucket}/${fileKey}`,
+        location: `s3://${this.bucket}/`,
         size: headResult.ContentLength ?? 0,
       };
     } catch (error) {
-      this.logger.error(`Error getting metadata for file [${fileKey}]`, {
+      this.logger.error(`Error getting metadata for file []`, {
         error,
       });
       return null;

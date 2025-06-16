@@ -1,8 +1,7 @@
 import {
   Media,
-  MediaScopeEnum,
   MediaStatusEnum,
-  MediaTargetEnum,
+  MediaStorageProviderEnum,
   MediaTypeEnum,
 } from "@/modules/assets/domain/entities/Media";
 import {
@@ -14,28 +13,29 @@ import {
   Media as PrismaMedia,
   Prisma,
   MediaStatus as PrismaMediaStatus,
-  MediaScope as PrismaMediaScope,
-  MediaTarget as PrismaMediaTarget,
   MediaType as PrismaMediaType,
 } from "@prisma/client";
 
 class MediaAssembler {
   public static toPrismaCreate(media: Media): Prisma.MediaCreateInput {
     return {
-      scopeId: media.scopeId,
+      id: media.id,
       altText: media.altText ?? null,
       caption: media.caption ?? null,
       filename: media.filename ?? null,
       contentType: media.contentType ?? "",
-      displayOrder: media.displayOrder ?? 0,
       type: media.type as unknown as PrismaMediaType,
-      scope: media.scope as unknown as PrismaMediaScope,
       status: media.status as unknown as PrismaMediaStatus,
-      target: media.target as unknown as PrismaMediaTarget,
       sources: (media.sources || undefined) as unknown as
         | Prisma.NullableJsonNullValueInput
         | Prisma.InputJsonValue
         | undefined,
+      storageProvider: media.storageProvider!,
+      Owner: {
+        connect: {
+          id: media.ownerId,
+        },
+      },
     };
   }
 
@@ -63,12 +63,10 @@ class MediaAssembler {
       caption: prismaData.caption,
       contentType: prismaData.contentType,
       filename: prismaData.filename,
-      displayOrder: prismaData.displayOrder,
-      scopeId: prismaData.scopeId,
-      scope: prismaData.scope as MediaScopeEnum,
+      storageProvider: prismaData.storageProvider as MediaStorageProviderEnum,
       status: prismaData.status as MediaStatusEnum,
-      target: prismaData.target as MediaTargetEnum,
       type: prismaData.type as MediaTypeEnum,
+      ownerId: prismaData.ownerId,
     });
   }
 }

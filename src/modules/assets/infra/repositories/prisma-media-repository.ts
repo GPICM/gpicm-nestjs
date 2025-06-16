@@ -16,7 +16,7 @@ export class PrismaMediaRepository implements MediaRepository {
   public async add(
     media: Media,
     options?: { transactionContext?: PrismaClient }
-  ): Promise<number> {
+  ): Promise<string> {
     const prisma = options?.transactionContext ?? this.prisma;
 
     try {
@@ -38,7 +38,7 @@ export class PrismaMediaRepository implements MediaRepository {
     try {
       const data = MediaAssembler.toPrismaCreate(media);
       await prisma.media.update({
-        where: { id: media.id! },
+        where: { id: media.id },
         data,
       });
     } catch (error: unknown) {
@@ -50,7 +50,7 @@ export class PrismaMediaRepository implements MediaRepository {
     }
   }
 
-  public async findById(id: number): Promise<Media | null> {
+  public async findById(id: string): Promise<Media | null> {
     try {
       this.logger.log("Getting media by id", { id });
       const result = await this.prisma.media.findUnique({ where: { id } });

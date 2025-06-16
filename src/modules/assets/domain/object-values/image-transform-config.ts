@@ -14,4 +14,18 @@ export class ImageTransformConfig {
   constructor(args: NonFunctionProperties<ImageTransformConfig>) {
     Object.assign(this, args);
   }
+
+  public getContentType(): string {
+    switch (this.format) {
+      case "webp":
+        return "image/webp";
+      case "jpeg":
+        return "image/jpeg";
+      case "png":
+        return "image/png";
+      default:
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        throw new Error(`Unsupported image format`);
+    }
+  }
 }

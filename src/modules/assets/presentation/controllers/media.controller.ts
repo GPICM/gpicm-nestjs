@@ -11,16 +11,18 @@ import {
   UploadedFile,
   UseGuards,
   BadRequestException,
+  Body,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
   CurrentUser,
-  GuestGuard,
   JwtAuthGuard,
 } from "@/modules/identity/presentation/meta";
 import { User } from "@/modules/identity/domain/entities/User";
-import { UploadService } from "../../application/upload.service";
-import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+import { MediaService } from "../../application/media.service";
+import { MediaTypeEnum } from "../../domain/entities/Media";
+import { UploadMediaDto } from "../dtos/create-media.dto";
+import { ImageTargetEnum } from "../../domain/enums/image-target-enum";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -37,22 +39,35 @@ export class MediaController {
   private readonly logger: Logger = new Logger(MediaController.name);
 
   constructor(
-    @Inject(UploadService)
-    private readonly uploadService: UploadService
+    @Inject(MediaService)
+    private readonly mediaService: MediaService
   ) {}
 
-  // @UseGuards(UserGuard)
-  @Post()
+  @Post("/images/upload")
   @UseInterceptors(FileInterceptor("image"))
-  async create(
+  async uploadImage(
     @CurrentUser() user: User,
-    @UploadedFile(imageValidation) file?: any
+    @UploadedFile(imageValidation) file: any,
+    @Body() body: UploadMediaDto
   ) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const result = await this.uploadService.uploadImage(user, file, "users");
+      this.logger.log("Uploading image to media", { body });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const buffer = Buffer.from(file.buffer);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const contentType = file.mimetype;
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      const result = await this.mediaService.uploadMedia(
+        user,
+        buffer,
+        MediaTypeEnum.IMAGE,
+        contentType,
+        {
+          altText: body.altText,
+          caption: body.caption,
+          imageTargetConfig: ImageTargetEnum.POSTS_GENERIC_IMAGE
+        }
+      );
       return result;
     } catch (error: unknown) {
       this.logger.error("Error creating post", { error });

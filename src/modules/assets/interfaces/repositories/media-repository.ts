@@ -6,12 +6,12 @@ export abstract class MediaRepository {
   abstract add(
     media: Media,
     options?: { transactionContext?: unknown }
-  ): Promise<number>;
+  ): Promise<string>;
 
   abstract update(
     media: Media,
     options?: { transactionContext?: unknown }
   ): Promise<void>;
 
-  abstract findById(id: number): Promise<Media | null>;
+  abstract findById(id: string): Promise<Media | null>;
 }
