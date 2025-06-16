@@ -241,8 +241,8 @@ model PostVote {
 // Media
 
 model PostMedia {
-  postId       Int
-  mediaId      String
+  postId       Int      @map("post_id")
+  mediaId      String   @map("media_id")
   displayOrder Int      @default(0) @map("display_order")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
