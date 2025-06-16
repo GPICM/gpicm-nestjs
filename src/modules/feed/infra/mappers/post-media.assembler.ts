@@ -21,7 +21,7 @@ class PostMediaAssembler {
   ): Prisma.PostMediaCreateInput {
     return {
       Post: {
-        connect: { id: postMedia.postId },
+        connect: { id: postMedia.postId! },
       },
       Media: {
         connect: { id: postMedia.mediaId },
@@ -34,7 +34,7 @@ class PostMediaAssembler {
     postMediaList: PostMedia[]
   ): Prisma.PostMediaCreateManyInput[] {
     return postMediaList.map((postMedia) => ({
-      postId: postMedia.postId,
+      postId: postMedia.postId!,
       mediaId: postMedia.mediaId,
       displayOrder: postMedia.displayOrder,
     }));
@@ -46,26 +46,39 @@ class PostMediaAssembler {
     const mediaData = prismaData.Media;
     const rawSources = mediaData.sources as Record<string, any> | null;
 
-    let sources: MediaSource | null = null;
-    if (rawSources) {
-      sources = new MediaSource();
-
-      for (const [key, value] of Object.entries(rawSources)) {
-        sources.set(
-          key as unknown as MediaSourceVariantKey,
-          new MediaSourceVariant(value)
-        );
-      }
-    }
-
+    const sources: MediaSource | null = this.parseMediaSource(rawSources);
     if (!sources) return null;
 
     return new PostMedia({
       displayOrder: prismaData.displayOrder,
       mediaId: prismaData.mediaId,
       caption: mediaData.caption ?? "",
+      postId: prismaData.postId,
       sources,
     });
+  }
+
+  public static parseMediaSource(
+    rawSources: Record<string, any> | null
+  ): MediaSource | null {
+    try {
+      let sources: MediaSource | null = null;
+      if (rawSources) {
+        sources = new MediaSource();
+
+        for (const [key, value] of Object.entries(rawSources)) {
+          sources.set(
+            key as unknown as MediaSourceVariantKey,
+            new MediaSourceVariant(value)
+          );
+        }
+      }
+
+      return sources;
+    } catch (error: unknown) {
+      console.error("Failed to parse MySQL Point to GeoLocation", { error });
+      return null;
+    }
   }
 
   public static fromPrismaMany(

@@ -10,21 +10,14 @@ import { VoteValue } from "../../domain/entities/PostVote";
 import {
   IncidentQueryData,
   LocationObjectQueryData,
+  PostMediaQueryData,
   PostRawQuery,
   VoteQueryData,
 } from "../dto/post-raw-query";
 import { IncidentShallow } from "../../domain/entities/IncidentShallow";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-
-export const postInclude = Prisma.validator<Prisma.PostInclude>()({
-  Incident: { include: { Author: true, IncidentType: true } },
-  Votes: { select: { value: true, userId: true } },
-  Author: true,
-});
-
-type PostJoinModel = Prisma.PostGetPayload<{
-  include: typeof postInclude;
-}>;
+import { PostMedia } from "../../domain/entities/PostMedia";
+import { PostMediaAssembler } from "./post-media.assembler";
 
 class PostAssembler {
   public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
@@ -160,6 +153,11 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
+    let postMedias: PostMedia[] = [];
+    if (data.post_media_obj) {
+      postMedias = this.parsePostMedias(data.post_media_obj);
+    }
+
     return new ViewerPost(
       {
         id: data.id,
@@ -180,7 +178,7 @@ class PostAssembler {
         location,
         author,
         attachment,
-        medias: [],
+        medias: postMedias,
       },
       userId,
       voteValue
@@ -199,6 +197,37 @@ class PostAssembler {
       }
     }
     return posts;
+  }
+
+  public static parsePostMedias(postMediaObject: string): PostMedia[] {
+    try {
+      let postMedias: PostMedia[] = [];
+
+      if (postMediaObject) {
+        const parsedPostMedias = JSON.parse(
+          postMediaObject
+        ) as PostMediaQueryData[];
+
+        postMedias = parsedPostMedias.map((item) => {
+          const sources = PostMediaAssembler.parseMediaSource(
+            item.media_sources
+          );
+
+          return new PostMedia({
+            postId: null,
+            displayOrder: item.display_order,
+            mediaId: item.media_id,
+            caption: item.media_caption ?? "",
+            sources,
+          });
+        });
+      }
+
+      return postMedias;
+    } catch (error: unknown) {
+      console.error("Failed to parse MySQL Point to GeoLocation", { error });
+      return [];
+    }
   }
 
   public static parseLocationObjectToGeoPosition(

@@ -31,14 +31,6 @@ import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 
-export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
-
-const photoValidation = new ParseFilePipe({
-  validators: [
-    new MaxFileSizeValidator({ maxSize: MAX_SIZE_IN_BYTES }),
-    new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
-  ],
-});
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -57,15 +49,9 @@ export class PostController {
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
-    @UploadedFile(photoValidation) file?: any
   ) {
     try {
       this.logger.log("Starting post creation", { body });
-
-      if (file) {
-        this.logger.log("Uploading image", { body });
-        body.imageUrl = await this.uploadService.uploadImage(user, file);
-      }
 
       this.logger.log("Creating an post", { body });
 

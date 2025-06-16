@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsDate,
   IsEnum,
   IsLatitude,
@@ -22,13 +23,9 @@ export class CreatePostDto {
   @IsNotEmpty()
   content: string;
 
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
-
-  @IsString()
-  @IsOptional()
-  imagePreviewUrl?: string;
+  @IsArray()
+  @IsString({ each: true })
+  mediaIds: string[];
 
   @IsString()
   @IsNotEmpty()

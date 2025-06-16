@@ -14,6 +14,8 @@ import { UserShallow } from "../domain/entities/UserShallow";
 import { randomUUID } from "crypto";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
+import { PostMedia } from "../domain/entities/PostMedia";
+import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -23,6 +25,7 @@ export class PostServices {
     private readonly postRepository: PostRepository,
     private readonly incidentsService: IncidentsService,
     private readonly prismaService: PrismaService,
+    private readonly postMediasRepository: PostMediasRepository,
     private readonly postVotesRepository: PostVotesRepository,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
@@ -33,7 +36,6 @@ export class PostServices {
       this.logger.log("Creating post", { dto });
 
       // TODO: ADD UNIQUE COLUMNS VALIDATION
-      // TODO: ADD MULTIPLES IMAGES
 
       const author = new PostAuthor({
         id: user.id!,
@@ -42,13 +44,17 @@ export class PostServices {
         publicId: user?.publicId,
       });
 
+      const postMediasDto = dto.mediaIds.map((mediaId, index) => {
+        return PostMedia.Create(mediaId, index);
+      });
+
       const post = new Post({
         id: null,
         author,
         title: dto.title,
         uuid: randomUUID(),
         content: dto.content,
-        coverImageUrl: dto.imageUrl,
+        coverImageUrl: "",
         publishedAt: new Date(),
         status: PostStatusEnum.PUBLISHING,
         slug: Post.createSlug(user, dto.title),
@@ -61,7 +67,7 @@ export class PostServices {
         downVotes: 0,
         upVotes: 0,
         score: 0,
-        medias: [],
+        medias: postMediasDto,
       });
 
       this.logger.log(
@@ -73,7 +79,15 @@ export class PostServices {
           const postId = await this.postRepository.add(post, {
             transactionContext,
           });
+
           post.setId(postId);
+          const postMedias = post.getMedias();
+
+          if (postMedias) {
+            await this.postMediasRepository.bulkAdd(postMedias, {
+              transactionContext,
+            });
+          }
 
           if (dto.type == PostTypeEnum.INCIDENT) {
             const incident = await this.incidentsService.create(user, {
@@ -86,7 +100,7 @@ export class PostServices {
               incidentTypeId: dto.incidentTypeId,
               observation: dto.observation,
               imagePreviewUrl: undefined,
-              imageUrl: dto.imageUrl,
+              imageUrl: "",
             });
 
             post.setAttachment(

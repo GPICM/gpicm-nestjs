@@ -16,6 +16,8 @@ import { BullModule } from "@nestjs/bullmq";
 import { PostScoreProcessor } from "./application/ post-score.processor";
 import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
+import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
+import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
 
 @Module({
   controllers: [PostController],
@@ -41,6 +43,10 @@ import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
     {
       provide: PostVotesRepository,
       useClass: PrismaPostVotesRepository,
+    },
+    {
+      provide: PostMediasRepository,
+      useClass: PrismaPostMediasRepository,
     },
     PostServices,
     UploadService,

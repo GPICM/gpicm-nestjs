@@ -53,7 +53,7 @@ export class Post<A = unknown> {
 
   public readonly coverImageUrl?: string;
 
-  public readonly medias?: PostMedia[];
+  public medias?: PostMedia[];
 
   public readonly location: GeoPosition | null;
 
@@ -74,7 +74,21 @@ export class Post<A = unknown> {
   public setId(newId: number): void {
     if (this.id === null) {
       this.id = newId;
+
+      if (this.medias?.length) {
+        this.medias.forEach((media) => {
+          media.setPostId(newId);
+        });
+      }
     }
+  }
+
+  public setMedias(postMedias: PostMedia[]): void {
+    this.medias = postMedias;
+  }
+
+  public getMedias(): PostMedia[] | null {
+    return this.medias || null;
   }
 
   public static createSlug(user: User, text: string): string {
