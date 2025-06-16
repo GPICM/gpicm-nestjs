@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/require-await */
 import {
   Controller,
@@ -22,7 +24,6 @@ import { User } from "@/modules/identity/domain/entities/User";
 import { MediaService } from "../../application/media.service";
 import { MediaTypeEnum } from "../../domain/entities/Media";
 import { UploadMediaDto } from "../dtos/create-media.dto";
-import { ImageTargetEnum } from "../../domain/enums/image-target-enum";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -51,27 +52,25 @@ export class MediaController {
     @Body() body: UploadMediaDto
   ) {
     try {
-      this.logger.log("Uploading image to media", { body });
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.logger.log("Uploading media image", { body });
       const buffer = Buffer.from(file.buffer);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const contentType = file.mimetype;
 
       const result = await this.mediaService.uploadMedia(
         user,
-        buffer,
+        buffer as Buffer,
         MediaTypeEnum.IMAGE,
-        contentType,
+        contentType as string,
         {
           altText: body.altText,
           caption: body.caption,
-          imageTargetConfig: ImageTargetEnum.POSTS_GENERIC_IMAGE
+          imageTargetConfig: body.target,
         }
       );
       return result;
     } catch (error: unknown) {
-      this.logger.error("Error creating post", { error });
-      throw new BadRequestException("Failed to create post");
+      this.logger.error("Error Creating media image", { error });
+      throw new BadRequestException("Failed to create media image");
     }
   }
 }

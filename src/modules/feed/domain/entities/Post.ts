@@ -3,9 +3,9 @@ import { User } from "@/modules/identity/domain/entities/User";
 
 import { PostAuthor } from "./PostAuthor";
 import { PostAttachment } from "../object-values/PostAttchment";
-import { Media } from "@/modules/assets/domain/entities/Media";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
+import { PostMedia } from "./PostMedia";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -31,13 +31,13 @@ export class Post<A = unknown> {
 
   public readonly content: string;
 
-  public status: PostStatusEnum;
-
   public readonly publishedAt: Date | null;
 
   public readonly author: PostAuthor;
 
   public readonly type: PostTypeEnum;
+
+  public status: PostStatusEnum;
 
   public attachment: PostAttachment<A> | null;
 
@@ -89,11 +89,5 @@ export class Post<A = unknown> {
     const numericDate = formatDateToNumber(new Date());
 
     return `${sanitized}_${numericDate}_${user.publicId.slice(0, 6)}`;
-  }
-}
-
-export class PostMedia extends Media {
-  public constructor(args: NonFunctionProperties<Media>) {
-    super(args);
   }
 }
