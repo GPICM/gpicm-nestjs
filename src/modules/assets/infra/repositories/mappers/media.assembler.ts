@@ -4,11 +4,7 @@ import {
   MediaStorageProviderEnum,
   MediaTypeEnum,
 } from "@/modules/assets/domain/entities/Media";
-import {
-  MediaSourceVariantKey,
-  MediaSource,
-  MediaSourceVariant,
-} from "@/modules/assets/domain/object-values/media-source";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 import {
   Media as PrismaMedia,
   Prisma,
@@ -42,19 +38,9 @@ class MediaAssembler {
   public static fromPrisma(prismaData?: PrismaMedia | null): Media | null {
     if (!prismaData) return null;
 
-    const rawSources = prismaData.sources as Record<string, any> | null;
+    const rawSources = prismaData.sources as Record<string, unknown> | null;
 
-    let sources: MediaSource | null = null;
-    if (rawSources) {
-      sources = new MediaSource();
-
-      for (const [key, value] of Object.entries(rawSources)) {
-        sources.set(
-          key as unknown as MediaSourceVariantKey,
-          new MediaSourceVariant(value)
-        );
-      }
-    }
+    const sources = MediaSource.fromJSON(rawSources);
 
     return new Media({
       id: prismaData.id,
@@ -68,6 +54,16 @@ class MediaAssembler {
       type: prismaData.type as MediaTypeEnum,
       ownerId: prismaData.ownerId,
     });
+  }
+
+  public static fromPrismaMany(
+    prismaDataArray?: (PrismaMedia | null | undefined)[]
+  ): Media[] {
+    if (!prismaDataArray || prismaDataArray.length === 0) return [];
+
+    return prismaDataArray
+      .map((item) => this.fromPrisma(item))
+      .filter((media): media is Media => media !== null);
   }
 }
 

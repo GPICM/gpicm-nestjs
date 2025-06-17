@@ -46,7 +46,7 @@ class PostMediaAssembler {
     const mediaData = prismaData.Media;
     const rawSources = mediaData.sources as Record<string, any> | null;
 
-    const sources: MediaSource | null = this.parseMediaSource(rawSources);
+    const sources: MediaSource | null = MediaSource.fromJSON(rawSources)
     if (!sources) return null;
 
     return new PostMedia({
@@ -56,29 +56,6 @@ class PostMediaAssembler {
       postId: prismaData.postId,
       sources,
     });
-  }
-
-  public static parseMediaSource(
-    rawSources: Record<string, any> | null
-  ): MediaSource | null {
-    try {
-      let sources: MediaSource | null = null;
-      if (rawSources) {
-        sources = new MediaSource();
-
-        for (const [key, value] of Object.entries(rawSources)) {
-          sources.set(
-            key as unknown as MediaSourceVariantKey,
-            new MediaSourceVariant(value)
-          );
-        }
-      }
-
-      return sources;
-    } catch (error: unknown) {
-      console.error("Failed to parse MySQL Point to GeoLocation", { error });
-      return null;
-    }
   }
 
   public static fromPrismaMany(
