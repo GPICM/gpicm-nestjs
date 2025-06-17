@@ -34,6 +34,7 @@ model User {
   Incidents      Incident[]
   Posts          Post[]
   PostVotes      PostVote[]
+  Comments       PostComment[]
 
   @@unique([publicId])
   @@map("users")
@@ -171,6 +172,7 @@ model Post {
   upVotes         Int                   @default(0) @map("up_votes")
   downVotes       Int                   @default(0) @map("down_votes")
   score           Int                   @default(0) @map("score")
+  commentsCount   Int                   @default(0) @map("comments_count")
   location        Unsupported("POINT")?
   locationAddress String?               @map("location_address")
   createdAt       DateTime              @default(now()) @map("created_at")
@@ -180,6 +182,7 @@ model Post {
   Incident   Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   Votes      PostVote[]
   PostMedias PostMedia[] @relation("PostToPostMedia")
+  Comments   PostComment[]
 
   @@map("posts")
 }
@@ -263,6 +266,21 @@ model PartnerApiKey {
   @@map("partner_api_keys")
 }
 
+model PostComment {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  content   String   @db.LongText
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  type      CommentType @default(COMMENT)
+
+  Post Post @relation(fields: [postId], references: [id])
+  User User @relation(fields: [userId], references: [id])
+
+  @@map("post_comments")
+}
+
 model PostVote {
   postId    Int      @map("post_id")
   userId    Int      @map("user_id")
@@ -312,6 +330,11 @@ enum UserRoles {
   USER
   GUEST
   ADMIN
+}
+
+enum CommentType {
+  COMMENT
+  REPLY
 }
 
 enum AlertStatus {

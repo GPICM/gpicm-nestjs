@@ -15,6 +15,7 @@ import {
   Query,
   Param,
   Patch,
+  Post,
 } from "@nestjs/common";
 
 import {
@@ -30,6 +31,9 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
+import { CreatePostCommentDto } from "../domain/interfaces/dto/create-post-comment.dto";
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+import { CommentType } from "../domain/entities/PostComment";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -49,7 +53,8 @@ export class PostController {
     private readonly uploadService: UploadService,
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
-    private readonly postService: PostServices
+    private readonly postService: PostServices,
+    private readonly postCommentRepository: PostCommentRepository // adicionado
   ) {}
 
   @PostMethod()
@@ -140,6 +145,35 @@ export class PostController {
     return this.postService.findOne(postSlug, user);
   }
 
+
+  @Post("comments/:postSlug")
+  async createComment(
+    @Param("postSlug") postSlug: string,
+    @Body() body: { content: string; type?: CommentType },
+    @CurrentUser() user: User
+  ) {
+    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+
+    const dto: CreatePostCommentDto = {
+      content: body.content,
+      type: body.type ?? CommentType.COMMENT,
+    };
+
+    const comment = await this.postCommentRepository.create({
+      ...dto,
+      postId: post.id,
+      userId: user.id!,
+      user: user,
+    });
+
+    return comment;
+  }
+
+
+  
   @Patch(":uuid/vote/up")
   async upVote(
     @Param("uuid") uuid: string,

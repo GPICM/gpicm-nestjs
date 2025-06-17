@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable prettier/prettier */
 import { Module } from "@nestjs/common";
 import { SharedModule } from "../shared/shared.module";
 import { PrismaPostRepository } from "./infra/prisma-post-repository";
@@ -16,6 +18,9 @@ import { BullModule } from "@nestjs/bullmq";
 import { PostScoreProcessor } from "./application/ post-score.processor";
 import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
+import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
+import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
+
 
 @Module({
   controllers: [PostController],
@@ -41,6 +46,10 @@ import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
     {
       provide: PostVotesRepository,
       useClass: PrismaPostVotesRepository,
+    },
+    {
+      provide: PostCommentRepository,
+      useClass: PrismaPostCommentRepository,
     },
     PostServices,
     UploadService,
