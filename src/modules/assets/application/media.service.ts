@@ -95,4 +95,22 @@ export class MediaService {
       throw new Error("Failed to upload image. Please try again later.");
     }
   }
+
+  public async findManyByIds(user: User, ids: string[]): Promise<Media[]> {
+    const userId = user.id;
+
+    this.logger.log("(findManyById) Finding medias by ids", {
+      userId,
+      ids,
+    });
+
+    try {
+      const medias = await this.mediaRepository.findManyByIds(ids);
+
+      return medias;
+    } catch (error: unknown) {
+      this.logger.error("(findManyById) Failed to find medias", { error });
+      throw new Error("Failed to find medias");
+    }
+  }
 }

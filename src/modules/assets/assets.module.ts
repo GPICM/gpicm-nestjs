@@ -36,6 +36,6 @@ import { MediaService } from "./application/media.service";
     },
   ],
   imports: [SharedModule],
-  exports: [UploadService, BlobStorageRepository, ImageProcessor],
+  exports: [UploadService, MediaService, BlobStorageRepository, ImageProcessor],
 })
 export class AssetsModule {}
