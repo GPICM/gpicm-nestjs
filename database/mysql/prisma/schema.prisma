@@ -153,25 +153,28 @@ model IncidentType {
 }
 
 model Post {
-  id              Int                   @id @default(autoincrement())
-  uuid            String                @unique @default(uuid())
-  slug            String                @unique
-  title           String                @db.LongText
-  content         String                @db.LongText
-  isPinned        Boolean               @default(false) @map("is_pinned")
-  isVerified      Boolean               @default(false) @map("is_verified")
-  status          PostStatus            @default(DRAFT)
-  type            PostType              @default(INCIDENT)
-  publishedAt     DateTime?             @map("published_at")
-  authorId        Int                   @map("author_id")
-  incidentId      String?               @map("incident_id")
-  upVotes         Int                   @default(0) @map("up_votes")
-  downVotes       Int                   @default(0) @map("down_votes")
-  score           Int                   @default(0) @map("score")
-  location        Unsupported("POINT")?
-  locationAddress String?               @map("location_address")
-  createdAt       DateTime              @default(now()) @map("created_at")
-  updatedAt       DateTime              @updatedAt @map("updated_at")
+  id                Int                   @id @default(autoincrement())
+  uuid              String                @unique @default(uuid())
+  slug              String                @unique
+  title             String                @db.LongText
+  content           String                @db.LongText
+  isPinned          Boolean               @default(false) @map("is_pinned")
+  isVerified        Boolean               @default(false) @map("is_verified")
+  status            PostStatus            @default(DRAFT)
+  type              PostType              @default(INCIDENT)
+  publishedAt       DateTime?             @map("published_at")
+  authorId          Int                   @map("author_id")
+  incidentId        String?               @map("incident_id")
+  upVotes           Int                   @default(0) @map("up_votes")
+  downVotes         Int                   @default(0) @map("down_votes")
+  score             Int                   @default(0) @map("score")
+  location          Unsupported("POINT")?
+  locationAddress   String?               @map("location_address")
+  views             Int                   @default(0)
+  keywords          String?
+  coverImageSources Json?                 @map("cover_image_sources")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
 
   Author    User        @relation(fields: [authorId], references: [id])
   Incident  Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
