@@ -121,10 +121,6 @@ model Incident {
 
   incidentDate DateTime @map("incident_date")
 
-  imageUrl String? @map("image_url")
-
-  imagePreviewUrl String? @map("image_preview_url")
-
   reporterName String? @map("reporter_name")
 
   observation String?
