@@ -13,6 +13,21 @@ export class PrismaMediaRepository implements MediaRepository {
     private readonly prisma: PrismaService
   ) {}
 
+  public async findManyByIds(ids: string[]): Promise<Media[]> {
+    try {
+      const result = await this.prisma.media.findMany({
+        where: { id: { in: ids } },
+      });
+      return MediaAssembler.fromPrismaMany(result);
+    } catch (error: unknown) {
+      this.logger.error("[findManyByIds] Failed to find medias", {
+        ids,
+        error,
+      });
+      throw new Error("[findManyByIds] Failed to find medias");
+    }
+  }
+
   public async add(
     media: Media,
     options?: { transactionContext?: PrismaClient }

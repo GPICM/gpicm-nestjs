@@ -14,4 +14,6 @@ export abstract class MediaRepository {
   ): Promise<void>;
 
   abstract findById(id: string): Promise<Media | null>;
+
+  abstract findManyByIds(ids: string[]): Promise<Media[]>;
 }
