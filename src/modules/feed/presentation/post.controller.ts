@@ -5,11 +5,6 @@ import {
   Body,
   BadRequestException,
   UseGuards,
-  UseInterceptors,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-  UploadedFile,
   Post as PostMethod,
   Get,
   Query,
@@ -21,7 +16,6 @@ import {
   CurrentUser,
   JwtAuthGuard,
 } from "@/modules/identity/presentation/meta";
-import { FileInterceptor } from "@nestjs/platform-express";
 import { CreatePostDto } from "./dtos/create-post.dto";
 import { UploadService } from "@/modules/assets/application/upload.service";
 import { User } from "@/modules/identity/domain/entities/User";
@@ -30,6 +24,7 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
+import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
 
 
 @Controller("posts")
@@ -45,7 +40,7 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseInterceptors(FileInterceptor("photo"))
+  @UseGuards(UserGuard)
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
@@ -58,7 +53,7 @@ export class PostController {
       const post = await this.postService.create(user, body);
 
       this.logger.log("Post successfully created", { post });
-      return post;
+      return;
     } catch (error: unknown) {
       this.logger.error("Error creating post", { error });
       throw new BadRequestException("Failed to create post");
@@ -68,7 +63,6 @@ export class PostController {
   @Get()
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts");
-
 
     // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
     const filters = {
@@ -143,6 +137,7 @@ export class PostController {
   }
 
   @Get(":uuid/likes")
+  @UseGuards(UserGuard)
   async listPostVotes(
     @Param("uuid") uuid: string,
     @Query() query: ListPostQueryDto,
