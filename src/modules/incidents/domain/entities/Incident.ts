@@ -18,8 +18,6 @@ export class Incident {
 
   status: number;
 
-  imageUrl: string | null;
-
   address: string;
 
   latitude: number | null;
@@ -27,8 +25,6 @@ export class Incident {
   longitude: number | null;
 
   incidentDate: Date;
-
-  imagePreviewUrl: string | null;
 
   reporterName: string | null;
 
