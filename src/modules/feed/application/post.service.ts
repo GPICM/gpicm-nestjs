@@ -2,20 +2,19 @@ import { User } from "@/modules/identity/domain/entities/User";
 import { BadRequestException, Inject, Logger } from "@nestjs/common";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
-import { Post, PostStatusEnum, PostTypeEnum } from "../domain/entities/Post";
+import { PostStatusEnum, PostTypeEnum } from "../domain/entities/Post";
 import { CreatePostDto } from "../presentation/dtos/create-post.dto";
-import { PostAuthor } from "../domain/entities/PostAuthor";
 import { IncidentsService } from "@/modules/incidents/application/incidents.service";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostVote, VoteValue } from "../domain/entities/PostVote";
 import { UserShallow } from "../domain/entities/UserShallow";
-import { randomUUID } from "crypto";
-import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
-import { PostMedia } from "../domain/entities/PostMedia";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
+import { MediaService } from "@/modules/assets/application/media.service";
+import { Media, MediaTypeEnum } from "@/modules/assets/domain/entities/Media";
+import { PostFactory } from "../domain/factories/PostFactory";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -27,6 +26,7 @@ export class PostServices {
     private readonly prismaService: PrismaService,
     private readonly postMediasRepository: PostMediasRepository,
     private readonly postVotesRepository: PostVotesRepository,
+    private readonly mediaService: MediaService,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
   ) {}
@@ -35,40 +35,10 @@ export class PostServices {
     try {
       this.logger.log("Creating post", { dto });
 
-      // TODO: ADD UNIQUE COLUMNS VALIDATION
+      const medias = await this.validateMedias(user, dto.mediaIds);
+      const coverImageMedia = this.getCoverImage(user, medias);
 
-      const author = new PostAuthor({
-        id: user.id!,
-        name: user.name ?? "Anonimo",
-        profilePicture: user?.profilePicture ?? "",
-        publicId: user?.publicId,
-      });
-
-      const postMediasDto = dto.mediaIds.map((mediaId, index) => {
-        return PostMedia.Create(mediaId, index);
-      });
-
-      const post = new Post({
-        id: null,
-        author,
-        title: dto.title,
-        uuid: randomUUID(),
-        content: dto.content,
-        coverImageUrl: "",
-        publishedAt: new Date(),
-        status: PostStatusEnum.PUBLISHING,
-        slug: Post.createSlug(user, dto.title),
-        location: new GeoPosition(dto.latitude, dto.longitude),
-        address: dto.address ?? "",
-        isVerified: false,
-        isPinned: false,
-        type: dto.type,
-        attachment: null,
-        downVotes: 0,
-        upVotes: 0,
-        score: 0,
-        medias: postMediasDto,
-      });
+      const post = PostFactory.createPost(user, dto, coverImageMedia);
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
@@ -180,5 +150,43 @@ export class PostServices {
     if (!post) return null;
 
     return post;
+  }
+
+  private async validateMedias(
+    user: User,
+    mediaIds: string[]
+  ): Promise<Media[]> {
+    try {
+      const medias = await this.mediaService.findManyByIds(user, mediaIds);
+      if (!mediaIds.length) {
+        throw new Error("Invalid medias ids");
+      }
+
+      return medias;
+    } catch (error: unknown) {
+      this.logger.error("Missing medias", { error });
+      throw new BadRequestException("Missing Media");
+    }
+  }
+
+  private getCoverImage(user: User, medias: Media[]): Media {
+    try {
+      let coverImageMedia: Media | null = null;
+
+      for (const media of medias) {
+        if (media.type === MediaTypeEnum.IMAGE) {
+          coverImageMedia = media;
+        }
+      }
+
+      if (!coverImageMedia) {
+        throw new Error("No valid medias were provided to a cover image");
+      }
+
+      return coverImageMedia;
+    } catch (error: unknown) {
+      this.logger.error("Missing medias", { error });
+      throw new BadRequestException("Missing Media");
+    }
   }
 }

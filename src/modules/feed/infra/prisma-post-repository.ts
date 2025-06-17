@@ -229,17 +229,9 @@ export class PrismaPostRepository implements PostRepository {
         a.name AS author_name,
         a.public_id AS author_public_id,
         a.profile_picture AS author_profile_picture,
-        IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'image_url', i.image_url, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
+        IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
         IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
-        IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            'media_id', pm.media_id,
-            'display_order', pm.display_order,
-            'media_caption', m.caption,
-            'media_sources', m.sources
-          )
-        ) AS post_media_obj
+        IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj
       FROM posts p
         LEFT JOIN incidents i ON p.incident_id = i.id
         LEFT JOIN users ia ON i.author_id = ia.id
@@ -252,3 +244,14 @@ export class PrismaPostRepository implements PostRepository {
     `;
   }
 }
+
+/*        
+JSON_ARRAYAGG(
+  JSON_OBJECT(
+    'media_id', pm.media_id,
+    'display_order', pm.display_order,
+    'media_caption', m.caption,
+    'media_sources', m.sources
+  )
+  ) AS post_media_obj 
+*/

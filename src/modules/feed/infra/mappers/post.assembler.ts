@@ -10,14 +10,13 @@ import { VoteValue } from "../../domain/entities/PostVote";
 import {
   IncidentQueryData,
   LocationObjectQueryData,
-  PostMediaQueryData,
   PostRawQuery,
   VoteQueryData,
 } from "../dto/post-raw-query";
 import { IncidentShallow } from "../../domain/entities/IncidentShallow";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-import { PostMedia } from "../../domain/entities/PostMedia";
-import { PostMediaAssembler } from "./post-media.assembler";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
 
 class PostAssembler {
   public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
@@ -40,7 +39,7 @@ class PostAssembler {
   }
 
   public static toSqlInsert(post: Post): string {
-    const { address, location } = post;
+    const { address, location, coverImageSource } = post;
 
     // Construct the POINT value as a WKT (Well-Known Text) string
     const pointWKT = location
@@ -51,6 +50,10 @@ class PostAssembler {
     const publishedAtValue = post.publishedAt
       ? `'${post.publishedAt.toISOString().slice(0, 19).replace("T", " ")}'`
       : "NULL";
+
+    const coverImageSourceJSON: string | null = coverImageSource
+      ? JSON.stringify(coverImageSource.toJSON())
+      : null;
 
     const escapeString = (str: string) => str.replace(/'/g, "''");
 
@@ -71,7 +74,8 @@ class PostAssembler {
         score,
         location_address,
         author_id,
-        location
+        location,
+        cover_image_sources
       ) VALUES (
         '${post.uuid}',
         '${escapeString(post.title)}',
@@ -88,7 +92,8 @@ class PostAssembler {
         ${post.score ?? 0},
         ${post.address ? `'${escapeString(address)}'` : "NULL"},
         '${post.author.id}',
-        ${pointWKT}
+        ${pointWKT},
+        ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
       );
     `;
 
@@ -110,7 +115,6 @@ class PostAssembler {
     });
 
     let attachment;
-    let coverImageUrl = "";
     if (data.type == PostType.INCIDENT && data.incident_obj) {
       const parsedIncident = JSON.parse(data.incident_obj) as IncidentQueryData;
 
@@ -122,7 +126,6 @@ class PostAssembler {
       });
       if (incident) {
         attachment = new PostAttachment(incident?.id, incident, "Incident");
-        coverImageUrl = incident?.imageUrl ?? "";
       }
     }
 
@@ -153,9 +156,16 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
-    let postMedias: PostMedia[] = [];
-    if (data.post_media_obj) {
-      postMedias = this.parsePostMedias(data.post_media_obj);
+    let coverImageUrl = "";
+    let thumbnailUrl = "";
+    const coverImageSource = MediaSource.fromJSON(data.cover_image_sources);
+
+    if (coverImageSource) {
+      coverImageUrl =
+        coverImageSource?.getVariant(MediaSourceVariantKey.lg)?.url || "";
+
+      thumbnailUrl =
+        coverImageSource?.getVariant(MediaSourceVariantKey.sm)?.url || "";
     }
 
     return new ViewerPost(
@@ -171,14 +181,17 @@ class PostAssembler {
         score,
         upVotes: upVotes,
         downVotes: downVotes,
+        views: data.views,
         isPinned: !!data.is_pinned,
         isVerified: !!data.is_verified,
         coverImageUrl,
         address: locationAddress,
+        coverImageSource: null,
+        thumbnailUrl,
         location,
         author,
         attachment,
-        medias: postMedias,
+        medias: [],
       },
       userId,
       voteValue
@@ -198,38 +211,6 @@ class PostAssembler {
     }
     return posts;
   }
-
-  public static parsePostMedias(postMediaObject: string): PostMedia[] {
-    try {
-      let postMedias: PostMedia[] = [];
-
-      if (postMediaObject) {
-        const parsedPostMedias = JSON.parse(
-          postMediaObject
-        ) as PostMediaQueryData[];
-
-        postMedias = parsedPostMedias.map((item) => {
-          const sources = PostMediaAssembler.parseMediaSource(
-            item.media_sources
-          );
-
-          return new PostMedia({
-            postId: null,
-            displayOrder: item.display_order,
-            mediaId: item.media_id,
-            caption: item.media_caption ?? "",
-            sources,
-          });
-        });
-      }
-
-      return postMedias;
-    } catch (error: unknown) {
-      console.error("Failed to parse MySQL Point to GeoLocation", { error });
-      return [];
-    }
-  }
-
   public static parseLocationObjectToGeoPosition(
     locationObjectJson: string
   ): GeoPosition | null {

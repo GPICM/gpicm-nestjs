@@ -13,6 +13,9 @@ export type PostRawQuery = {
   is_pinned: number;
   is_verified: number;
   score: number;
+  views: number;
+  keywords: string;
+  cover_image_sources: string | null;
   up_votes: number;
   uuid: string;
   location: Uint8Array;

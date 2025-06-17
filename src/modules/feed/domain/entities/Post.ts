@@ -6,6 +6,7 @@ import { PostAttachment } from "../object-values/PostAttchment";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { PostMedia } from "./PostMedia";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -23,19 +24,33 @@ export enum PostTypeEnum {
 export class Post<A = unknown> {
   public id: number | null;
 
-  public readonly title: string;
+  public readonly uuid: string;
 
   public readonly slug: string;
 
-  public readonly uuid: string;
+  public readonly title: string;
 
   public readonly content: string;
 
-  public readonly publishedAt: Date | null;
+  public readonly location: GeoPosition | null;
+
+  public readonly address: string;
 
   public readonly author: PostAuthor;
 
   public readonly type: PostTypeEnum;
+
+  public readonly isPinned?: boolean;
+
+  public readonly isVerified?: boolean;
+
+  public readonly coverImageUrl: string = "";
+
+  public readonly thumbnailUrl: string = "";
+
+  public readonly publishedAt: Date | null;
+
+  public coverImageSource: MediaSource | null;
 
   public status: PostStatusEnum;
 
@@ -47,17 +62,9 @@ export class Post<A = unknown> {
 
   public score: number;
 
-  public readonly isPinned?: boolean;
-
-  public readonly isVerified?: boolean;
-
-  public readonly coverImageUrl?: string;
+  public views: number;
 
   public medias?: PostMedia[];
-
-  public readonly location: GeoPosition | null;
-
-  public readonly address: string;
 
   constructor(args: NonFunctionProperties<Post<A>>) {
     Object.assign(this, args);
