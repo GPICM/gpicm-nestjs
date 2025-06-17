@@ -1,11 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { PostMedia } from "../../domain/entities/PostMedia";
-import {
-  MediaSource,
-  MediaSourceVariant,
-  MediaSourceVariantKey,
-} from "@/modules/assets/domain/object-values/media-source";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
 export const postMediaInclude = Prisma.validator<Prisma.PostMediaInclude>()({
   Media: true,
@@ -46,7 +42,7 @@ class PostMediaAssembler {
     const mediaData = prismaData.Media;
     const rawSources = mediaData.sources as Record<string, any> | null;
 
-    const sources: MediaSource | null = MediaSource.fromJSON(rawSources)
+    const sources: MediaSource | null = MediaSource.fromJSON(rawSources);
     if (!sources) return null;
 
     return new PostMedia({

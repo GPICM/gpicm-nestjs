@@ -4,11 +4,11 @@ import {
   BlobStorageRepositoryTypes,
 } from "@/modules/shared/domain/interfaces/repositories/blob-storage-repository";
 import { Inject, Logger } from "@nestjs/common";
+import { MediaSource } from "../domain/object-values/media-source";
 import {
-  MediaSource,
   MediaSourceVariant,
   MediaSourceVariantKey,
-} from "../domain/object-values/media-source";
+} from "../domain/object-values/media-source-variant";
 
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
