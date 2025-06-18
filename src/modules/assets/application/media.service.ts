@@ -62,14 +62,17 @@ export class MediaService {
           ? MediaStorageProviderEnum.S3
           : MediaStorageProviderEnum.LOCAL
       );
+
       await this.mediaRepository.add(media);
 
+      // Upload blob
       if (media.type == MediaTypeEnum.IMAGE) {
         const transformConfig = resolveImageTransformConfig(
           options?.imageTargetConfig
         );
+        const newContentType = transformConfig.getContentType();
 
-        const processed = await this.imageProcessor.process(
+        const newBuffer = await this.imageProcessor.process(
           buffer,
           transformConfig
         );
@@ -77,13 +80,21 @@ export class MediaService {
         const mediaSource = await this.uploadService.uploadImage(
           user,
           media.filename,
-          processed
+          newContentType,
+          newBuffer
         );
 
         media.setSources(mediaSource);
-        media.setContentType(transformConfig.getContentType());
+        media.setContentType(newContentType);
       } else {
-        throw new Error("Media type not supported yet");
+        const mediaSource = await this.uploadService.uploadGenericBuffer(
+          user,
+          media.filename,
+          contentType,
+          buffer
+        );
+        media.setSources(mediaSource);
+        media.setContentType(contentType);
       }
 
       media.setStatus(MediaStatusEnum.ACTIVE);

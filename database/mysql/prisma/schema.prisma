@@ -285,6 +285,7 @@ enum MediaStatus {
 enum MediaType {
   IMAGE
   AUDIO
+  VIDEO
   DOCUMENT
   OTHER
 }

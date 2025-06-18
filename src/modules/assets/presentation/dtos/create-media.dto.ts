@@ -1,10 +1,10 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 import { ImageTargetEnum } from "../../domain/enums/image-target-enum";
 
 export class UploadMediaDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(ImageTargetEnum)
-  target: ImageTargetEnum;
+  readonly target?: ImageTargetEnum;
 
   @IsString()
   @IsOptional()

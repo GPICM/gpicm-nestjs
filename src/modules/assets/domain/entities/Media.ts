@@ -23,6 +23,7 @@ export enum MediaStorageProviderEnum {
 export enum MediaTypeEnum {
   IMAGE = "IMAGE",
   AUDIO = "AUDIO",
+  VIDEO = "VIDEO",
   DOCUMENT = "DOCUMENT",
   OTHER = "OTHER",
 }
