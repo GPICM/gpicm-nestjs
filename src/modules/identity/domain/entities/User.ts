@@ -23,7 +23,7 @@ export class User {
   public role: UserRoles;
   public latitude: number | null;
   public longitude: number | null;
-  public locationUpdatedAt: Date | null; 
+  public locationUpdatedAt: Date | null;
 
   // Virtual
   public credentials: UserCredential[];

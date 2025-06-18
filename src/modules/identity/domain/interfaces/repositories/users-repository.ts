@@ -26,6 +26,9 @@ export abstract class UsersRepository {
 
   abstract delete(userId: number): Promise<void>;
 
-  abstract updateLocation(userId: number, lat: number, lng: number): Promise<void>;
-
+  abstract updateLocation(
+    userId: number,
+    lat: number,
+    lng: number
+  ): Promise<void>;
 }

@@ -53,10 +53,10 @@ export class UserAssembler {
         phoneNumber: prismaData.phoneNumber,
         profilePicture: prismaData.profilePicture,
         status: prismaData.status as UserStatus,
-        credentials: [],
         latitude: prismaData.latitude,
         longitude: prismaData.longitude,
         locationUpdatedAt: prismaData.locationUpdatedAt,
+        credentials: [],
       });
     }
 
@@ -76,12 +76,10 @@ export class UserAssembler {
       phoneNumber: prismaData.phoneNumber,
       profilePicture: prismaData.profilePicture,
       status: prismaData.status as UserStatus,
-      credentials,
       latitude: prismaData.latitude,
       longitude: prismaData.longitude,
       locationUpdatedAt: prismaData.locationUpdatedAt,
-      
-      
+      credentials,
     });
   }
 

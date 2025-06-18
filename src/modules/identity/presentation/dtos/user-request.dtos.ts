@@ -1,9 +1,12 @@
-import {  IsNumber } from "class-validator";
+import { Type } from "class-transformer";
+import { IsLatitude, IsLongitude } from "class-validator";
 
 export class UpdateLocationDto {
-  @IsNumber()
+  @IsLatitude()
+  @Type(() => Number)
   latitude: number;
 
-  @IsNumber()
+  @IsLongitude()
+  @Type(() => Number)
   longitude: number;
 }
