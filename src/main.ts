@@ -22,7 +22,10 @@ Y88b  d88P 888         888  Y88b  d88P 888   "   888
  `;
   console.log(banner);
 
-  const app = await NestFactory.create(AppModule, { logger: winstonLogger });
+  const logger =
+    String(process.env.NODE_ENV) === "production" ? winstonLogger : console;
+
+  const app = await NestFactory.create(AppModule, { logger });
 
   app.useGlobalPipes(
     new ValidationPipe({

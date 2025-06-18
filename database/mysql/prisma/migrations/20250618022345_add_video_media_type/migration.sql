@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `medias` MODIFY `type` ENUM('IMAGE', 'AUDIO', 'VIDEO', 'DOCUMENT', 'OTHER') NOT NULL DEFAULT 'OTHER';

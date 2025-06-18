@@ -43,8 +43,6 @@ export class IncidentsService {
         title: dto.title,
         description: dto.description,
         address: dto.address,
-        imageUrl: dto.imageUrl ?? "",
-        imagePreviewUrl: dto.imagePreviewUrl ?? null,
         latitude: dto.latitude,
         longitude: dto.longitude,
         incidentDate: dto.incidentDate,

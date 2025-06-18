@@ -8,25 +8,27 @@ datasource db {
 }
 
 model User {
-  id             Int        @id @default(autoincrement())
-  publicId       String     @default(uuid()) @map("public_id")
-  name           String?
-  profilePicture String?    @map("profile_picture")
-  gender         String?    @map("gender")
-  isVerified     Boolean?   @map("is_verified")
-  birthDate      DateTime?  @map("birth_date")
-  phoneNumber    String?    @map("phone_number")
-  lastLoginAt    DateTime?  @map("last_login_at")
-  bio            String?
-  status         UserStatus @default(ACTIVE)
-  role           UserRoles  @default(GUEST)
-  deviceKey      String     @unique @map("device_key")
-  ipAddress      String?    @map("ip_address")
-  deviceInfo     Json?      @map("device_info")
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id                Int        @id @default(autoincrement())
+  publicId          String     @default(uuid()) @map("public_id")
+  name              String?
+  profilePicture    String?    @map("profile_picture")
+  gender            String?    @map("gender")
+  isVerified        Boolean?   @map("is_verified")
+  birthDate         DateTime?  @map("birth_date")
+  phoneNumber       String?    @map("phone_number")
+  lastLoginAt       DateTime?  @map("last_login_at")
+  bio               String?
+  status            UserStatus @default(ACTIVE)
+  role              UserRoles  @default(GUEST)
+  deviceKey         String     @unique @map("device_key")
+  ipAddress         String?    @map("ip_address")
+  deviceInfo        Json?      @map("device_info")
+  latitude          Float?
+  longitude         Float?
+  locationUpdatedAt DateTime?  @map("location_updated_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+  deletedAt         DateTime?  @map("deleted_at")
 
   Credentials    UserCredential[]
   UserLogs       UserLog[]
@@ -34,6 +36,7 @@ model User {
   Incidents      Incident[]
   Posts          Post[]
   PostVotes      PostVote[]
+  Medias         Media[]
 
   @@unique([publicId])
   @@map("users")
@@ -120,10 +123,6 @@ model Incident {
 
   incidentDate DateTime @map("incident_date")
 
-  imageUrl String? @map("image_url")
-
-  imagePreviewUrl String? @map("image_preview_url")
-
   reporterName String? @map("reporter_name")
 
   observation String?
@@ -156,72 +155,35 @@ model IncidentType {
 }
 
 model Post {
-  id              Int                   @id @default(autoincrement())
-  uuid            String                @unique @default(uuid())
-  slug            String                @unique
-  title           String                @db.LongText
-  content         String                @db.LongText
-  isPinned        Boolean               @default(false) @map("is_pinned")
-  isVerified      Boolean               @default(false) @map("is_verified")
-  status          PostStatus            @default(DRAFT)
-  type            PostType              @default(INCIDENT)
-  publishedAt     DateTime?             @map("published_at")
-  authorId        Int                   @map("author_id")
-  incidentId      String?               @map("incident_id")
-  upVotes         Int                   @default(0) @map("up_votes")
-  downVotes       Int                   @default(0) @map("down_votes")
-  score           Int                   @default(0) @map("score")
-  location        Unsupported("POINT")?
-  locationAddress String?               @map("location_address")
-  createdAt       DateTime              @default(now()) @map("created_at")
-  updatedAt       DateTime              @updatedAt @map("updated_at")
+  id                Int                   @id @default(autoincrement())
+  uuid              String                @unique @default(uuid())
+  slug              String                @unique
+  title             String                @db.LongText
+  content           String                @db.LongText
+  isPinned          Boolean               @default(false) @map("is_pinned")
+  isVerified        Boolean               @default(false) @map("is_verified")
+  status            PostStatus            @default(DRAFT)
+  type              PostType              @default(INCIDENT)
+  publishedAt       DateTime?             @map("published_at")
+  authorId          Int                   @map("author_id")
+  incidentId        String?               @map("incident_id")
+  upVotes           Int                   @default(0) @map("up_votes")
+  downVotes         Int                   @default(0) @map("down_votes")
+  score             Int                   @default(0) @map("score")
+  location          Unsupported("POINT")?
+  locationAddress   String?               @map("location_address")
+  views             Int                   @default(0)
+  keywords          String?
+  coverImageSources Json?                 @map("cover_image_sources")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
 
-  Author     User        @relation(fields: [authorId], references: [id])
-  Incident   Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  Votes      PostVote[]
-  PostMedias PostMedia[] @relation("PostToPostMedia")
+  Author    User        @relation(fields: [authorId], references: [id])
+  Incident  Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Votes     PostVote[]
+  PostMedia PostMedia[]
 
   @@map("posts")
-}
-
-model PostMedia {
-  mediaId Int
-  postId  Int
-  order   Int?
-
-  Media Media @relation("MediaToPostMedia", fields: [mediaId], references: [id])
-  Post  Post  @relation("PostToPostMedia", fields: [postId], references: [id])
-
-  @@id([mediaId, postId])
-  @@map("post_medias")
-}
-
-model Media {
-  id          Int          @id @default(autoincrement())
-  url         String
-  filename    String
-  contentType String
-  size        Int?
-  type        MediaType
-  provider    MediaStorage @default(LOCAL)
-  createdAt   DateTime     @default(now())
-
-  PostMedias PostMedia[] @relation("MediaToPostMedia")
-
-  @@map("medias")
-}
-
-enum MediaStorage {
-  LOCAL
-  S3
-  OTHER
-}
-
-enum MediaType {
-  IMAGE
-  AUDIO
-  VIDEO
-  DOCUMENT
 }
 
 /**
@@ -275,6 +237,64 @@ model PostVote {
 
   @@id([postId, userId])
   @@map("post_votes")
+}
+
+// Media
+
+model PostMedia {
+  postId       Int      @map("post_id")
+  mediaId      String   @map("media_id")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  Post  Post  @relation(fields: [postId], references: [id])
+  Media Media @relation(fields: [mediaId], references: [id])
+
+  @@id([postId, mediaId])
+  @@map("post_medias")
+}
+
+model Media {
+  id              String                @id
+  filename        String
+  storageProvider MediaStorageProvider? @map("storage_provider")
+  sources         Json?
+  altText         String?
+  caption         String?
+  contentType     String                @map("content_type")
+  status          MediaStatus           @default(CREATED)
+  type            MediaType             @default(OTHER)
+  ownerId         Int                   @map("owner_id")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  deletedAt       DateTime?             @map("deleted_at")
+  Owner           User                  @relation(fields: [ownerId], references: [id])
+  PostMedia       PostMedia[]
+
+  @@index([ownerId])
+  @@map("medias")
+}
+
+enum MediaStatus {
+  CREATED
+  UPLOADING
+  ACTIVE
+  FAILED
+  DELETED
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+enum MediaStorageProvider {
+  S3
+  LOCAL
 }
 
 // Enums
