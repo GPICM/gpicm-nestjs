@@ -40,4 +40,12 @@ export class SignUpRequestBodyDto {
   @IsString()
   @IsOptional()
   deviceKey?: string;
+
+  @IsString()
+  @IsOptional()
+  ipAddress?: string;
+
+  @IsString()
+  @IsOptional()
+  userAgent?: string;
 }

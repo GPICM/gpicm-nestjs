@@ -16,6 +16,7 @@ import { LogUserAction } from "@/modules/shared/application/log-user-action";
 import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../domain/entities/UserCredential";
+import { computeContentHash } from "@/modules/shared/utils/hash-utils";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -34,10 +35,12 @@ export class AuthenticationService {
     email: string;
     password: string;
     deviceKey?: string;
+    ipAddress: string;
+    userAgent: string;
   }): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started Sign Up", { params });
-      const { name, email, password, deviceKey } = params;
+      const { name, email, password, deviceKey, ipAddress, userAgent } = params;
 
       let accessToken: string = "";
 
@@ -100,6 +103,22 @@ export class AuthenticationService {
         this.logger.log("DEBUG: accesstoken:", { accessToken });
       }
 
+      const latestTermsPolicy = await this.prismaService.policy.findFirst({
+        where: {
+          type: "TERMS_OF_SERVICE",
+          deletedAt: null,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!latestTermsPolicy) {
+        throw new Error("Terms of Service policy not found");
+      }
+
+      const contentHash = computeContentHash(latestTermsPolicy.content);
+
       await this.prismaService.openTransaction(async (tx) => {
         if (newUser) {
           const userId = await this.usersRepository.add(newUser, tx);
@@ -107,11 +126,32 @@ export class AuthenticationService {
 
           const newCredential = newUser.credentials[0];
           await this.userCredentialsRepository.add(newCredential, tx);
+
+          await this.prismaService.userAgreement.create({
+            data: {
+              userId: userId,
+              policyVersion: latestTermsPolicy.version,
+              consentedAt: new Date(),
+              contentHash,
+              ipAddress,
+              userAgent,
+            },
+          });
         } else if (guestUser) {
-          await this.prismaService.openTransaction(async (tx) => {
-            const newCredential = guestUser.credentials[0];
-            await this.userCredentialsRepository.add(newCredential, tx);
-            await this.usersRepository.update(guestUser, tx);
+          const userId = guestUser.id!;
+          const newCredential = guestUser.credentials[0];
+          await this.userCredentialsRepository.add(newCredential, tx);
+          await this.usersRepository.update(guestUser, tx);
+
+          await this.prismaService.userAgreement.create({
+            data: {
+              userId: userId,
+              policyVersion: latestTermsPolicy.version,
+              consentedAt: new Date(),
+              contentHash,
+              ipAddress,
+              userAgent,
+            },
           });
         }
       });

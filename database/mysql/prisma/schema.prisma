@@ -69,6 +69,9 @@ model UserAgreement {
   policyVersion String    @map("policy_version")
   consentedAt   DateTime  @default(now()) @map("consented_at")
   deletedAt     DateTime? @map("deleted_at")
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  contentHash   String?   @map("content_hash")
 
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

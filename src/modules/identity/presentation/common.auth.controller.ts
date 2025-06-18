@@ -52,6 +52,8 @@ export class CommonAuthController {
         name: body.name,
         password: body.password,
         deviceKey: body.deviceKey,
+        ipAddress: body.ipAddress ?? "",
+        userAgent: body.userAgent ?? "",
       });
       return result;
     } catch (error: unknown) {

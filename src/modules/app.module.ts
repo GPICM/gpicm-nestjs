@@ -12,6 +12,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { FeedModule } from "./feed/feed.module";
 import { AlertsModule } from "./alerts/Alerts.module";
+import { PoliciesModule } from "./policies/Policies.module";
 
 @Module({
   controllers: [AppController],
@@ -42,6 +43,7 @@ import { AlertsModule } from "./alerts/Alerts.module";
     AssetsModule,
     FeedModule,
     AlertsModule,
+    PoliciesModule,
   ],
 })
 export class AppModule {}
