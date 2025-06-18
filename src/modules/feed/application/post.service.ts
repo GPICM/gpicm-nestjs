@@ -36,7 +36,11 @@ export class PostServices {
       this.logger.log("Creating post", { dto });
 
       const medias = await this.validateMedias(user, dto.mediaIds);
-      const coverImageMedia = this.getCoverImage(user, medias);
+
+      let coverImageMedia: Media | null = null;
+      if (medias.length) {
+        coverImageMedia = this.getCoverImage(user, medias);
+      }
 
       const post = PostFactory.createPost(user, dto, coverImageMedia);
 
@@ -159,7 +163,7 @@ export class PostServices {
     try {
       const medias = await this.mediaService.findManyByIds(user, mediaIds);
       if (!mediaIds.length) {
-        throw new Error("Invalid medias ids");
+        return [];
       }
 
       return medias;
@@ -169,18 +173,15 @@ export class PostServices {
     }
   }
 
-  private getCoverImage(user: User, medias: Media[]): Media {
+  private getCoverImage(user: User, medias: Media[]): Media | null {
     try {
+      this.logger.log("Searching for a cover image");
       let coverImageMedia: Media | null = null;
 
       for (const media of medias) {
         if (media.type === MediaTypeEnum.IMAGE) {
           coverImageMedia = media;
         }
-      }
-
-      if (!coverImageMedia) {
-        throw new Error("No valid medias were provided to a cover image");
       }
 
       return coverImageMedia;

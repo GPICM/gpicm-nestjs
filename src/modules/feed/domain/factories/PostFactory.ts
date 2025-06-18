@@ -15,7 +15,7 @@ export class PostFactory {
   static createPost(
     user: User,
     dto: CreatePostDto,
-    coverImageMedia: Media
+    coverImageMedia?: Media | null
   ): Post {
     const author = new PostAuthor({
       id: user.id!,
@@ -28,7 +28,7 @@ export class PostFactory {
       PostMedia.Create(mediaId, index)
     );
 
-    const coverImageSource = coverImageMedia.sources;
+    const coverImageSource = coverImageMedia ? coverImageMedia.sources : null;
 
     return new Post({
       id: null,

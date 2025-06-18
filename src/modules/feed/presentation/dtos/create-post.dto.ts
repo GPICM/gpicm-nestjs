@@ -25,7 +25,8 @@ export class CreatePostDto {
 
   @IsArray()
   @IsString({ each: true })
-  mediaIds: string[];
+  @IsOptional()
+  readonly mediaIds: string[] = [];
 
   @IsString()
   @IsNotEmpty()

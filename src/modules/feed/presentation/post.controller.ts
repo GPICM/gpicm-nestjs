@@ -48,8 +48,6 @@ export class PostController {
     try {
       this.logger.log("Starting post creation", { body });
 
-      this.logger.log("Creating an post", { body });
-
       const post = await this.postService.create(user, body);
 
       this.logger.log("Post successfully created", { post });
