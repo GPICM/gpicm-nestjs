@@ -53,6 +53,9 @@ export class UserAssembler {
         phoneNumber: prismaData.phoneNumber,
         profilePicture: prismaData.profilePicture,
         status: prismaData.status as UserStatus,
+        latitude: prismaData.latitude,
+        longitude: prismaData.longitude,
+        locationUpdatedAt: prismaData.locationUpdatedAt,
         credentials: [],
       });
     }
@@ -73,6 +76,9 @@ export class UserAssembler {
       phoneNumber: prismaData.phoneNumber,
       profilePicture: prismaData.profilePicture,
       status: prismaData.status as UserStatus,
+      latitude: prismaData.latitude,
+      longitude: prismaData.longitude,
+      locationUpdatedAt: prismaData.locationUpdatedAt,
       credentials,
     });
   }

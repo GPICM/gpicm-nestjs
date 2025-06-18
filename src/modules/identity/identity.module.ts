@@ -15,13 +15,16 @@ import { AuthenticationService } from "./application/authentication.service";
 import { PartnerApiKeysRepository } from "./domain/interfaces/repositories/partner-api-keys-repository";
 import { PrismaPartnerApiKeysRepository } from "./infra/repositories/prisma-partner-api-key-repository";
 import { PartnerApiKeyGuard } from "./presentation/meta/guards/partner-api-key.guard";
+import { UserController } from "./presentation/user.controller";
+import { UserService } from "./application/user.service";
 
 @Global()
 @Module({
-  controllers: [GuestAuthController, CommonAuthController],
+  controllers: [GuestAuthController, CommonAuthController, UserController],
   providers: [
     AuthenticationService,
     GuestAuthenticationService,
+    UserService,
     AuthorizationService,
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
