@@ -66,6 +66,8 @@ export class UploadService {
 
           const result = await this.uploadFile(user, buffer, filename);
 
+          this.logger.log("Upload result", { result });
+
           const variant = new MediaSourceVariant({
             size: result.size,
             url: result.location,

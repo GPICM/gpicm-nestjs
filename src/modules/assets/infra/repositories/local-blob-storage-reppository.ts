@@ -36,8 +36,8 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
     const { fileName, buffer } = params;
     try {
+      /* Ensure sub folder exists */
       const folder = fileName.split("/")?.[0];
-
       if (folder) {
         const fullDir = path.join(this.storageDirectory, folder);
         fs.mkdirSync(fullDir, { recursive: true });
@@ -49,13 +49,12 @@ export class LocalBlobStorageRepository extends BlobStorageRepository {
       this.logger.log(`File written: ${filePath}`);
 
       const stats = fs.statSync(filePath);
-
       const mimeType = mime.lookup(filePath) || "application/octet-stream";
 
       return {
         contentType: mimeType,
         storageKey: filePath,
-        location: `${process.env.ASSETS_HOST}/${folder}/${filePath}`,
+        location: `${process.env.ASSETS_HOST}/${fileName}`,
         size: stats.size,
       };
     } catch (error) {
