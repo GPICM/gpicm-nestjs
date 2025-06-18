@@ -98,6 +98,10 @@ export class User {
     return this.role === UserRoles.GUEST && !this.credentials.length;
   }
 
+  public isUser() {
+    return this.role === UserRoles.USER && !!this.credentials.length;
+  }
+
   public setId(newUserId: number) {
     this.id = newUserId;
     if (this.credentials.length) {

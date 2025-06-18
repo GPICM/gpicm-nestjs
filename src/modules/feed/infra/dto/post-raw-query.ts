@@ -13,6 +13,9 @@ export type PostRawQuery = {
   is_pinned: number;
   is_verified: number;
   score: number;
+  views: number;
+  keywords: string;
+  cover_image_sources: string | null;
   up_votes: number;
   uuid: string;
   location: Uint8Array;
@@ -32,6 +35,9 @@ export type PostRawQuery = {
 
   /* Current User Votes */
   vote_obj: string | null; // JSON string – should be parsed
+
+  /* PostMedia */
+  post_media_obj: string | null;
 };
 
 export type IncidentQueryData = {
@@ -50,3 +56,10 @@ export type LocationObjectQueryData = {
   latitude: number;
   longitude: number;
 };
+
+export interface PostMediaQueryData {
+  media_id: string;
+  display_order: number;
+  media_caption: string | null;
+  media_sources: Record<string, any> | null;
+}

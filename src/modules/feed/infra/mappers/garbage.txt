@@ -1,5 +1,15 @@
 NOTE: USING RAW SQL NOW, SINCE PRISMA DOENST SUPPORT MARIDB 'POINT' type
 
+export const postInclude = Prisma.validator<Prisma.PostInclude>()({
+  Incident: { include: { Author: true, IncidentType: true } },
+  Votes: { select: { value: true, userId: true } },
+  Author: true,
+});
+
+type PostJoinModel = Prisma.PostGetPayload<{
+  include: typeof postInclude;
+}>;
+
 # post create mapper using prismaData
 
 public static toPrismaCreate(post: Post): Prisma.PostCreateInput {
