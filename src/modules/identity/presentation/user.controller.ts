@@ -14,7 +14,7 @@ import { UpdateLocationDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 
-@Controller("user")
+@Controller("users")
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
