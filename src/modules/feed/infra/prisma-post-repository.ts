@@ -234,12 +234,9 @@ export class PrismaPostRepository implements PostRepository {
         IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj
       FROM posts p
         LEFT JOIN incidents i ON p.incident_id = i.id
-        LEFT JOIN users ia ON i.author_id = ia.id
         LEFT JOIN incident_types it ON i.incident_type_id = it.id
         LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
         LEFT JOIN users a ON p.author_id = a.id
-      LEFT JOIN post_medias pm ON pm.post_id = p.id
-      LEFT JOIN medias m ON m.id = pm.media_id
       ${whereClause}
     `;
   }

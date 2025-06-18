@@ -165,7 +165,7 @@ class PostAssembler {
         coverImageSource?.getVariant(MediaSourceVariantKey.lg)?.url || "";
 
       thumbnailUrl =
-        coverImageSource?.getVariant(MediaSourceVariantKey.sm)?.url || "";
+        coverImageSource?.getVariant(MediaSourceVariantKey.md)?.url || "";
     }
 
     return new ViewerPost(
