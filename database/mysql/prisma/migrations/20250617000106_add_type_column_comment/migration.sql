@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `post_comments` ADD COLUMN `type` ENUM('COMMENT', 'REPLY') NOT NULL DEFAULT 'COMMENT';

@@ -7,6 +7,7 @@ CREATE TABLE `post_comments` (
     `post_id` INTEGER NOT NULL,
     `user_id` INTEGER NOT NULL,
     `content` LONGTEXT NOT NULL,
+    `parent_id` INTEGER NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 

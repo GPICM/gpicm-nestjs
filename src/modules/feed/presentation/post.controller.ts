@@ -16,6 +16,7 @@ import {
   Param,
   Patch,
   Post,
+  Delete,
 } from "@nestjs/common";
 
 import {
@@ -31,13 +32,16 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
-import { CreatePostCommentDto } from "../domain/interfaces/dto/create-post-comment.dto";
+import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
+import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
+import { CreateReplyCommentDto } from "../presentation/dtos/create-reply-comment.dto";
 import { CommentType } from "../domain/entities/PostComment";
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
-const photoValidation = new ParseFilePipe({
+const photoValidation = new ParseFilePipe({ 
   validators: [
     new MaxFileSizeValidator({ maxSize: MAX_SIZE_IN_BYTES }),
     new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
@@ -146,10 +150,10 @@ export class PostController {
   }
 
 
-  @Post("comments/:postSlug")
+  @Post(":postSlug/comments")
   async createComment(
     @Param("postSlug") postSlug: string,
-    @Body() body: { content: string; type?: CommentType },
+    @Body() body: CreatePostCommentDto,
     @CurrentUser() user: User
   ) {
     const post = await this.postRepository.findBySlug(postSlug, user.id!);
@@ -157,23 +161,75 @@ export class PostController {
       throw new BadRequestException("Post não encontrado");
     }
 
-    const dto: CreatePostCommentDto = {
-      content: body.content,
-      type: body.type ?? CommentType.COMMENT,
-    };
-
     const comment = await this.postCommentRepository.create({
-      ...dto,
       postId: post.id,
       userId: user.id!,
+      content: body.content,
       user: user,
     });
 
     return comment;
   }
 
+  @Post(":postSlug/comments/reply")
+  async createReply(
+    @Param("postSlug") postSlug: string,
+    @Body() body: CreateReplyCommentDto,
+    @CurrentUser() user: User
+  ) {
+    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
 
-  
+    const reply = await this.postCommentRepository.createReply({
+      ...body,
+      postId: post.id,
+      userId: user.id!,
+      user: user,
+      type: CommentType.REPLY,
+    });
+
+    return reply;
+  }
+
+  @Delete("comments/:commentId")
+  async deleteComment(
+    @Param("commentId") commentId: string,
+    @CurrentUser() user: User
+  ) {
+    const comment = await this.postCommentRepository.findById(Number(commentId));
+    if (!comment) {
+      throw new BadRequestException("Comentário não encontrado");
+    }
+    if (comment.userId !== user.id) {
+      throw new BadRequestException("Você não tem permissão para excluir este comentário");
+    }
+    await this.postCommentRepository.delete(Number(commentId));
+    return { message: "Comentário excluído com sucesso" };
+  }
+
+  @Patch("comments/:commentId")
+  async updateComment(
+    @Param("commentId") commentId: string,
+    @Body() body: UpdateCommentDto,
+    @CurrentUser() user: User
+  ) {
+    const comment = await this.postCommentRepository.findById(Number(commentId));
+    if (!comment) {
+      throw new BadRequestException("Comentário não encontrado");}
+    if (comment.userId !== user.id) {
+      throw new BadRequestException("Você não tem permissão para editar este comentário");
+    }
+    const updatedComment = await this.postCommentRepository.update(
+      Number(commentId),
+      {
+        content: body.content,
+      }
+    );
+    return updatedComment;
+  }
+
   @Patch(":uuid/vote/up")
   async upVote(
     @Param("uuid") uuid: string,
@@ -224,5 +280,51 @@ export class PostController {
     );
 
     return new PaginatedResponse(records, total, limit, page, filters);
+  }
+
+  @Get(":postSlug/comments")
+  async listComments(
+    @Param("postSlug") postSlug: string,
+    @Query() query: ListPostCommentsDto,
+    @CurrentUser() user: User
+  ) {
+    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = (page - 1) * limit;
+
+    const allComments = await this.postCommentRepository.findByPostId(post.id) ?? [];
+
+    const comments = allComments.filter(c => c.type === CommentType.COMMENT);
+    const replies = allComments.filter(c => c.type === CommentType.REPLY && c.parentCommentId);
+
+    const commentMap = new Map<number, any>();
+    comments.forEach(comment => {
+      commentMap.set(comment.id!, { ...comment.toJSON(), replies: [] });
+    });
+
+
+    replies.forEach(reply => {
+      const parent = commentMap.get(reply.parentCommentId!);
+      if (parent) {
+        parent.replies.push(reply.toJSON());
+      }
+    });
+
+
+    const commentsArray = Array.from(commentMap.values());
+    const paginated = commentsArray.slice(offset, offset + limit);
+
+
+    return {
+      data: paginated,
+      total: commentsArray.length,
+      page,
+      limit,
+    };
   }
 }
