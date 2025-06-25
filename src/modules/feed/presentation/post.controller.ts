@@ -163,6 +163,10 @@ export class PostController {
       throw new BadRequestException("Comentário contém palavras proibidas.");
     }
 
+    if(user.isGuest()) {
+      throw new BadRequestException("Usuário não registrado");
+    }
+
     const post = await this.postRepository.findByUuid(postSlug, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
@@ -200,6 +204,9 @@ export class PostController {
     }
     if(!parentComment) {
       throw new BadRequestException("Comentário pai não encontrado");
+    }
+    if(user.isGuest()) {
+      throw new BadRequestException("Usuário não registrado");
     }
 
     const reply = await this.postCommentRepository.createReply({
