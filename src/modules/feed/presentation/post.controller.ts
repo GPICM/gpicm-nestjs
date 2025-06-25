@@ -5,11 +5,6 @@ import {
   Body,
   BadRequestException,
   UseGuards,
-  UseInterceptors,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-  UploadedFile,
   Post as PostMethod,
   Get,
   Query,
@@ -23,7 +18,6 @@ import {
   CurrentUser,
   JwtAuthGuard,
 } from "@/modules/identity/presentation/meta";
-import { FileInterceptor } from "@nestjs/platform-express";
 import { CreatePostDto } from "./dtos/create-post.dto";
 import { UploadService } from "@/modules/assets/application/upload.service";
 import { User } from "@/modules/identity/domain/entities/User";
@@ -39,6 +33,7 @@ import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto
 import { CreateReplyCommentDto } from "../presentation/dtos/create-reply-comment.dto";
 import { CommentType } from "../domain/entities/PostComment";
 import { CurseWordsFilterService } from "../infra/curse-words-filter.service";
+import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
 
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
@@ -49,6 +44,7 @@ const photoValidation = new ParseFilePipe({
     new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
   ],
 });
+
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -65,26 +61,18 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseInterceptors(FileInterceptor("photo"))
+  @UseGuards(UserGuard)
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
-    @UploadedFile(photoValidation) file?: any
   ) {
     try {
       this.logger.log("Starting post creation", { body });
 
-      if (file) {
-        this.logger.log("Uploading image", { body });
-        body.imageUrl = await this.uploadService.uploadImage(user, file);
-      }
-
-      this.logger.log("Creating an post", { body });
-
       const post = await this.postService.create(user, body);
 
       this.logger.log("Post successfully created", { post });
-      return post;
+      return;
     } catch (error: unknown) {
       this.logger.error("Error creating post", { error });
       throw new BadRequestException("Failed to create post");
@@ -94,7 +82,6 @@ export class PostController {
   @Get()
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts");
-
 
     // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
     const filters = {
@@ -277,6 +264,7 @@ export class PostController {
   }
 
   @Get(":uuid/likes")
+  @UseGuards(UserGuard)
   async listPostVotes(
     @Param("uuid") uuid: string,
     @Query() query: ListPostQueryDto,

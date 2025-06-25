@@ -18,10 +18,15 @@ import { BullModule } from "@nestjs/bullmq";
 import { PostScoreProcessor } from "./application/ post-score.processor";
 import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
+<<<<<<< feature-post-comments
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
 import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
 
+=======
+import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
+import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
+>>>>>>> main
 
 @Module({
   controllers: [PostController],
@@ -49,8 +54,13 @@ import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
       useClass: PrismaPostVotesRepository,
     },
     {
+<<<<<<< feature-post-comments
       provide: PostCommentRepository,
       useClass: PrismaPostCommentRepository,
+=======
+      provide: PostMediasRepository,
+      useClass: PrismaPostMediasRepository,
+>>>>>>> main
     },
     PostServices,
     UploadService,

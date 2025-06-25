@@ -21,6 +21,9 @@ export class User {
   public deviceInfo: Record<string, unknown> | null;
   public ipAddress: string | null;
   public role: UserRoles;
+  public latitude: number | null;
+  public longitude: number | null;
+  public locationUpdatedAt: Date | null;
 
   // Virtual
   public credentials: UserCredential[];
@@ -57,6 +60,9 @@ export class User {
       phoneNumber: null,
       profilePicture: null,
       credentials: [],
+      latitude: null,
+      longitude: null,
+      locationUpdatedAt: null,
     });
   }
 
@@ -87,6 +93,9 @@ export class User {
         phoneNumber: null,
         profilePicture: null,
         credentials: [credential],
+        latitude: null,
+        longitude: null,
+        locationUpdatedAt: null,
       });
     } catch (error: unknown) {
       console.log("Failed to create new user", { error });
@@ -96,6 +105,10 @@ export class User {
 
   public isGuest() {
     return this.role === UserRoles.GUEST && !this.credentials.length;
+  }
+
+  public isUser() {
+    return this.role === UserRoles.USER && !!this.credentials.length;
   }
 
   public setId(newUserId: number) {
@@ -128,6 +141,9 @@ export class User {
       profilePicture: this.profilePicture ?? null,
       gender: this.gender ?? null,
       role: this.role,
+      latitude: this.latitude,
+      longitude: this.longitude,
+      locationUpdatedAt: this.locationUpdatedAt,
     };
   }
 }

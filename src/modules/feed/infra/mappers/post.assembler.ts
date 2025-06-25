@@ -15,16 +15,8 @@ import {
 } from "../dto/post-raw-query";
 import { IncidentShallow } from "../../domain/entities/IncidentShallow";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-
-export const postInclude = Prisma.validator<Prisma.PostInclude>()({
-  Incident: { include: { Author: true, IncidentType: true } },
-  Votes: { select: { value: true, userId: true } },
-  Author: true,
-});
-
-type PostJoinModel = Prisma.PostGetPayload<{
-  include: typeof postInclude;
-}>;
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
 
 class PostAssembler {
   public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
@@ -47,7 +39,7 @@ class PostAssembler {
   }
 
   public static toSqlInsert(post: Post): string {
-    const { address, location } = post;
+    const { address, location, coverImageSource } = post;
 
     // Construct the POINT value as a WKT (Well-Known Text) string
     const pointWKT = location
@@ -58,6 +50,10 @@ class PostAssembler {
     const publishedAtValue = post.publishedAt
       ? `'${post.publishedAt.toISOString().slice(0, 19).replace("T", " ")}'`
       : "NULL";
+
+    const coverImageSourceJSON: string | null = coverImageSource
+      ? JSON.stringify(coverImageSource.toJSON())
+      : null;
 
     const escapeString = (str: string) => str.replace(/'/g, "''");
 
@@ -78,7 +74,8 @@ class PostAssembler {
         score,
         location_address,
         author_id,
-        location
+        location,
+        cover_image_sources
       ) VALUES (
         '${post.uuid}',
         '${escapeString(post.title)}',
@@ -95,7 +92,8 @@ class PostAssembler {
         ${post.score ?? 0},
         ${post.address ? `'${escapeString(address)}'` : "NULL"},
         '${post.author.id}',
-        ${pointWKT}
+        ${pointWKT},
+        ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
       );
     `;
 
@@ -117,7 +115,6 @@ class PostAssembler {
     });
 
     let attachment;
-    let coverImageUrl = "";
     if (data.type == PostType.INCIDENT && data.incident_obj) {
       const parsedIncident = JSON.parse(data.incident_obj) as IncidentQueryData;
 
@@ -129,7 +126,6 @@ class PostAssembler {
       });
       if (incident) {
         attachment = new PostAttachment(incident?.id, incident, "Incident");
-        coverImageUrl = incident?.imageUrl ?? "";
       }
     }
 
@@ -160,6 +156,18 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
+    let coverImageUrl = "";
+    let thumbnailUrl = "";
+    const coverImageSource = MediaSource.fromJSON(data.cover_image_sources);
+
+    if (coverImageSource) {
+      coverImageUrl =
+        coverImageSource?.getVariant(MediaSourceVariantKey.lg)?.url || "";
+
+      thumbnailUrl =
+        coverImageSource?.getVariant(MediaSourceVariantKey.md)?.url || "";
+    }
+
     return new ViewerPost(
       {
         id: data.id,
@@ -173,10 +181,13 @@ class PostAssembler {
         score,
         upVotes: upVotes,
         downVotes: downVotes,
+        views: data.views,
         isPinned: !!data.is_pinned,
         isVerified: !!data.is_verified,
         coverImageUrl,
         address: locationAddress,
+        coverImageSource: null,
+        thumbnailUrl,
         location,
         author,
         attachment,
@@ -200,7 +211,6 @@ class PostAssembler {
     }
     return posts;
   }
-
   public static parseLocationObjectToGeoPosition(
     locationObjectJson: string
   ): GeoPosition | null {

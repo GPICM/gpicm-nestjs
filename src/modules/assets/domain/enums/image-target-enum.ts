@@ -1,0 +1,4 @@
+export enum ImageTargetEnum {
+  POSTS_GENERIC_IMAGE = "POSTS_GENERIC_IMAGE",
+  USERS_AVATAR = "USERS_AVATAR",
+}

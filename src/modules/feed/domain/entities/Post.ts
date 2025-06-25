@@ -3,9 +3,10 @@ import { User } from "@/modules/identity/domain/entities/User";
 
 import { PostAuthor } from "./PostAuthor";
 import { PostAttachment } from "../object-values/PostAttchment";
-import { Media } from "@/modules/assets/domain/entities/Media";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
+import { PostMedia } from "./PostMedia";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -23,21 +24,35 @@ export enum PostTypeEnum {
 export class Post<A = unknown> {
   public id: number | null;
 
-  public readonly title: string;
+  public readonly uuid: string;
 
   public readonly slug: string;
 
-  public readonly uuid: string;
+  public readonly title: string;
 
   public readonly content: string;
 
-  public status: PostStatusEnum;
+  public readonly location: GeoPosition | null;
 
-  public readonly publishedAt: Date | null;
+  public readonly address: string;
 
   public readonly author: PostAuthor;
 
   public readonly type: PostTypeEnum;
+
+  public readonly isPinned?: boolean;
+
+  public readonly isVerified?: boolean;
+
+  public readonly coverImageUrl: string = "";
+
+  public readonly thumbnailUrl: string = "";
+
+  public readonly publishedAt: Date | null;
+
+  public coverImageSource: MediaSource | null;
+
+  public status: PostStatusEnum;
 
   public attachment: PostAttachment<A> | null;
 
@@ -47,17 +62,9 @@ export class Post<A = unknown> {
 
   public score: number;
 
-  public readonly isPinned?: boolean;
+  public views: number;
 
-  public readonly isVerified?: boolean;
-
-  public readonly coverImageUrl?: string;
-
-  public readonly medias?: PostMedia[];
-
-  public readonly location: GeoPosition | null;
-
-  public readonly address: string;
+  public medias?: PostMedia[];
 
   constructor(args: NonFunctionProperties<Post<A>>) {
     Object.assign(this, args);
@@ -74,7 +81,21 @@ export class Post<A = unknown> {
   public setId(newId: number): void {
     if (this.id === null) {
       this.id = newId;
+
+      if (this.medias?.length) {
+        this.medias.forEach((media) => {
+          media.setPostId(newId);
+        });
+      }
     }
+  }
+
+  public setMedias(postMedias: PostMedia[]): void {
+    this.medias = postMedias;
+  }
+
+  public getMedias(): PostMedia[] | null {
+    return this.medias || null;
   }
 
   public static createSlug(user: User, text: string): string {
@@ -89,11 +110,5 @@ export class Post<A = unknown> {
     const numericDate = formatDateToNumber(new Date());
 
     return `${sanitized}_${numericDate}_${user.publicId.slice(0, 6)}`;
-  }
-}
-
-export class PostMedia extends Media {
-  public constructor(args: NonFunctionProperties<Media>) {
-    super(args);
   }
 }

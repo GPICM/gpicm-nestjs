@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { ReadStream } from "fs";
+import { Readable } from "stream";
+
 export namespace BlobStorageRepositoryTypes {
   export interface AddParams {
-    key: string;
+    fileName: string;
     buffer: Buffer | Uint8Array | string;
-    contentType: string;
+    contentType?: string;
   }
   export interface BlobMetadata {
-    key: string;
+    storageKey: string;
     location: string;
     contentType: string;
     size: number;
@@ -17,13 +18,13 @@ export namespace BlobStorageRepositoryTypes {
 export abstract class BlobStorageRepository {
   public abstract add(
     params: BlobStorageRepositoryTypes.AddParams
-  ): Promise<void>;
+  ): Promise<BlobStorageRepositoryTypes.BlobMetadata>;
 
-  public abstract get(fileKey: string): Promise<Buffer | null>;
+  public abstract get(fileName: string): Promise<Buffer | null>;
 
-  public abstract stream(fileKey: string): ReadStream | null;
+  public abstract stream(fileName: string): Promise<Readable | null>;
 
   public abstract getMetadata(
-    fileKey: string
+    storageKey: string
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata | null>;
 }
