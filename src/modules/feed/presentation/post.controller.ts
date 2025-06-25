@@ -153,9 +153,9 @@ export class PostController {
   }
 
 
-  @Post(":postSlug/comments")
+  @Post(":postUuid/comments")
   async createComment(
-    @Param("postSlug") postSlug: string,
+    @Param("postUuid") postSlug: string,
     @Body() body: CreatePostCommentDto,
     @CurrentUser() user: User
   ) {
@@ -163,7 +163,7 @@ export class PostController {
       throw new BadRequestException("Comentário contém palavras proibidas.");
     }
 
-    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    const post = await this.postRepository.findByUuid(postSlug, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }
@@ -178,9 +178,9 @@ export class PostController {
     return comment;
   }
 
-  @Post(":postSlug/comments/reply")
+  @Post(":postUuid/comments/reply")
   async createReply(
-    @Param("postSlug") postSlug: string,
+    @Param("postUuid") postuuid: string,
     @Body() body: CreateReplyCommentDto,
     @CurrentUser() user: User
   ) {
@@ -188,9 +188,18 @@ export class PostController {
       throw new BadRequestException("Comentário contém palavras proibidas.");
     }
 
-    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    const post = await this.postRepository.findByUuid(postuuid, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
+    }
+    const parentComment = await this.postCommentRepository.findById(
+      body.parentCommentId
+    );
+    if (!parentComment || parentComment.type !== CommentType.COMMENT) {
+      throw new BadRequestException("Comentário pai inválido ou não encontrado");
+    }
+    if(!parentComment) {
+      throw new BadRequestException("Comentário pai não encontrado");
     }
 
     const reply = await this.postCommentRepository.createReply({
@@ -296,13 +305,13 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
-  @Get(":postSlug/comments")
+  @Get(":postUuid/comments")
   async listComments(
-    @Param("postSlug") postSlug: string,
+    @Param("postUuid") postUuid: string,
     @Query() query: ListPostCommentsDto,
     @CurrentUser() user: User
   ) {
-    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    const post = await this.postRepository.findByUuid(postUuid, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }
