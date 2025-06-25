@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class CurseWordsFilterService {
-  private readonly words = [
+  private static readonly words = [
     "palavrão1",
     "palavrão2",
     "palavrão3",
@@ -10,19 +10,18 @@ export class CurseWordsFilterService {
     "palavrão5",
   ];
 
-  private readonly regex: RegExp;
+  private static readonly regex: RegExp = new RegExp(
+    CurseWordsFilterService.words
+      .map(w => `\\b${CurseWordsFilterService.escapeRegex(w)}\\b`)
+      .join("|"),
+    "i"
+  );
 
-  constructor() {
-    const pattern = this.words.map(w => `\\b${this.escapeRegex(w)}\\b`).join("|");
-    this.regex = new RegExp(pattern, "i"); // case-insensitive
+  static containsCurseWords(text: string): boolean {
+    return CurseWordsFilterService.regex.test(text);
   }
 
-  containsCurseWords(text: string): boolean {
-    return this.regex.test(text);
-  }
-
-  private escapeRegex(word: string): string {
-    // Escapa caracteres especiais para evitar erros no regex
+  private static escapeRegex(word: string): string {
     return word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 }

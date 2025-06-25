@@ -19,6 +19,7 @@ export abstract class UsersRepository {
       email: string;
     }
   ): Promise<User | null>;
+  
 
   abstract add(user: User, tx?: unknown): Promise<number>;
 

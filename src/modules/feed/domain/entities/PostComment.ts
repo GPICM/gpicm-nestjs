@@ -5,6 +5,13 @@ export enum CommentType {
   REPLY = "REPLY",
 }
 
+export type PartialUserForComment = {
+  id: number;
+  publicId: string | null;
+  name: string | null;
+  profilePicture: string | null;
+};
+
 export class PostComment {
   public readonly id: number | null;
   public readonly postId: number;
@@ -12,11 +19,11 @@ export class PostComment {
   public readonly content: string;
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
-  public readonly user?: User;
+  public readonly user: PartialUserForComment | null;
   public readonly parentCommentId?: number | null;
 
   constructor(args: {
-    id?: number | null;
+    id: number | null;
     postId: number;
     userId: number;
     content: string;
@@ -25,7 +32,7 @@ export class PostComment {
     parentCommentType?: CommentType;
     createdAt: Date;
     updatedAt: Date;
-    user?: User;
+    user: PartialUserForComment | null;
     replyTo?: PostComment | null;
   }) {
     this.id = args.id ?? null;

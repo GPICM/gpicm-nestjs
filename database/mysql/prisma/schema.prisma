@@ -293,11 +293,6 @@ model PostComment {
   @@map("post_comments")
 }
 
-enum CommentType {
-  COMMENT
-  REPLY
-}
-
 enum MediaStatus {
   CREATED
   UPLOADING

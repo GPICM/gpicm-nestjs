@@ -21,6 +21,7 @@ import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repositor
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
 import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
+import { PostCommentsService } from "./application/postComments.service";
 
 @Module({
   controllers: [PostController],
@@ -59,6 +60,7 @@ import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
     PostServices,
     UploadService,
     IncidentsService,
+    PostCommentsService,
     {
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,

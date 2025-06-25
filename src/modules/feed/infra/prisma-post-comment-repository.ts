@@ -1,20 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
-import { PostComment } from "../domain/entities/PostComment";
-import { User } from "@/modules/identity/domain/entities/User";
-import { CreateReplyCommentDto } from "../presentation/dtos/create-reply-comment.dto";
-
-// Função utilitária para mapear User parcial como objeto simples (não como User)
-function mapPrismaUserToUserObject(prismaUser: any): any {
-  if (!prismaUser) return undefined;
-  return {
-    id: prismaUser.id,
-    publicId: prismaUser.publicId,
-    name: prismaUser.name,
-    profilePicture: prismaUser.profilePicture,
-  };
-}
+import { PostComment, PartialUserForComment } from "../domain/entities/PostComment";
 
 @Injectable()
 export class PrismaPostCommentRepository implements PostCommentRepository {
@@ -30,7 +17,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
     });
   }
 
-  async create(comment: { postId: number; userId: number; content: string; user?: any; parentCommentId?: number | null }): Promise<PostComment> {
+  async add(comment: PostComment): Promise<PostComment> {
     const created = await this.prisma.postComment.create({
       data: {
         postId: comment.postId,
@@ -54,17 +41,25 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
         User: {
           select: {
             id: true,
+            publicId: true,
             name: true,
             profilePicture: true,
-            publicId: true,
           },
         },
       },
     });
     if (!found) return null;
+    const user: PartialUserForComment | null = found.User
+      ? {
+          id: found.User.id,
+          publicId: found.User.publicId,
+          name: found.User.name,
+          profilePicture: found.User.profilePicture,
+        }
+      : null;
     return new PostComment({
       ...found,
-      user: mapPrismaUserToUserObject(found.User),
+      user,
       parentCommentId: found.parentId ?? null,
     });
   }
@@ -77,64 +72,43 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
         User: {
           select: {
             id: true,
+            publicId: true,
             name: true,
             profilePicture: true,
-            publicId: true,
           },
         },
       },
     });
-    return comments.map(c =>
-      new PostComment({
+
+    return comments.map((c) => {
+      const user: PartialUserForComment | null = c.User
+        ? {
+            id: c.User.id,
+            publicId: c.User.publicId,
+            name: c.User.name,
+            profilePicture: c.User.profilePicture,
+          }
+        : null;
+      return new PostComment({
         ...c,
-        user: mapPrismaUserToUserObject(c.User),
+        user,
         parentCommentId: c.parentId ?? null,
-      })
-    );
-  }
-
-  async createReply(
-    dto: { postId: number; userId: number; content: string; parentCommentId: number; user?: any }
-  ): Promise<PostComment> {
-    const created = await this.prisma.postComment.create({
-      data: {
-        postId: dto.postId,
-        userId: dto.userId,
-        content: dto.content,
-        parentId: dto.parentCommentId,
-      },
-    });
-    await this.updatePostCommentsCount(created.postId);
-    return new PostComment({
-      ...created,
-      user: dto.user,
-      parentCommentId: created.parentId ?? null,
+      });
     });
   }
 
-  async update(
-    id: number,
-    data: Partial<{ content: string }>
-  ): Promise<PostComment> {
+  async update(comment: PostComment): Promise<PostComment> {
     const updated = await this.prisma.postComment.update({
-      where: { id },
-      data,
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-            publicId: true,
-          },
-        },
+      where: { id: comment.id! },
+      data: {
+        content: comment.content,
+        updatedAt: new Date(),
       },
     });
-    // Atualiza o count após editar (caso queira garantir consistência)
     await this.updatePostCommentsCount(updated.postId);
     return new PostComment({
       ...updated,
-      user: mapPrismaUserToUserObject(updated.User),
+      user: comment.user,
       parentCommentId: updated.parentId ?? null,
     });
   }
