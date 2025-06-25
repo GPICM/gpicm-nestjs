@@ -10,6 +10,8 @@ import {
   Query,
   Param,
   Patch,
+  Post,
+  Delete,
 } from "@nestjs/common";
 
 import {
@@ -25,6 +27,13 @@ import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
+import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
+import { CreateReplyCommentDto } from "../presentation/dtos/create-reply-comment.dto";
+import { CommentType } from "../domain/entities/PostComment";
+import { CurseWordsFilterService } from "../infra/curse-words-filter.service";
 
 
 @Controller("posts")
@@ -36,7 +45,9 @@ export class PostController {
     private readonly uploadService: UploadService,
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
-    private readonly postService: PostServices
+    private readonly postService: PostServices,
+    private readonly postCommentRepository: PostCommentRepository,
+    private readonly curseWordsFilter: CurseWordsFilterService
   ) {}
 
   @PostMethod()
@@ -169,5 +180,158 @@ export class PostController {
     );
 
     return new PaginatedResponse(records, total, limit, page, filters);
+  }
+
+
+  @Post(":postUuid/comments")
+  async createComment(
+    @Param("postUuid") postSlug: string,
+    @Body() body: CreatePostCommentDto,
+    @CurrentUser() user: User
+  ) {
+    if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
+    }
+
+    if(user.isGuest()) {
+      throw new BadRequestException("Usuário não registrado");
+    }
+
+    const post = await this.postRepository.findByUuid(postSlug, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+
+    const comment = await this.postCommentRepository.create({
+      postId: post.id,
+      userId: user.id!,
+      content: body.content,
+      user: user,
+    });
+
+    return comment;
+  }
+
+  @Post(":postUuid/comments/reply")
+  async createReply(
+    @Param("postUuid") postuuid: string,
+    @Body() body: CreateReplyCommentDto,
+    @CurrentUser() user: User
+  ) {
+    if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
+    }
+
+    const post = await this.postRepository.findByUuid(postuuid, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+    const parentComment = await this.postCommentRepository.findById(
+      body.parentCommentId
+    );
+    if (!parentComment || parentComment.type !== CommentType.COMMENT) {
+      throw new BadRequestException("Comentário pai inválido ou não encontrado");
+    }
+    if(!parentComment) {
+      throw new BadRequestException("Comentário pai não encontrado");
+    }
+    if(user.isGuest()) {
+      throw new BadRequestException("Usuário não registrado");
+    }
+
+    const reply = await this.postCommentRepository.createReply({
+      ...body,
+      postId: post.id,
+      userId: user.id!,
+      user: user,
+      type: CommentType.REPLY,
+    });
+
+    return reply;
+  }
+
+@Delete("comments/:commentId")
+  async deleteComment(
+    @Param("commentId") commentId: string,
+    @CurrentUser() user: User
+  ) {
+    const comment = await this.postCommentRepository.findById(Number(commentId));
+    if (!comment) {
+      throw new BadRequestException("Comentário não encontrado");
+    }
+    if (comment.userId !== user.id) {
+      throw new BadRequestException("Você não tem permissão para excluir este comentário");
+    }
+    await this.postCommentRepository.delete(Number(commentId));
+    return { message: "Comentário excluído com sucesso" };
+  }
+
+  @Patch("comments/:commentId")
+  async updateComment(
+    @Param("commentId") commentId: string,
+    @Body() body: UpdateCommentDto,
+    @CurrentUser() user: User
+  ) {
+    const comment = await this.postCommentRepository.findById(Number(commentId));
+    if (!comment) {
+      throw new BadRequestException("Comentário não encontrado");}
+    if (comment.userId !== user.id) {
+      throw new BadRequestException("Você não tem permissão para editar este comentário");
+    }
+        if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
+    }
+    const updatedComment = await this.postCommentRepository.update(
+      Number(commentId),
+      {
+        content: body.content,
+      }
+    );
+    return updatedComment;
+  }
+   @Get(":postUuid/comments")
+  async listComments(
+    @Param("postUuid") postUuid: string,
+    @Query() query: ListPostCommentsDto,
+    @CurrentUser() user: User
+  ) {
+    const post = await this.postRepository.findByUuid(postUuid, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = (page - 1) * limit;
+
+    const allComments = await this.postCommentRepository.findByPostId(post.id) ?? [];
+
+    const comments = allComments.filter(c => c.type === CommentType.COMMENT);
+    const replies = allComments.filter(c => c.type === CommentType.REPLY && c.parentCommentId);
+
+    const commentMap = new Map<number, any>();
+    comments.forEach(comment => {
+      commentMap.set(comment.id!, { ...comment.toJSON(), replies: [] });
+    });
+
+
+    replies.forEach(reply => {
+      const parent = commentMap.get(reply.parentCommentId!);
+      if (parent) {
+        parent.replies.push(reply.toJSON());
+      }
+    });
+
+
+    const commentsArray = Array.from(commentMap.values());
+    const paginated = commentsArray.slice(offset, offset + limit);
+
+
+    return {
+      data: paginated,
+      total: commentsArray.length,
+      page,
+      limit,
+    };
   }
 }
