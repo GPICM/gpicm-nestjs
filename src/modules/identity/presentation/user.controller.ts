@@ -10,7 +10,7 @@ import {
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../domain/entities/User";
-import { UpdateLocationDto } from "./dtos/user-request.dtos";
+import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 
@@ -48,4 +48,38 @@ export class UserController {
       throw new BadRequestException();
     }
   }
+
+  @Put("/updateUserData")
+  @UseGuards(JwtAuthGuard)
+  async updateUserData(
+    @CurrentUser() user: User,
+    @Body() body: UpdateUserDataDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user data", {
+        userId: user.id,
+        fields: Object.keys(body)
+      });
+      
+      const hasAtLeastOneField = Object.values(body).some(
+        (value) => value !== undefined
+      );
+
+      if (!hasAtLeastOneField) {
+        throw new BadRequestException("Nenhum dado fornecido para atualização");
+      }
+
+      await this.userService.updateUserData(
+        user,
+        body
+      );
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+
 }

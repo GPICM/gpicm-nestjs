@@ -5,6 +5,7 @@ import { UserRoles } from "../../domain/enums/user-roles";
 import { UserAssembler, userInclude } from "./mappers/prisma-user.assembler";
 import { Inject, Logger } from "@nestjs/common";
 import { AuthProviders, PrismaClient } from "@prisma/client";
+import { UpdateUserDataDto } from "../../presentation/dtos/user-request.dtos";
 
 export class PrismaUserRepository implements UsersRepository {
   private readonly logger: Logger = new Logger(PrismaUserRepository.name);
@@ -113,6 +114,24 @@ export class PrismaUserRepository implements UsersRepository {
       });
       throw new Error("Error updating user");
     }
+  }
+
+  public async updateUserData(user: User, userData: UpdateUserDataDto): Promise<void>{
+    try{
+      await this.prisma.user.update({
+        where: { id: user.id }, // Assumindo que user.id é o ID numérico do banco de dados
+        data: userData,
+      });
+
+      this.logger.log(`PrismaUserRepository: Dados do usuário ID ${user.id} atualizados com sucesso no banco de dados.`);
+
+    } catch (error: unknown){
+      this.logger.error(`Failed to update user data: ${user.publicId}`, {
+        error,
+      });
+      throw new Error("Error updating user data");
+    }
+  
   }
 
   public async delete(id: number): Promise<void> {

@@ -1,6 +1,7 @@
 import { AuthProviders } from "@prisma/client";
 import { User } from "../../entities/User";
 import { UserRoles } from "../../enums/user-roles";
+import { UpdateUserDataDto } from "@/modules/identity/presentation/dtos/user-request.dtos";
 
 export abstract class UsersRepository {
   abstract findByPublicId(
@@ -23,6 +24,8 @@ export abstract class UsersRepository {
   abstract add(user: User, tx?: unknown): Promise<number>;
 
   abstract update(user: User, tx?: unknown): Promise<void>;
+
+  abstract updateUserData(user: User, userData: UpdateUserDataDto): Promise<void>;
 
   abstract delete(userId: number): Promise<void>;
 

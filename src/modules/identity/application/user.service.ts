@@ -1,5 +1,7 @@
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
+import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
+import { User } from "../domain/entities/User";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -28,5 +30,20 @@ export class UserService {
       this.logger.error("Failed to update user location", { error });
       throw error;
     }
+  }
+
+  public async updateUserData(user: User, userData: UpdateUserDataDto) {
+    try{
+      this.logger.log("Updating user location", userData);
+
+      await this.usersRepository.updateUserData(user, userData);
+      
+      this.logger.log("User data updated successfully");
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user data", { error });
+      throw error;  
+
+    }
+    
   }
 }
