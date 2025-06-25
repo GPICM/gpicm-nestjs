@@ -20,6 +20,7 @@ import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
+import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
 
 
 @Module({
@@ -59,6 +60,7 @@ import { PostCommentRepository } from "./domain/interfaces/repositories/post-com
       useClass: PrismaIncidentsRepository,
     },
     RedisAdapter,
+    CurseWordsFilterService,
   ],
 
   exports: [],

@@ -274,6 +274,7 @@ model PostComment {
   parentId  Int?     @map("parent_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   Post Post @relation(fields: [postId], references: [id])
   User User @relation(fields: [userId], references: [id])

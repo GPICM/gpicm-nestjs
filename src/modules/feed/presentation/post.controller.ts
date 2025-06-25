@@ -38,6 +38,8 @@ import { PostCommentRepository } from "../domain/interfaces/repositories/post-co
 import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
 import { CreateReplyCommentDto } from "../presentation/dtos/create-reply-comment.dto";
 import { CommentType } from "../domain/entities/PostComment";
+import { CurseWordsFilterService } from "../infra/curse-words-filter.service";
+
 
 export const MAX_SIZE_IN_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -58,7 +60,8 @@ export class PostController {
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
     private readonly postService: PostServices,
-    private readonly postCommentRepository: PostCommentRepository // adicionado
+    private readonly postCommentRepository: PostCommentRepository, // adicionado
+    private readonly curseWordsFilter: CurseWordsFilterService
   ) {}
 
   @PostMethod()
@@ -156,6 +159,10 @@ export class PostController {
     @Body() body: CreatePostCommentDto,
     @CurrentUser() user: User
   ) {
+    if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
+    }
+
     const post = await this.postRepository.findBySlug(postSlug, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
@@ -177,6 +184,10 @@ export class PostController {
     @Body() body: CreateReplyCommentDto,
     @CurrentUser() user: User
   ) {
+    if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
+    }
+
     const post = await this.postRepository.findBySlug(postSlug, user.id!);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
@@ -220,6 +231,9 @@ export class PostController {
       throw new BadRequestException("Comentário não encontrado");}
     if (comment.userId !== user.id) {
       throw new BadRequestException("Você não tem permissão para editar este comentário");
+    }
+        if (this.curseWordsFilter.containsCurseWords(body.content)) {
+      throw new BadRequestException("Comentário contém palavras proibidas.");
     }
     const updatedComment = await this.postCommentRepository.update(
       Number(commentId),
