@@ -37,12 +37,7 @@ export class PostServices {
 
       const medias = await this.validateMedias(user, dto.mediaIds);
 
-      let coverImageMedia: Media | null = null;
-      if (medias.length) {
-        coverImageMedia = this.getCoverImage(user, medias);
-      }
-
-      const post = PostFactory.createPost(user, dto, coverImageMedia);
+      const post = PostFactory.createPost(user, dto, medias);
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
