@@ -1,9 +1,9 @@
 import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { MediaRepository } from "../../interfaces/repositories/media-repository";
-import { Media } from "../../domain/entities/Media";
+import { Media, MediaStatusEnum } from "../../domain/entities/Media";
 import { MediaAssembler } from "./mappers/media.assembler";
-import { PrismaClient } from "@prisma/client";
+import { MediaStatus, Prisma, PrismaClient } from "@prisma/client";
 
 export class PrismaMediaRepository implements MediaRepository {
   private readonly logger: Logger = new Logger(MediaRepository.name);
@@ -13,10 +13,24 @@ export class PrismaMediaRepository implements MediaRepository {
     private readonly prisma: PrismaService
   ) {}
 
-  public async findManyByIds(ids: string[]): Promise<Media[]> {
+  public async findManyByIds(
+    ids: string[],
+    filters?: {
+      statusIn?: MediaStatusEnum[];
+    }
+  ): Promise<Media[]> {
     try {
+      const where: Prisma.MediaWhereInput = {
+        id: { in: ids },
+        deletedAt: null,
+      };
+
+      if (filters?.statusIn?.length) {
+        where.status = { in: filters.statusIn as MediaStatus[] };
+      }
+
       const result = await this.prisma.media.findMany({
-        where: { id: { in: ids } },
+        where,
       });
       return MediaAssembler.fromPrismaMany(result);
     } catch (error: unknown) {

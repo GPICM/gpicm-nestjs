@@ -17,7 +17,6 @@ import {
   JwtAuthGuard,
 } from "@/modules/identity/presentation/meta";
 import { CreatePostDto } from "./dtos/create-post.dto";
-import { UploadService } from "@/modules/assets/application/upload.service";
 import { User } from "@/modules/identity/domain/entities/User";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
@@ -25,7 +24,7 @@ import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
-
+import { PostMediaService } from "../application/post-media.service";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -33,18 +32,15 @@ export class PostController {
   private readonly logger: Logger = new Logger(PostController.name);
 
   constructor(
-    private readonly uploadService: UploadService,
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
+    private readonly postMedias: PostMediaService,
     private readonly postService: PostServices
   ) {}
 
   @PostMethod()
   @UseGuards(UserGuard)
-  async create(
-    @Body() body: CreatePostDto,
-    @CurrentUser() user: User,
-  ) {
+  async create(@Body() body: CreatePostDto, @CurrentUser() user: User) {
     try {
       this.logger.log("Starting post creation", { body });
 
@@ -112,34 +108,27 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
-
   @Get(":postSlug")
   getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
     return this.postService.findOne(postSlug, user);
   }
 
   @Patch(":uuid/vote/up")
-  async upVote(
-    @Param("uuid") uuid: string,
-    @CurrentUser() user: User
-  ) {
+  async upVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
     return this.postService.vote(user, uuid, 1);
   }
 
   @Patch(":uuid/vote/down")
-  async downVote(
-    @Param("uuid") uuid: string,
-    @CurrentUser() user: User
-  ) {
+  async downVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
     return this.postService.vote(user, uuid, -1);
   }
 
-  @Get(":uuid/likes")
+  @Get(":uuid/votes")
   @UseGuards(UserGuard)
   async listPostVotes(
     @Param("uuid") uuid: string,
     @Query() query: ListPostQueryDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: User
   ) {
     const post = await this.postRepository.findByUuid(uuid, user.id!);
 
@@ -165,9 +154,14 @@ export class PostController {
         limit,
         offset,
         search: filters.search,
-      },
+      }
     );
 
     return new PaginatedResponse(records, total, limit, page, filters);
+  }
+
+  @Get(":uuid/medias")
+  async listPostMedias(@Param("uuid") uuid: string, @CurrentUser() user: User) {
+    return await this.postMedias.listMediasByPostUuid(user, uuid);
   }
 }

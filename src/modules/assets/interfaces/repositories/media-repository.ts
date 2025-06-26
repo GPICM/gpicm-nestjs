@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { Media } from "../../domain/entities/Media";
+import { Media, MediaStatusEnum } from "../../domain/entities/Media";
 
 export abstract class MediaRepository {
   abstract add(
@@ -15,5 +15,10 @@ export abstract class MediaRepository {
 
   abstract findById(id: string): Promise<Media | null>;
 
-  abstract findManyByIds(ids: string[]): Promise<Media[]>;
+  abstract findManyByIds(
+    ids: string[],
+    filters?: {
+      statusIn?: MediaStatusEnum[];
+    }
+  ): Promise<Media[]>;
 }

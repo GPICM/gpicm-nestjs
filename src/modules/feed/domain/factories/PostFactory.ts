@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Media } from "@/modules/assets/domain/entities/Media";
+import { Media, MediaTypeEnum } from "@/modules/assets/domain/entities/Media";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { User } from "@/modules/identity/domain/entities/User";
 import { randomUUID } from "crypto";
@@ -10,13 +10,12 @@ import { CreatePostDto } from "../../presentation/dtos/create-post.dto";
 import { PostMedia } from "../entities/PostMedia";
 import { PostAttachment } from "../object-values/PostAttchment";
 import { Incident } from "@/modules/incidents/domain/entities/Incident";
+import { BadRequestException, Logger } from "@nestjs/common";
 
 export class PostFactory {
-  static createPost(
-    user: User,
-    dto: CreatePostDto,
-    coverImageMedia?: Media | null
-  ): Post {
+  private static logger: Logger = new Logger(PostFactory.name);
+
+  static createPost(user: User, dto: CreatePostDto, medias: Media[]): Post {
     const author = new PostAuthor({
       id: user.id!,
       name: user.name ?? "Anonimo",
@@ -24,9 +23,14 @@ export class PostFactory {
       publicId: user?.publicId,
     });
 
-    const postMedias = dto.mediaIds.map((mediaId, index) =>
-      PostMedia.Create(mediaId, index)
+    const postMedias = (medias ?? []).map((media, index) =>
+      PostMedia.FromMedia(media, index)
     );
+
+    let coverImageMedia: Media | null = null;
+    if (medias.length) {
+      coverImageMedia = this.getCoverImage(user, medias);
+    }
 
     const coverImageSource = coverImageMedia ? coverImageMedia.sources : null;
 
@@ -60,5 +64,23 @@ export class PostFactory {
   static attachIncidentToPost(post: Post, incident: Incident) {
     post.setAttachment(new PostAttachment(incident.id, incident, "Incident"));
     post.setStatus(PostStatusEnum.PUBLISHED);
+  }
+
+  static getCoverImage(user: User, medias: Media[]): Media | null {
+    try {
+      this.logger.log("Searching for a cover image");
+      let coverImageMedia: Media | null = null;
+
+      for (const media of medias) {
+        if (media.type === MediaTypeEnum.IMAGE) {
+          coverImageMedia = media;
+        }
+      }
+
+      return coverImageMedia;
+    } catch (error: unknown) {
+      this.logger.error("Missing medias", { error });
+      throw new BadRequestException("Missing Media");
+    }
   }
 }

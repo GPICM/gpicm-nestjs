@@ -18,6 +18,7 @@ import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
 import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
+import { PostMediaService } from "./application/post-media.service";
 
 @Module({
   controllers: [PostController],
@@ -35,6 +36,7 @@ import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repositor
   ],
   providers: [
     PostScoreProcessor,
+    PostMediaService,
     { provide: VoteQueue, useClass: BullMqVoteQueueAdapter },
     {
       provide: PostRepository,
