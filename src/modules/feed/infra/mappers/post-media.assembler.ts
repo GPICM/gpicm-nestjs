@@ -55,9 +55,10 @@ class PostMediaAssembler {
   }
 
   public static fromPrismaMany(
-    prismaDataArray: PostMediaJoinModel[]
+    prismaDataArray?: PostMediaJoinModel[]
   ): PostMedia[] {
     const postMedia: PostMedia[] = [];
+    if (!prismaDataArray) return [];
 
     for (const prismaData of prismaDataArray) {
       const post = this.fromPrisma(prismaData);
