@@ -31,7 +31,6 @@ import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.d
 import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
 import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
 import { CommentType, PostComment } from "../domain/entities/PostComment";
-import { CurseWordsFilterService } from "../infra/curse-words-filter.service";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/postComments.service";
 
@@ -45,7 +44,6 @@ export class PostController {
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
     private readonly postMedias: PostMediaService,
-    private readonly postService: PostServices
     private readonly postService: PostServices,
     private readonly postCommentService: PostCommentsService,
     private readonly postCommentRepository: PostCommentRepository,
@@ -177,7 +175,7 @@ export class PostController {
   async listPostMedias(@Param("uuid") uuid: string, @CurrentUser() user: User) {
     return await this.postMedias.listMediasByPostUuid(user, uuid);
   }
-}
+
 
 
   @UseGuards(UserGuard)
