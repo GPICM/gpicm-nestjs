@@ -7,4 +7,6 @@ export abstract class PostMediasRepository {
     postMedias: PostMedia[],
     options?: { transactionContext?: unknown }
   ): Promise<void>;
+
+  abstract findManyByPostId(postId: number): Promise<PostMedia[]>;
 }

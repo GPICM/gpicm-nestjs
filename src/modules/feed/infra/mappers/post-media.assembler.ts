@@ -17,7 +17,7 @@ class PostMediaAssembler {
   ): Prisma.PostMediaCreateInput {
     return {
       Post: {
-        connect: { id: postMedia.postId! },
+        connect: { id: postMedia.postId },
       },
       Media: {
         connect: { id: postMedia.mediaId },
@@ -30,7 +30,7 @@ class PostMediaAssembler {
     postMediaList: PostMedia[]
   ): Prisma.PostMediaCreateManyInput[] {
     return postMediaList.map((postMedia) => ({
-      postId: postMedia.postId!,
+      postId: postMedia.postId,
       mediaId: postMedia.mediaId,
       displayOrder: postMedia.displayOrder,
     }));
@@ -48,16 +48,19 @@ class PostMediaAssembler {
     return new PostMedia({
       displayOrder: prismaData.displayOrder,
       mediaId: prismaData.mediaId,
-      caption: mediaData.caption ?? "",
       postId: prismaData.postId,
+      caption: mediaData.caption ?? "",
+      altText: mediaData.altText || "",
+      contentType: mediaData.contentType,
       sources,
     });
   }
 
   public static fromPrismaMany(
-    prismaDataArray: PostMediaJoinModel[]
+    prismaDataArray?: PostMediaJoinModel[]
   ): PostMedia[] {
     const postMedia: PostMedia[] = [];
+    if (!prismaDataArray) return [];
 
     for (const prismaData of prismaDataArray) {
       const post = this.fromPrisma(prismaData);

@@ -18,6 +18,7 @@ import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
 import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
 import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
+import { PostMediaService } from "./application/post-media.service";
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
 import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
@@ -39,6 +40,7 @@ import { PostCommentsService } from "./application/postComments.service";
   ],
   providers: [
     PostScoreProcessor,
+    PostMediaService,
     { provide: VoteQueue, useClass: BullMqVoteQueueAdapter },
     {
       provide: PostRepository,
