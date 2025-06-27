@@ -119,7 +119,7 @@ export class PrismaUserRepository implements UsersRepository {
   public async updateUserData(user: User, userData: UpdateUserDataDto): Promise<void>{
     try{
       await this.prisma.user.update({
-        where: { id: user.id }, // Assumindo que user.id é o ID numérico do banco de dados
+        where: { id: user.id },
         data: userData,
       });
 

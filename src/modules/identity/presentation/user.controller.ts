@@ -6,6 +6,7 @@ import {
   Put,
   UseGuards,
   BadRequestException,
+  Get,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
@@ -13,6 +14,7 @@ import { User } from "../domain/entities/User";
 import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
+import { UserGuard } from "./meta/guards/user.guard";
 
 @Controller("users")
 export class UserController {
@@ -51,6 +53,7 @@ export class UserController {
 
   @Put("/updateUserData")
   @UseGuards(JwtAuthGuard)
+  @UseGuards(UserGuard)
   async updateUserData(
     @CurrentUser() user: User,
     @Body() body: UpdateUserDataDto
@@ -80,6 +83,5 @@ export class UserController {
       throw new BadRequestException();
     }
   }
-
 
 }
