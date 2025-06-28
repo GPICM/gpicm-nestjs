@@ -5,7 +5,7 @@ import { UserRoles } from "../../domain/enums/user-roles";
 import { UserAssembler, userInclude } from "./mappers/prisma-user.assembler";
 import { Inject, Logger } from "@nestjs/common";
 import { AuthProviders, PrismaClient } from "@prisma/client";
-import { UpdateUserDataDto } from "../../presentation/dtos/user-request.dtos";
+import { UpdateUserDataDto, UserBasicDataDto } from "../../presentation/dtos/user-request.dtos";
 
 export class PrismaUserRepository implements UsersRepository {
   private readonly logger: Logger = new Logger(PrismaUserRepository.name);
@@ -78,6 +78,58 @@ export class PrismaUserRepository implements UsersRepository {
     } catch (error: unknown) {
       this.logger.error(`Failed to find user by UUID: ${publicId}`, { error });
       throw new Error("Error retrieving user by UUID");
+    }
+  }
+
+  public async getSpecificUserBasicData(publicId: string): Promise<UserBasicDataDto | null> {
+    try {
+      this.logger.log(`Fetching specific basic user data for publicId: ${publicId}`);
+
+      const prismaUser = await this.prisma.user.findUnique({
+        where: { publicId },
+        select: {
+          name: true,
+          bio: true,
+          profilePicture: true,
+          gender: true,
+          birthDate: true,
+          phoneNumber: true,
+          createdAt: true,
+          updatedAt: true,
+          // Se você realmente precisar do email:
+          // Credentials: {
+          //   select: {
+          //     email: true,
+          //   },
+          //   take: 1 // Pega apenas um, se houver múltiplos
+          // },
+        },
+      });
+
+      if (!prismaUser) {
+        this.logger.log(`User with publicId ${publicId} not found for basic data retrieval.`);
+        return null;
+      }
+
+      // Mapeia os dados brutos do Prisma para o UserBasicDataDto
+      const basicData: UserBasicDataDto = {
+        name: prismaUser.name,
+        bio: prismaUser.bio,
+        profilePicture: prismaUser.profilePicture,
+        gender: prismaUser.gender,
+        birthDate: prismaUser.birthDate,
+        phoneNumber: prismaUser.phoneNumber,
+        createdAt: prismaUser.createdAt,
+        updatedAt: prismaUser.updatedAt,
+        // Se o email for buscado via `include`, você o acessaria assim:
+        // email: prismaUser.Credentials?.[0]?.email,
+      };
+
+      this.logger.log(`Specific basic data fetched for publicId: ${publicId}`);
+      return basicData;
+    } catch (error: unknown) {
+      this.logger.error(`Failed to fetch specific basic user data for publicId: ${publicId}`, { error });
+      throw new Error("Error retrieving specific basic user data");
     }
   }
 

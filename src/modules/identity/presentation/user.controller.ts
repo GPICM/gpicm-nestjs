@@ -11,7 +11,7 @@ import {
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../domain/entities/User";
-import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
+import { UpdateLocationDto, UpdateUserDataDto, UserBasicDataDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { UserGuard } from "./meta/guards/user.guard";
@@ -84,4 +84,27 @@ export class UserController {
     }
   }
 
+  @Get("/me/basic-data") 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserGuard)
+  async getMyBasicData(
+    @CurrentUser() user: User 
+  ): Promise<any> { 
+    try{
+      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
+
+      const UserBasicDataDto = await this.userService.getUserBasicData(
+        user,
+      );
+
+      return UserBasicDataDto;
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user basic data", { error });
+      throw new BadRequestException();
+    }
+  }
+  
 }
+
+
+

@@ -1,6 +1,6 @@
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
-import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
+import { UpdateUserDataDto, UserBasicDataDto } from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
 
 export class UserService {
@@ -46,4 +46,25 @@ export class UserService {
     }
     
   }
+
+  public async getUserBasicData(user: User): Promise<UserBasicDataDto | null> {
+    try{
+      this.logger.log("Getting user basic data", user.name);
+
+      const basicData = await this.usersRepository.getSpecificUserBasicData(user.publicId);
+
+      if (!basicData) {
+        this.logger.warn(`User basic data not found for publicId: ${user.publicId}`);
+      }
+
+      return basicData;
+
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user data", { error });
+      throw error;  
+
+    }
+  }
+
+  
 }
