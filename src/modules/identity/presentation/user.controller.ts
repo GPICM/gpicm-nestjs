@@ -53,7 +53,7 @@ export class UserController {
 
   @Put("/updateUserData")
   @UseGuards(JwtAuthGuard)
-  @UseGuards(UserGuard)
+  // @UseGuards(UserGuard)
   async updateUserData(
     @CurrentUser() user: User,
     @Body() body: UpdateUserDataDto
@@ -86,7 +86,7 @@ export class UserController {
 
   @Get("/me/basic-data") 
   @UseGuards(JwtAuthGuard)
-  @UseGuards(UserGuard)
+  // @UseGuards(UserGuard)
   async getMyBasicData(
     @CurrentUser() user: User 
   ): Promise<any> { 

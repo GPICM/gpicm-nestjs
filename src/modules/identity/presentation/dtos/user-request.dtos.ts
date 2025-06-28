@@ -6,6 +6,7 @@ import {
   IsString,
   IsOptional, 
   IsDate,
+  IsEmail,
 } from "class-validator";
 
 export class UpdateLocationDto {
@@ -60,6 +61,10 @@ export class UserBasicDataDto {
   @IsOptional()
   @IsString()
   profilePicture?: string | null;
+  
+  @IsOptional()
+  @IsEmail()
+  email?: string | null;
 
   @IsOptional()
   @IsString()

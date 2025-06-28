@@ -97,12 +97,12 @@ export class PrismaUserRepository implements UsersRepository {
           createdAt: true,
           updatedAt: true,
           // Se você realmente precisar do email:
-          // Credentials: {
-          //   select: {
-          //     email: true,
-          //   },
-          //   take: 1 // Pega apenas um, se houver múltiplos
-          // },
+          Credentials: {
+            select: {
+              email: true,
+            },
+            take: 1 // Pega apenas um, se houver múltiplos
+          },
         },
       });
 
@@ -122,7 +122,7 @@ export class PrismaUserRepository implements UsersRepository {
         createdAt: prismaUser.createdAt,
         updatedAt: prismaUser.updatedAt,
         // Se o email for buscado via `include`, você o acessaria assim:
-        // email: prismaUser.Credentials?.[0]?.email,
+        email: prismaUser.Credentials?.[0]?.email,
       };
 
       this.logger.log(`Specific basic data fetched for publicId: ${publicId}`);
