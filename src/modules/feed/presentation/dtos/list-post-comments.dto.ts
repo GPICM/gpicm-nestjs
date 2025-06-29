@@ -10,4 +10,8 @@ export class ListPostCommentsDto {
   @IsInt()
   @Min(1)
   limit?: number = 16;
+
+  @IsOptional()
+  @IsInt()
+  parentId?: number;
 }

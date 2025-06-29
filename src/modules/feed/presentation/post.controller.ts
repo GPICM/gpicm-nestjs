@@ -30,10 +30,8 @@ import { PostMediaService } from "../application/post-media.service";
 import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
 import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
 import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
-import { CommentType, PostComment } from "../domain/entities/PostComment";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
-import { PostCommentsService } from "../application/postComments.service";
-
+import { PostCommentsService } from "../application/post-comment.service";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -46,7 +44,7 @@ export class PostController {
     private readonly postMedias: PostMediaService,
     private readonly postService: PostServices,
     private readonly postCommentService: PostCommentsService,
-    private readonly postCommentRepository: PostCommentRepository,
+    private readonly postCommentRepository: PostCommentRepository
   ) {}
 
   @PostMethod()
@@ -176,8 +174,6 @@ export class PostController {
     return await this.postMedias.listMediasByPostUuid(user, uuid);
   }
 
-
-
   @UseGuards(UserGuard)
   @Post(":postUuid/comments")
   async createComment(
@@ -187,6 +183,7 @@ export class PostController {
   ) {
     return this.postCommentService.addComment(postUuid, body, user);
   }
+
   @UseGuards(UserGuard)
   @Patch("comments/:commentId")
   async updateComment(
@@ -194,8 +191,13 @@ export class PostController {
     @Body() body: UpdateCommentDto,
     @CurrentUser() user: User
   ) {
-    return this.postCommentService.updateComment(Number(commentId), body.content, user);
+    return this.postCommentService.updateComment(
+      Number(commentId),
+      body.content,
+      user
+    );
   }
+
   @UseGuards(UserGuard)
   @Delete("comments/:commentId")
   async deleteComment(
@@ -217,38 +219,18 @@ export class PostController {
       throw new BadRequestException("Post não encontrado");
     }
 
+    const postId = Number(post?.id);
     const page = query.page ?? 1;
     const limit = query.limit ?? 16;
-    const offset = (page - 1) * limit;
+    const offset = limit * (page - 1);
 
-    const allComments = await this.postCommentRepository.findByPostId(post.id) ?? [];
+    const { records, count: total } =
+      await this.postCommentRepository.listAllByPostId(postId, {
+        limit,
+        offset,
+        parentId: query.parentId ?? null
+      });
 
-    const comments = allComments.filter(c => c.type === CommentType.COMMENT);
-    const replies = allComments.filter(c => c.type === CommentType.REPLY && c.parentCommentId);
-
-    const commentMap = new Map<number, any>();
-    comments.forEach(comment => {
-      commentMap.set(comment.id!, { ...comment.toJSON(), replies: [] });
-    });
-
-
-    replies.forEach(reply => {
-      const parent = commentMap.get(reply.parentCommentId!);
-      if (parent) {
-        parent.replies.push(reply.toJSON());
-      }
-    });
-
-
-    const commentsArray = Array.from(commentMap.values());
-    const paginated = commentsArray.slice(offset, offset + limit);
-
-
-    return {
-      data: paginated,
-      total: commentsArray.length,
-      page,
-      limit,
-    };
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 }

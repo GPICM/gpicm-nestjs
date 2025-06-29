@@ -10,7 +10,7 @@ export class PostComment {
 
   public readonly postId: number;
 
-  public readonly content: string;
+  public content: string;
 
   public readonly createdAt: Date;
 
@@ -25,16 +25,16 @@ export class PostComment {
     postId: number;
     content: string;
     user: UserShallow;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
     parentCommentId?: number | null;
   }) {
     this.id = args.id ?? null;
     this.postId = args.postId;
     this.content = args.content;
     this.user = args.user;
-    this.createdAt = args.createdAt;
-    this.updatedAt = args.updatedAt;
+    this.createdAt = args.createdAt ?? new Date();
+    this.updatedAt = args.updatedAt ?? new Date();
     this.parentCommentId = args.parentCommentId ?? null;
   }
 
@@ -44,6 +44,10 @@ export class PostComment {
 
   get isEdited(): boolean {
     return this.updatedAt > this.createdAt;
+  }
+
+  public setContent(newContent: string) {
+    this.content = newContent;
   }
 
   toJSON() {

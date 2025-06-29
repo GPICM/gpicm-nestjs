@@ -9,7 +9,7 @@ export abstract class PostCommentRepository {
   abstract findById(id: number): Promise<PostComment | null>;
   abstract listAllByPostId(
     postId: number,
-    filters: BaseRepositoryFindManyFilters & { parentId?: number },
+    filters: BaseRepositoryFindManyFilters & { parentId?: number | null },
     userId?: number
   ): Promise<BaseRepositoryFindManyResult<PostComment>>;
 
