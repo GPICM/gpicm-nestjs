@@ -1,123 +1,103 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+
 import { PrismaService } from "@/modules/shared/services/prisma-services";
+
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
-import { PostComment, PartialUserForComment } from "../domain/entities/PostComment";
+import { PostComment } from "../domain/entities/PostComment";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../domain/interfaces/dto/base-repository-filters";
+import { Prisma } from "@prisma/client";
+import {
+  PostCommentAssembler,
+  postCommentInclude,
+} from "./mappers/post-comment.assembler";
 
 @Injectable()
 export class PrismaPostCommentRepository implements PostCommentRepository {
+  private readonly logger: Logger = new Logger(
+    PrismaPostCommentRepository.name
+  );
+
   constructor(private readonly prisma: PrismaService) {}
 
-  private async updatePostCommentsCount(postId: number) {
+  public async updatePostCommentsCount(postId: number) {
     const count = await this.prisma.postComment.count({
       where: { postId, deletedAt: null },
     });
+
     await this.prisma.post.update({
       where: { id: postId },
       data: { commentsCount: count },
     });
   }
 
-  async add(comment: PostComment): Promise<PostComment> {
-    const created = await this.prisma.postComment.create({
-      data: {
-        postId: comment.postId,
-        userId: comment.userId,
-        content: comment.content,
-        parentId: comment.parentCommentId ?? null,
-      },
-    });
-    await this.updatePostCommentsCount(created.postId);
-    return new PostComment({
-      ...created,
-      user: comment.user,
-      parentCommentId: created.parentId ?? null,
+  public async add(comment: PostComment): Promise<void> {
+    await this.prisma.postComment.create({
+      data: PostCommentAssembler.toPrismaCreate(comment),
     });
   }
 
-  async findById(id: number): Promise<PostComment | null> {
+  public async update(comment: PostComment): Promise<void> {
+    await this.prisma.postComment.update({
+      where: { id: comment.id! },
+      data: PostCommentAssembler.toPrismaUpdate(comment),
+    });
+  }
+
+  public async findById(id: number): Promise<PostComment | null> {
     const found = await this.prisma.postComment.findFirst({
       where: { id, deletedAt: null },
-      include: {
-        User: {
-          select: {
-            id: true,
-            publicId: true,
-            name: true,
-            profilePicture: true,
-          },
-        },
-      },
+      include: postCommentInclude,
     });
+
     if (!found) return null;
-    const user: PartialUserForComment | null = found.User
-      ? {
-          id: found.User.id,
-          publicId: found.User.publicId,
-          name: found.User.name,
-          profilePicture: found.User.profilePicture,
-        }
-      : null;
-    return new PostComment({
-      ...found,
-      user,
-      parentCommentId: found.parentId ?? null,
-    });
+    return PostCommentAssembler.fromPrisma(found);
   }
 
-  async findByPostId(postId: number): Promise<PostComment[]> {
-    const comments = await this.prisma.postComment.findMany({
-      where: { postId, deletedAt: null },
-      orderBy: { createdAt: "asc" },
-      include: {
-        User: {
-          select: {
-            id: true,
-            publicId: true,
-            name: true,
-            profilePicture: true,
-          },
-        },
-      },
-    });
-
-    return comments.map((c) => {
-      const user: PartialUserForComment | null = c.User
-        ? {
-            id: c.User.id,
-            publicId: c.User.publicId,
-            name: c.User.name,
-            profilePicture: c.User.profilePicture,
-          }
-        : null;
-      return new PostComment({
-        ...c,
-        user,
-        parentCommentId: c.parentId ?? null,
-      });
-    });
-  }
-
-  async update(comment: PostComment): Promise<PostComment> {
-    const updated = await this.prisma.postComment.update({
-      where: { id: comment.id! },
-      data: {
-        content: comment.content,
-        updatedAt: new Date(),
-      },
-    });
-    await this.updatePostCommentsCount(updated.postId);
-    return new PostComment({
-      ...updated,
-      user: comment.user,
-      parentCommentId: updated.parentId ?? null,
-    });
-  }
-
-  async delete(id: number): Promise<void> {
-    const deleted = await this.prisma.postComment.update({
+  public async delete(id: number): Promise<void> {
+    await this.prisma.postComment.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
-    await this.updatePostCommentsCount(deleted.postId);
+  }
+
+  public async listAllByPostId(
+    postId: number,
+    filters: BaseRepositoryFindManyFilters & { parentId?: number },
+    userId?: number
+  ): Promise<BaseRepositoryFindManyResult<PostComment>> {
+    const skip = filters.offset;
+    const take = filters.limit;
+    const sort = filters.sort ?? "createdAt";
+    const order = filters.order ?? "desc";
+
+    const where: Prisma.PostCommentWhereInput = {
+      postId: postId,
+    };
+
+    if (filters.parentId) {
+      where.parentId = filters.parentId;
+    }
+
+    const [prismaResult, count] = await Promise.all([
+      this.prisma.postComment.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { [sort]: order },
+        include: postCommentInclude,
+      }),
+      this.prisma.postComment.count({ where }),
+    ]);
+
+    const records = PostCommentAssembler.fromPrismaMany(prismaResult);
+
+    this.logger.log(
+      `Listed ${records.length} posts comments out of total ${count}`
+    );
+
+    return { records, count };
   }
 }

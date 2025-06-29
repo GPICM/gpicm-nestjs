@@ -1,9 +1,18 @@
-import { CommentType, PostComment } from "../../entities/PostComment";
+import { PostComment } from "../../entities/PostComment";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../dto/base-repository-filters";
 
 export abstract class PostCommentRepository {
-  abstract add(comment: PostComment): Promise<PostComment>;
+  abstract add(comment: PostComment): Promise<void>;
   abstract findById(id: number): Promise<PostComment | null>;
-  abstract findByPostId(postId: number): Promise<PostComment[]>;
-  abstract update(comment: PostComment): Promise<PostComment>;
+  abstract listAllByPostId(
+    postId: number,
+    filters: BaseRepositoryFindManyFilters & { parentId?: number },
+    userId?: number
+  ): Promise<BaseRepositoryFindManyResult<PostComment>>;
+
+  abstract update(comment: PostComment): Promise<void>;
   abstract delete(id: number): Promise<void>;
 }

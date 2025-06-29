@@ -5,13 +5,6 @@ export enum CommentType {
   REPLY = "REPLY",
 }
 
-export type PartialUserForComment = {
-  id: number;
-  publicId: string | null;
-  name: string | null;
-  profilePicture: string | null;
-};
-
 export class PostComment {
   public readonly id: number | null;
 
