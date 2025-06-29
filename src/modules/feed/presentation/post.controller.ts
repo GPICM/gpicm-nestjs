@@ -10,6 +10,8 @@ import {
   Query,
   Param,
   Patch,
+  Post,
+  Delete,
 } from "@nestjs/common";
 
 import {
@@ -25,6 +27,11 @@ import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
 import { PostMediaService } from "../application/post-media.service";
+import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
+import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
+import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+import { PostCommentsService } from "../application/post-comment.service";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -35,7 +42,9 @@ export class PostController {
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
     private readonly postMedias: PostMediaService,
-    private readonly postService: PostServices
+    private readonly postService: PostServices,
+    private readonly postCommentService: PostCommentsService,
+    private readonly postCommentRepository: PostCommentRepository
   ) {}
 
   @PostMethod()
@@ -163,5 +172,65 @@ export class PostController {
   @Get(":uuid/medias")
   async listPostMedias(@Param("uuid") uuid: string, @CurrentUser() user: User) {
     return await this.postMedias.listMediasByPostUuid(user, uuid);
+  }
+
+  @UseGuards(UserGuard)
+  @Post(":postUuid/comments")
+  async createComment(
+    @Param("postUuid") postUuid: string,
+    @Body() body: CreatePostCommentDto,
+    @CurrentUser() user: User
+  ) {
+    return this.postCommentService.addComment(postUuid, body, user);
+  }
+
+  @UseGuards(UserGuard)
+  @Patch("comments/:commentId")
+  async updateComment(
+    @Param("commentId") commentId: string,
+    @Body() body: UpdateCommentDto,
+    @CurrentUser() user: User
+  ) {
+    return this.postCommentService.updateComment(
+      Number(commentId),
+      body.content,
+      user
+    );
+  }
+
+  @UseGuards(UserGuard)
+  @Delete("comments/:commentId")
+  async deleteComment(
+    @Param("commentId") commentId: string,
+    @CurrentUser() user: User
+  ) {
+    await this.postCommentService.deleteComment(Number(commentId), user);
+    return { message: "Comentário excluído com sucesso" };
+  }
+
+  @Get(":postUuid/comments")
+  async listComments(
+    @Param("postUuid") postUuid: string,
+    @Query() query: ListPostCommentsDto,
+    @CurrentUser() user: User
+  ) {
+    const post = await this.postRepository.findByUuid(postUuid, user.id!);
+    if (!post?.id) {
+      throw new BadRequestException("Post não encontrado");
+    }
+
+    const postId = Number(post?.id);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } =
+      await this.postCommentRepository.listAllByPostId(postId, {
+        limit,
+        offset,
+        parentId: query.parentId ?? null
+      });
+
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 }

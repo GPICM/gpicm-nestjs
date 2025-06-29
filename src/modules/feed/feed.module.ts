@@ -19,6 +19,10 @@ import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
 import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
 import { PostMediaService } from "./application/post-media.service";
+import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
+import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
+import { CurseWordsFilterService } from "./application/curse-words-filter.service";
+import { PostCommentsService } from "./application/post-comment.service";
 
 @Module({
   controllers: [PostController],
@@ -47,17 +51,24 @@ import { PostMediaService } from "./application/post-media.service";
       useClass: PrismaPostVotesRepository,
     },
     {
+      provide: PostCommentRepository,
+      useClass: PrismaPostCommentRepository,
+    },
+
+    {
       provide: PostMediasRepository,
       useClass: PrismaPostMediasRepository,
     },
     PostServices,
     UploadService,
     IncidentsService,
+    PostCommentsService,
     {
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
     },
     RedisAdapter,
+    CurseWordsFilterService,
   ],
 
   exports: [],

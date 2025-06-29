@@ -23,7 +23,8 @@
     "prisma:push": "npx prisma db push --schema database/mysql/prisma/schema.prisma",
     "prisma:studio": "npx prisma studio --schema database/mysql/prisma/schema.prisma",
     "db:deploy": "npx prisma migrate deploy --schema database/mysql/prisma/schema.prisma && yarn run prisma:generate",
-    "db:local": "sh ./database/init-user.sh"
+    "db:local": "sh ./database/init-user.sh",
+    "db:local:windows": "./database/init-user-windows.bat"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.828.0",
