@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { IsOptional, IsInt, Min } from "class-validator";
 
 export class ListPostCommentsDto {
@@ -13,5 +14,6 @@ export class ListPostCommentsDto {
 
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   parentId?: number;
 }

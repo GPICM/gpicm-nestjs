@@ -77,7 +77,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
       postId: postId,
     };
 
-    if (filters.parentId) {
+    if (filters.parentId !== undefined) {
       where.parentId = filters.parentId;
     }
 
