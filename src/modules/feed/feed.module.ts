@@ -21,7 +21,7 @@ import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repositor
 import { PostMediaService } from "./application/post-media.service";
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
-import { CurseWordsFilterService } from "./infra/curse-words-filter.service";
+import { CurseWordsFilterService } from "./application/curse-words-filter.service";
 import { PostCommentsService } from "./application/postComments.service";
 
 @Module({

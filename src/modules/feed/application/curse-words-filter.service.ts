@@ -1,18 +1,13 @@
 import { Injectable } from "@nestjs/common";
+import * as badWordsJson from "../infra/badwords.json";
 
 @Injectable()
 export class CurseWordsFilterService {
-  private static readonly words = [
-    "palavrão1",
-    "palavrão2",
-    "palavrão3",
-    "palavrão4",
-    "palavrão5",
-  ];
+  private static readonly words: string[] = badWordsJson.badWords;
 
   private static readonly regex: RegExp = new RegExp(
     CurseWordsFilterService.words
-      .map(w => `\\b${CurseWordsFilterService.escapeRegex(w)}\\b`)
+      .map((w) => `\\b${CurseWordsFilterService.escapeRegex(w)}\\b`)
       .join("|"),
     "i"
   );
