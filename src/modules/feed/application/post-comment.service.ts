@@ -8,12 +8,14 @@ import { PostRepository } from "../domain/interfaces/repositories/post-repositor
 import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
+import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
 
 @Injectable()
 export class PostCommentsService {
   constructor(
     private readonly postCommentRepository: PostCommentRepository,
-    private readonly postRepository: PostRepository
+    private readonly postRepository: PostRepository,
+    private readonly commentsQueue: CommentsQueue
   ) {}
 
   async addComment(
@@ -38,7 +40,9 @@ export class PostCommentsService {
       parentCommentId: body.parentCommentId ?? null,
     });
 
-    return this.postCommentRepository.add(commentEntity);
+    await this.postCommentRepository.add(commentEntity);
+
+    await this.commentsQueue.addCommentJob({ postId: post.id });
   }
 
   async updateComment(
