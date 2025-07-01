@@ -53,12 +53,13 @@ export class PostComment {
   toJSON() {
     return {
       id: this.id,
+      user: this.user,
+      type: this.type,
       postId: this.postId,
       content: this.content,
-      user: this.user,
-      parentCommentId: this.parentCommentId ?? null,
-      type: this.type,
       isEdited: this.isEdited,
+      updatedAt: this.updatedAt,
+      parentCommentId: this.parentCommentId ?? null,
     };
   }
 }

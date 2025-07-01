@@ -170,7 +170,7 @@ model Post {
   incidentId        String?               @map("incident_id")
   upVotes           Int                   @default(0) @map("up_votes")
   downVotes         Int                   @default(0) @map("down_votes")
-  commentsCount   Int                   @default(0) @map("comments_count")
+  commentsCount     Int                   @default(0) @map("comments_count")
   score             Int                   @default(0) @map("score")
   location          Unsupported("POINT")?
   locationAddress   String?               @map("location_address")
@@ -180,10 +180,10 @@ model Post {
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
 
-  Author    User        @relation(fields: [authorId], references: [id])
-  Incident  Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Author    User          @relation(fields: [authorId], references: [id])
+  Incident  Incident?     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   Votes     PostVote[]
-  Comments       PostComment[]
+  Comments  PostComment[]
   PostMedia PostMedia[]
 
   @@map("posts")
@@ -279,17 +279,19 @@ model Media {
   @@map("medias")
 }
 
+// TODO: add comments count
 model PostComment {
-  id        Int      @id @default(autoincrement())
-  postId    Int      @map("post_id")
-  userId    Int      @map("user_id")
-  content   String   @db.LongText
-  parentId  Int?     @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int       @id @default(autoincrement())
+  postId    Int       @map("post_id")
+  userId    Int       @map("user_id")
+  content   String    @db.LongText
+  parentId  Int?      @map("parent_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  Post Post @relation(fields: [postId], references: [id])
-  User User @relation(fields: [userId], references: [id])
+  Post      Post      @relation(fields: [postId], references: [id])
+  User      User      @relation(fields: [userId], references: [id])
+
   @@map("post_comments")
 }
 
