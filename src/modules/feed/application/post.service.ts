@@ -13,7 +13,7 @@ import { UserShallow } from "../domain/entities/UserShallow";
 import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { MediaService } from "@/modules/assets/application/media.service";
-import { Media, MediaTypeEnum } from "@/modules/assets/domain/entities/Media";
+import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
 
 export class PostServices {
@@ -37,12 +37,7 @@ export class PostServices {
 
       const medias = await this.validateMedias(user, dto.mediaIds);
 
-      let coverImageMedia: Media | null = null;
-      if (medias.length) {
-        coverImageMedia = this.getCoverImage(user, medias);
-      }
-
-      const post = PostFactory.createPost(user, dto, coverImageMedia);
+      const post = PostFactory.createPost(user, dto, medias);
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
@@ -167,24 +162,6 @@ export class PostServices {
       }
 
       return medias;
-    } catch (error: unknown) {
-      this.logger.error("Missing medias", { error });
-      throw new BadRequestException("Missing Media");
-    }
-  }
-
-  private getCoverImage(user: User, medias: Media[]): Media | null {
-    try {
-      this.logger.log("Searching for a cover image");
-      let coverImageMedia: Media | null = null;
-
-      for (const media of medias) {
-        if (media.type === MediaTypeEnum.IMAGE) {
-          coverImageMedia = media;
-        }
-      }
-
-      return coverImageMedia;
     } catch (error: unknown) {
       this.logger.error("Missing medias", { error });
       throw new BadRequestException("Missing Media");

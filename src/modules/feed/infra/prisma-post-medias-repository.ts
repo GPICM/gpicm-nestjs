@@ -4,13 +4,29 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { PostMedia } from "../domain/entities/PostMedia";
-import { PostMediaAssembler } from "./mappers/post-media.assembler";
+import {
+  PostMediaAssembler,
+  postMediaInclude,
+} from "./mappers/post-media.assembler";
 
 @Injectable()
 export class PrismaPostMediasRepository implements PostMediasRepository {
   private readonly logger: Logger = new Logger(PrismaPostMediasRepository.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  public async findManyByPostId(postId: number): Promise<PostMedia[]> {
+    try {
+      const result = await this.prisma.postMedia.findMany({
+        where: { postId },
+        include: postMediaInclude,
+      });
+      return PostMediaAssembler.fromPrismaMany(result);
+    } catch (error: unknown) {
+      this.logger.error("Failed to create post medias", { error });
+      throw new Error("Failed to create post medias");
+    }
+  }
 
   public async bulkAdd(
     postMedias: PostMedia[],
