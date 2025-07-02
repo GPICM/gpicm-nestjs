@@ -9,7 +9,7 @@ import { UsersRepository } from "../domain/interfaces/repositories/users-reposit
 import { User } from "../domain/entities/User";
 import { UserRoles } from "../domain/enums/user-roles";
 import { Guest } from "../domain/entities/Guest";
-import { UserJWTpayload } from "../domain/object-values/user-jwt-payload";
+import { UserJWTpayload } from "../domain/value-objects/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";

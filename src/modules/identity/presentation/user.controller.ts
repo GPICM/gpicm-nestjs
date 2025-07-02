@@ -11,12 +11,14 @@ import {
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../domain/entities/User";
-import { UpdateLocationDto, UpdateUserDataDto, UserBasicDataDto } from "./dtos/user-request.dtos";
+import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { UserGuard } from "./meta/guards/user.guard";
+import { UserBasicData } from "../domain/value-objects/user-basic-data";
 
 @Controller("users")
+@UseGuards(JwtAuthGuard)
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
@@ -26,7 +28,6 @@ export class UserController {
   ) {}
 
   @Put("/location")
-  @UseGuards(JwtAuthGuard)
   async updateLocation(
     @CurrentUser() user: User,
     @Body() body: UpdateLocationDto
@@ -51,9 +52,8 @@ export class UserController {
     }
   }
 
-  @Put("/updateUserData")
-  @UseGuards(JwtAuthGuard)
-  // @UseGuards(UserGuard)
+  @Put("profile")
+  @UseGuards(UserGuard)
   async updateUserData(
     @CurrentUser() user: User,
     @Body() body: UpdateUserDataDto
@@ -61,9 +61,9 @@ export class UserController {
     try {
       this.logger.log("Updating user data", {
         userId: user.id,
-        fields: Object.keys(body)
+        fields: Object.keys(body),
       });
-      
+
       const hasAtLeastOneField = Object.values(body).some(
         (value) => value !== undefined
       );
@@ -72,10 +72,7 @@ export class UserController {
         throw new BadRequestException("Nenhum dado fornecido para atualização");
       }
 
-      await this.userService.updateUserData(
-        user,
-        body
-      );
+      await this.userService.updateUserData(user, body);
 
       return { success: true };
     } catch (error: unknown) {
@@ -84,27 +81,15 @@ export class UserController {
     }
   }
 
-  @Get("/me/basic-data") 
-  @UseGuards(JwtAuthGuard)
-  // @UseGuards(UserGuard)
-  async getMyBasicData(
-    @CurrentUser() user: User 
-  ): Promise<any> { 
-    try{
+  @Get("/profile")
+  @UseGuards(UserGuard)
+  getMyBasicData(@CurrentUser() user: User): UserBasicData {
+    try {
       this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
-
-      const UserBasicDataDto = await this.userService.getUserBasicData(
-        user,
-      );
-
-      return UserBasicDataDto;
+      return user.toUserBasicData();
     } catch (error: unknown) {
       this.logger.error("Failed to get user basic data", { error });
       throw new BadRequestException();
     }
   }
-  
 }
-
-
-

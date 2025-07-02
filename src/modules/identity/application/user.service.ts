@@ -1,6 +1,6 @@
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
-import { UpdateUserDataDto, UserBasicDataDto } from "../presentation/dtos/user-request.dtos";
+import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
 
 export class UserService {
@@ -33,38 +33,35 @@ export class UserService {
   }
 
   public async updateUserData(user: User, userData: UpdateUserDataDto) {
-    try{
+    try {
       this.logger.log("Updating user location", userData);
 
-      await this.usersRepository.updateUserData(user, userData);
-      
+      if (userData.name) {
+        user.name = userData.name;
+      }
+
+      if (userData.gender) {
+        user.gender = userData.gender;
+      }
+
+      if (userData.bio) {
+        user.bio = userData.bio;
+      }
+
+      if (userData.birthDate) {
+        user.birthDate = userData.birthDate;
+      }
+
+      if (userData.phoneNumber) {
+        user.phoneNumber = userData.phoneNumber;
+      }
+
+      await this.usersRepository.update(user);
+
       this.logger.log("User data updated successfully");
     } catch (error: unknown) {
       this.logger.error("Failed to update user data", { error });
-      throw error;  
-
-    }
-    
-  }
-
-  public async getUserBasicData(user: User): Promise<UserBasicDataDto | null> {
-    try{
-      this.logger.log("Getting user basic data", user.name);
-
-      const basicData = await this.usersRepository.getSpecificUserBasicData(user.publicId);
-
-      if (!basicData) {
-        this.logger.warn(`User basic data not found for publicId: ${user.publicId}`);
-      }
-
-      return basicData;
-
-    } catch (error: unknown) {
-      this.logger.error("Failed to update user data", { error });
-      throw error;  
-
+      throw error;
     }
   }
-
-  
 }
