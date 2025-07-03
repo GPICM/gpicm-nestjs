@@ -57,8 +57,6 @@ export class UserAssembler {
         longitude: prismaData.longitude,
         locationUpdatedAt: prismaData.locationUpdatedAt,
         credentials: [],
-        createdAt: prismaData.createdAt,
-        updateAt: prismaData.updatedAt,
       });
     }
 
@@ -82,8 +80,6 @@ export class UserAssembler {
       longitude: prismaData.longitude,
       locationUpdatedAt: prismaData.locationUpdatedAt,
       credentials,
-      createdAt: prismaData.createdAt,
-      updateAt: prismaData.updatedAt,
     });
   }
 
@@ -110,15 +106,16 @@ export class UserAssembler {
 
   public static toPrismaUpdateInput(user: User): Prisma.UserUpdateInput {
     return {
+      publicId: user.publicId,
       bio: user.bio,
       birthDate: user.birthDate,
       gender: user.gender,
+      isVerified: user.isVerified,
       phoneNumber: user.phoneNumber,
       profilePicture: user.profilePicture,
+      status: user.status,
       name: user.name,
       role: user.role,
-      isVerified: user.isVerified,
-      status: user.status,
       ipAddress: user.ipAddress,
       deviceKey: user.deviceKey,
       deviceInfo: (user.deviceInfo ?? undefined) as

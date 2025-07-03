@@ -132,18 +132,13 @@ export class PrismaUserRepository implements UsersRepository {
     lat: number,
     lng: number
   ): Promise<void> {
-    try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          latitude: lat,
-          longitude: lng,
-          locationUpdatedAt: new Date(),
-        },
-      });
-    } catch (error: unknown) {
-      this.logger.error(`Failed to update user location`, { error });
-      throw new Error("Failed to update user location");
-    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        latitude: lat,
+        longitude: lng,
+        locationUpdatedAt: new Date(),
+      },
+    });
   }
 }
