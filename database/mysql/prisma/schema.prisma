@@ -32,7 +32,7 @@ model User {
 
   Credentials    UserCredential[]
   UserLogs       UserLog[]
-  UserAgreements UserAgreement[]
+  UserAgreements UserPolicyAgreement[]
   Incidents      Incident[]
   Posts          Post[]
   PostVotes      PostVote[]
@@ -64,30 +64,31 @@ model UserCredential {
   @@map("user_credentials")
 }
 
-model UserAgreement {
-  id            Int       @id @default(autoincrement())
-  userId        Int       @map("user_id")
-  policyVersion String    @map("policy_version")
-  consentedAt   DateTime  @default(now()) @map("consented_at")
-  deletedAt     DateTime? @map("deleted_at")
-  ipAddress     String?   @map("ip_address")
-  userAgent     String?   @map("user_agent")
-  contentHash   String?   @map("content_hash")
+model UserPolicyAgreement {
+  userId            Int       @map("user_id")
+  policyId          String    @map("policy_id")
+  policyContentHash String    @map("policy_content_hash")
+  ipAddress         String    @map("ip_address")
+  userAgent         String    @map("user_agent")
+  deletedAt         DateTime? @map("deleted_at")
+  consentedAt       DateTime  @default(now()) @map("consented_at")
 
-  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, policyVersion])
-  @@map("user_agreements")
+  @@id([userId, policyId])
+  @@map("user_policy_agreements")
 }
 
 model Policy {
-  id          String     @id @default(uuid()) @map("id")
-  version     String
-  type        PolicyType
-  content     String     @db.LongText
-  htmlContent String     @db.LongText
-  createdAt   DateTime   @default(now())
-  deletedAt   DateTime?
+  id                  String                @id @default(uuid()) @map("id")
+  version             String
+  type                PolicyType
+  content             String                @db.LongText
+  htmlContent         String                @db.LongText
+  createdAt           DateTime              @default(now())
+  deletedAt           DateTime?
+  UserPolicyAgreement UserPolicyAgreement[]
 
   @@unique([version, type])
   @@map("policies")
@@ -173,7 +174,7 @@ model Post {
   incidentId        String?               @map("incident_id")
   upVotes           Int                   @default(0) @map("up_votes")
   downVotes         Int                   @default(0) @map("down_votes")
-  commentsCount   Int                   @default(0) @map("comments_count")
+  commentsCount     Int                   @default(0) @map("comments_count")
   score             Int                   @default(0) @map("score")
   location          Unsupported("POINT")?
   locationAddress   String?               @map("location_address")
@@ -183,10 +184,10 @@ model Post {
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
 
-  Author    User        @relation(fields: [authorId], references: [id])
-  Incident  Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Author    User          @relation(fields: [authorId], references: [id])
+  Incident  Incident?     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   Votes     PostVote[]
-  Comments       PostComment[]
+  Comments  PostComment[]
   PostMedia PostMedia[]
 
   @@map("posts")
@@ -283,16 +284,17 @@ model Media {
 }
 
 model PostComment {
-  id        Int      @id @default(autoincrement())
-  postId    Int      @map("post_id")
-  userId    Int      @map("user_id")
-  content   String   @db.LongText
-  parentId  Int?     @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int       @id @default(autoincrement())
+  postId    Int       @map("post_id")
+  userId    Int       @map("user_id")
+  content   String    @db.LongText
+  parentId  Int?      @map("parent_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  Post Post @relation(fields: [postId], references: [id])
-  User User @relation(fields: [userId], references: [id])
+  Post      Post      @relation(fields: [postId], references: [id])
+  User      User      @relation(fields: [userId], references: [id])
+
   @@map("post_comments")
 }
 
