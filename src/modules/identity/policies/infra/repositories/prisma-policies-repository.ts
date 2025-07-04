@@ -16,16 +16,26 @@ export class PrismaPoliciesRepository implements PoliciesRepository {
         Array<Policy & { rn: number }>
       >(Prisma.sql`
           SELECT p.*
-          FROM policies AS p
-          JOIN (
-            SELECT type, MAX(string_to_array(version, '.')::int[]) AS max_ver_arr
-            FROM policies
-            WHERE "deletedAt" IS NULL
-            GROUP BY type
-          ) AS t
-            ON p.type = t.type
-          AND string_to_array(p.version, '.')::int[] = t.max_ver_arr
-          WHERE p."deletedAt" IS NULL;
+            FROM policies AS p
+            JOIN (
+              SELECT
+                type,
+                MAX(CONCAT(
+                  LPAD(CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED), 10, '0'),
+                  LPAD(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 2), '.', -1) AS UNSIGNED), 10, '0'),
+                  LPAD(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 3), '.', -1) AS UNSIGNED), 10, '0')
+                )) AS max_key
+              FROM policies
+              WHERE deletedAt IS NULL
+              GROUP BY type
+            ) AS t
+              ON p.type = t.type
+            AND CONCAT(
+                  LPAD(CAST(SUBSTRING_INDEX(p.version, '.', 1) AS UNSIGNED), 10, '0'),
+                  LPAD(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(p.version, '.', 2), '.', -1) AS UNSIGNED), 10, '0'),
+                  LPAD(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(p.version, '.', 3), '.', -1) AS UNSIGNED), 10, '0')
+                ) = t.max_key
+            WHERE p.deletedAt IS NULL;
       `);
 
       if (!policies.length) return [];

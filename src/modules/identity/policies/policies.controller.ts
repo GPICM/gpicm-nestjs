@@ -3,7 +3,7 @@ import { Controller, Get } from "@nestjs/common";
 import { PoliciesRepository } from "./domain/interfaces/policies-repository";
 import { Policy } from "./domain/entities/Policy";
 
-@Controller("policies")
+@Controller("identity/policies")
 export class PoliciesController {
   constructor(private readonly policiesRepository: PoliciesRepository) {}
 
