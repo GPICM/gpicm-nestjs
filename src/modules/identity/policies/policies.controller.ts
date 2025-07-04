@@ -1,29 +1,19 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-} from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
+
 import { PoliciesRepository } from "./domain/interfaces/policies-repository";
-import { PolicyType } from "./domain/entities/policies";
-import { Policy } from "@prisma/client";
-import { computeContentHash } from "../shared/utils/hash-utils";
+import { Policy } from "./domain/entities/Policy";
 
 @Controller("policies")
 export class PoliciesController {
   constructor(private readonly policiesRepository: PoliciesRepository) {}
 
   @Get()
-  async getPolicies(@Query("type") type: PolicyType): Promise<Policy[]> {
-    if (!type) {
-      throw new Error("Policy type is required");
-    }
-    const policies = await this.policiesRepository.getPoliciesByType(type);
+  async getPolicies(): Promise<Policy[]> {
+    const policies = await this.policiesRepository.findLatestPolicies();
     return policies;
   }
 
+  /* 
   @Post("check-user-agreement")
   async checkUserAgreement(
     @Body() body: { userId: number; type: string }
@@ -101,5 +91,5 @@ export class PoliciesController {
         error || "Failed to accept user agreement."
       );
     }
-  }
+  } */
 }
