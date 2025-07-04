@@ -19,6 +19,8 @@ import {
   SignUpRequestBodyDto,
 } from "./dtos/guest-auth-request.dtos";
 import { AuthenticationService } from "../application/authentication.service";
+import { UserAgent } from "@/modules/shared/decorators/UserAgent";
+import { IpAddress } from "@/modules/shared/decorators/IpAddress";
 
 @Controller("identity")
 export class CommonAuthController {
@@ -42,8 +44,9 @@ export class CommonAuthController {
 
   @Post("/signup")
   async signUp(
-    @Ip() ipAddress: string,
-    @Body() body: SignUpRequestBodyDto
+    @Body() body: SignUpRequestBodyDto,
+    @IpAddress() ipAddress: string,
+    @UserAgent() userAgent: string
   ): Promise<any> {
     try {
       this.logger.log("SignUp started ", { ipAddress, body });
@@ -52,9 +55,11 @@ export class CommonAuthController {
         name: body.name,
         password: body.password,
         deviceKey: body.deviceKey,
-        ipAddress: body.ipAddress ?? "",
-        userAgent: body.userAgent ?? "",
       });
+
+      // todo implement policy agreement here
+      // acceptedPolicyIds: body.acceptedPolicies,
+
       return result;
     } catch (error: unknown) {
       this.logger.error("Failed to sign up guest", { error });
