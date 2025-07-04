@@ -1,4 +1,12 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import {
+  ArrayMinSize,
+  ArrayNotEmpty,
+  IsArray,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from "class-validator";
 
 export class GuestSignInRequestBodyDto {
   @IsString()
@@ -41,11 +49,9 @@ export class SignUpRequestBodyDto {
   @IsOptional()
   deviceKey?: string;
 
-  @IsString()
-  @IsOptional()
-  ipAddress?: string;
-
-  @IsString()
-  @IsOptional()
-  userAgent?: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMinSize(1) // if you want to enforce at least one accepted policy
+  @IsString({ each: true })
+  acceptedPolicies: string[];
 }
