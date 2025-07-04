@@ -4,26 +4,48 @@ import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
 import { UserCredential } from "./UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
+import { UserBasicData } from "../value-objects/user-basic-data";
 
 export class User {
   public id?: number;
+
   public publicId: string;
+
   public name: string | null;
+
   public profilePicture: string | null;
+
   public gender: string | null;
+
   public isVerified: boolean | null;
+
   public birthDate: Date | null;
+
   public phoneNumber: string | null;
+
   public lastLoginAt: Date | null;
+
   public bio: string | null;
+
   public status: UserStatus;
+
   public deviceKey: string;
+
   public deviceInfo: Record<string, unknown> | null;
+
   public ipAddress: string | null;
+
   public role: UserRoles;
+
   public latitude: number | null;
+
   public longitude: number | null;
+
   public locationUpdatedAt: Date | null;
+
+  public createdAt: Date;
+
+  public updateAt: Date | null;
 
   // Virtual
   public credentials: UserCredential[];
@@ -63,6 +85,8 @@ export class User {
       latitude: null,
       longitude: null,
       locationUpdatedAt: null,
+      createdAt: new Date(),
+      updateAt: null,
     });
   }
 
@@ -74,8 +98,6 @@ export class User {
       const deviceKey = randomUUID();
 
       console.log("DEBUG: Generated:", { publicId, deviceKey });
-
-      console.log("DEBUG: newCredential", { credential });
 
       return new User({
         name,
@@ -96,6 +118,8 @@ export class User {
         latitude: null,
         longitude: null,
         locationUpdatedAt: null,
+        createdAt: new Date(),
+        updateAt: null,
       });
     } catch (error: unknown) {
       console.log("Failed to create new user", { error });
@@ -121,7 +145,6 @@ export class User {
   }
 
   public setName(name: string) {
-    // TODO: validate name length
     this.name = name;
   }
 
@@ -144,6 +167,26 @@ export class User {
       latitude: this.latitude,
       longitude: this.longitude,
       locationUpdatedAt: this.locationUpdatedAt,
+    };
+  }
+
+  public toUserBasicData(): UserBasicData {
+    let email = "";
+    const emailCredentials = this.getCredential(AuthProviders.EMAIL_PASSWORD);
+    if (emailCredentials) {
+      email = emailCredentials.email;
+    }
+
+    return {
+      name: this.name,
+      email,
+      bio: this.bio,
+      gender: this.gender ?? null,
+      profilePicture: this.profilePicture ?? null,
+      phoneNumber: this.phoneNumber,
+      birthDate: this.birthDate,
+      createdAt: this.createdAt,
+      updatedAt: this.updateAt,
     };
   }
 }

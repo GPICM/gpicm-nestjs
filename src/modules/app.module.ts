@@ -1,5 +1,7 @@
+import { APP_GUARD } from "@nestjs/core";
 import { Module } from "@nestjs/common";
 import { CacheModule } from "@nestjs/cache-manager";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 import { SharedModule } from "./shared/shared.module";
 import { StationsModule } from "./stations/stations.module";
@@ -8,8 +10,6 @@ import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
 import { IncidentsModule } from "./incidents/incidents.module";
 import { AssetsModule } from "./assets/assets.module";
-import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
 import { FeedModule } from "./feed/feed.module";
 import { AlertsModule } from "./alerts/Alerts.module";
 
