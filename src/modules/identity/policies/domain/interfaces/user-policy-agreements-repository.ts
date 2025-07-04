@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { Policy } from "../entities/Policy";
 import { UserPolicyAgreement } from "../entities/UserPolicyAgreement";
 
 @Injectable()
 export abstract class UserPolicyAgreementsRepository {
-  abstract add(agreement: UserPolicyAgreement): Promise<Policy>;
+  abstract add(agreement: UserPolicyAgreement): Promise<void>;
 
-  abstract findLatestAgreementsByUserId(
-    userId: number
+  abstract findManyByUserIdWithPolicyIds(
+    userId: number,
+    policyIds: string[]
   ): Promise<UserPolicyAgreement[]>;
 }

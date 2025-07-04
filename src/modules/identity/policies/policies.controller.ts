@@ -37,10 +37,15 @@ export class PoliciesController {
     @CurrentUser() user: User
   ): Promise<{ success: boolean; message: string }> {
     const latestPolicies = await this.policiesRepository.findLatestPolicies();
+    if (!latestPolicies.length) {
+      return { success: true, message: "User agreement is up to date." };
+    }
 
+    const latestPoliciesIds = latestPolicies.map((p) => p.id);
     const userPolicyAgreements =
-      await this.userPolicyAgreementsRepository.findLatestAgreementsByUserId(
-        user.id!
+      await this.userPolicyAgreementsRepository.findManyByUserIdWithPolicyIds(
+        user.id!,
+        latestPoliciesIds
       );
 
     if (!userPolicyAgreements.length) {
