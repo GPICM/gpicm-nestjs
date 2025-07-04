@@ -48,10 +48,4 @@ export class SignUpRequestBodyDto {
   @IsString()
   @IsOptional()
   deviceKey?: string;
-
-  @IsArray()
-  @ArrayNotEmpty()
-  @ArrayMinSize(1) // if you want to enforce at least one accepted policy
-  @IsString({ each: true })
-  acceptedPolicies: string[];
 }
