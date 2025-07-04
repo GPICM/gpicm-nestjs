@@ -3,6 +3,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Logger,
   Param,
   Post,
   UseGuards,
@@ -15,11 +16,15 @@ import { User } from "../domain/entities/User";
 import { IpAddress } from "@/modules/shared/decorators/IpAddress";
 import { UserAgent } from "@/modules/shared/decorators/UserAgent";
 import { UserPolicyAgreement } from "./domain/entities/UserPolicyAgreement";
-import { computeContentHash } from "@/modules/shared/utils/hash-utils";
+import {
+  computeContentHash,
+  isHashEqual,
+} from "@/modules/shared/utils/hash-utils";
 import { UserPolicyAgreementsRepository } from "./domain/interfaces/user-policy-agreements-repository";
 
 @Controller("identity/policies")
 export class PoliciesController {
+  private readonly logger = new Logger(PoliciesController.name);
   constructor(
     private readonly policiesRepository: PoliciesRepository,
     private readonly userPolicyAgreementsRepository: UserPolicyAgreementsRepository
@@ -31,52 +36,45 @@ export class PoliciesController {
     return policies;
   }
 
-  @Post("/latest/check-user-agreement")
+  @Get("/latest/check-user-agreement")
   @UseGuards(JwtAuthGuard)
-  async checkUserAgreements(
-    @CurrentUser() user: User
-  ): Promise<{ success: boolean; message: string }> {
+  async checkUserAgreements(@CurrentUser() user: User): Promise<{
+    success: boolean;
+    message: string;
+    missingPolicies?: Policy[];
+  }> {
     const latestPolicies = await this.policiesRepository.findLatestPolicies();
+
     if (!latestPolicies.length) {
       return { success: true, message: "User agreement is up to date." };
     }
 
-    const latestPoliciesIds = latestPolicies.map((p) => p.id);
-    const userPolicyAgreements =
+    const latestPolicyIds = latestPolicies.map((p) => p.id);
+
+    const userAgreements =
       await this.userPolicyAgreementsRepository.findManyByUserIdWithPolicyIds(
         user.id!,
-        latestPoliciesIds
+        latestPolicyIds
       );
 
-    if (!userPolicyAgreements.length) {
+    const acceptedPolicyIds = new Set(userAgreements.map((a) => a.policyId));
+
+    const missingPolicies = latestPolicies.filter(
+      (policy) => !acceptedPolicyIds.has(policy.id)
+    );
+
+    if (missingPolicies.length > 0) {
       return {
         success: false,
         message: "User agreement is not up to date.",
+        missingPolicies,
       };
     }
 
-    const userPolicyAgreementMap = {};
-    let isUpToDate = true;
-    for (const policy of latestPolicies) {
-      const agreement = userPolicyAgreements.find(
-        (agreement) => (agreement.policyId = policy.id)
-      );
-      if (agreement) {
-        userPolicyAgreementMap[policy.id] = true;
-        continue;
-      }
-      userPolicyAgreementMap[policy.id] = false;
-      isUpToDate = false;
-    }
-
-    if (!isUpToDate) {
-      return {
-        success: false,
-        message: "User agreement is not up to date.",
-      };
-    }
-
-    return { success: true, message: "User agreement is up to date." };
+    return {
+      success: true,
+      message: "User agreement is up to date.",
+    };
   }
 
   @Post("/:policyId/accept")
@@ -87,16 +85,41 @@ export class PoliciesController {
     @UserAgent() userAgent: string,
     @CurrentUser() user: User
   ): Promise<{ success: boolean; message: string }> {
-    const policy = await this.policiesRepository.findById(policyId);
-
-    if (!policy) {
-      throw new ForbiddenException();
-    }
-
     try {
+      const userId = user.id!;
+
+      this.logger.log("Accepting policy", { policyId, userId });
+
+      const policy = await this.policiesRepository.findById(policyId);
+      if (!policy) {
+        this.logger.error("Policy not found", { policyId, userId });
+        throw new ForbiddenException();
+      }
+
       const policyContentHash = computeContentHash(policy.content);
 
-      const agreement = new UserPolicyAgreement({
+      this.logger.error("Looking for users agreement", { policyId, userId });
+      const agreement =
+        await this.userPolicyAgreementsRepository.findOneByUserIdWithPolicyId(
+          userId,
+          policy.id
+        );
+
+      this.logger.error("Agreement Result", { agreement });
+
+      if (agreement) {
+        this.logger.log("There is already a agreement to this policy");
+
+        if (isHashEqual(policyContentHash, agreement.policyContentHash)) {
+          this.logger.log("With the same content hash");
+
+          return { success: true, message: "User agreement is up to date." };
+        }
+
+        this.logger.log("Content has changed");
+      }
+
+      const newAgreement = new UserPolicyAgreement({
         ipAddress,
         policyId,
         userAgent,
@@ -105,7 +128,7 @@ export class PoliciesController {
         consentedAt: new Date(),
       });
 
-      await this.userPolicyAgreementsRepository.add(agreement);
+      await this.userPolicyAgreementsRepository.upsert(newAgreement);
 
       return { success: true, message: "User agreement updated successfully." };
     } catch (error: any) {
