@@ -6,15 +6,19 @@ import {
   Put,
   UseGuards,
   BadRequestException,
+  Get,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../domain/entities/User";
-import { UpdateLocationDto } from "./dtos/user-request.dtos";
+import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
+import { UserGuard } from "./meta/guards/user.guard";
+import { UserBasicData } from "../domain/value-objects/user-basic-data";
 
 @Controller("users")
+@UseGuards(JwtAuthGuard)
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
@@ -24,7 +28,6 @@ export class UserController {
   ) {}
 
   @Put("/location")
-  @UseGuards(JwtAuthGuard)
   async updateLocation(
     @CurrentUser() user: User,
     @Body() body: UpdateLocationDto
@@ -45,6 +48,47 @@ export class UserController {
       return { success: true };
     } catch (error: unknown) {
       this.logger.error("Failed to update location", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Put("profile")
+  @UseGuards(UserGuard)
+  async updateUserData(
+    @CurrentUser() user: User,
+    @Body() body: UpdateUserDataDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user data", {
+        userId: user.id,
+        fields: Object.keys(body),
+      });
+
+      const hasAtLeastOneField = Object.values(body).some(
+        (value) => value !== undefined
+      );
+
+      if (!hasAtLeastOneField) {
+        throw new BadRequestException("Nenhum dado fornecido para atualização");
+      }
+
+      await this.userService.updateUserData(user, body);
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Get("/profile")
+  @UseGuards(UserGuard)
+  getMyBasicData(@CurrentUser() user: User): UserBasicData {
+    try {
+      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
+      return user.toUserBasicData();
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user basic data", { error });
       throw new BadRequestException();
     }
   }
