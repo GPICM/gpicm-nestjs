@@ -110,7 +110,7 @@ class PostAssembler {
     const author = new PostAuthor({
       id: data.author_id,
       name: data.author_name || "Anônimo",
-      avatarUrl: "", // TODO: IMPLEMENT data.author_avatar_url
+      avatarUrl: data.author_avatar_url || "",
       publicId: data.author_public_id,
     });
 

@@ -228,7 +228,7 @@ export class PrismaPostRepository implements PostRepository {
         p.*,  
         a.name AS author_name,
         a.public_id AS author_public_id,
-        a.profile_picture AS author_profile_picture,
+        a.avatar_url AS author_avatar_url,
         IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
         IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
         IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj

@@ -98,7 +98,7 @@ export class UserController {
         fields: Object.keys(body),
       });
 
-      await this.userService.updateUserData(user, body);
+      await this.userService.updateUserAvatar(user, body);
 
       return { success: true };
     } catch (error: unknown) {

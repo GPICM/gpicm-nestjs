@@ -19,7 +19,6 @@ export class UpdateLocationDto {
 }
 
 export class UpdateUserDataDto {
-  //IsOptional() permite o dado não vir na requisição, mas @IsNotEmpty não permite ele vir vazio
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: "O nome não pode ser vazio." })
@@ -30,7 +29,8 @@ export class UpdateUserDataDto {
   gender?: string | null;
 
   @IsOptional()
-  @IsDate()
+  @Type(() => Date)
+  @IsDate({ message: "Data de nascimento inválida." })
   birthDate?: Date | null;
 
   @IsOptional()

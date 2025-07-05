@@ -177,6 +177,7 @@ export class User {
       latitude: this.latitude,
       longitude: this.longitude,
       locationUpdatedAt: this.locationUpdatedAt,
+      avatarUrl: this.avatar?.getAvatarUrl() || "",
     };
   }
 
