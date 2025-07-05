@@ -2,13 +2,16 @@ import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
+import { MediaService } from "@/modules/assets/application/media.service";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
     @Inject(UsersRepository)
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    @Inject(MediaService)
+    private readonly mediaService: MediaService
   ) {}
 
   public async updateUserLocation(params: {
@@ -35,6 +38,15 @@ export class UserService {
   public async updateUserData(user: User, userData: UpdateUserDataDto) {
     try {
       this.logger.log("Updating user location", userData);
+
+      if (userData.avatarMediaId) {
+        const media = await this.mediaService.findOneById(
+          user,
+          userData.avatarMediaId
+        );
+
+        user.avatarImageSource = media?.sources || null;
+      }
 
       if (userData.name) {
         user.name = userData.name;

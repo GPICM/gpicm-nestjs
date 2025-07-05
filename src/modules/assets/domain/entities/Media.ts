@@ -77,7 +77,7 @@ export class Media {
       sources: null,
       caption: cap || null,
       altText: altText || null,
-      ownerId: user.id!,
+      ownerId: user.id,
       filename: resolvedFileName,
       status: MediaStatusEnum.CREATED,
       storageProvider: null,

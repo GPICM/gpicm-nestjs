@@ -210,6 +210,7 @@ class PostAssembler {
     }
     return posts;
   }
+
   public static parseLocationObjectToGeoPosition(
     locationObjectJson: string
   ): GeoPosition | null {

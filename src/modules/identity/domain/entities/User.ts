@@ -5,9 +5,10 @@ import { UserStatus } from "../enums/user-status";
 import { UserCredential } from "./UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
 import { UserBasicData } from "../value-objects/user-basic-data";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
 export class User {
-  public id?: number;
+  public id: number;
 
   public publicId: string;
 
@@ -45,7 +46,11 @@ export class User {
 
   public updateAt: Date | null;
 
+  public avatarImageSource: MediaSource | null;
+
   // Virtual
+  public readonly avatarUrl: string = "";
+
   public credentials: UserCredential[];
 
   constructor(args: NonFunctionProperties<User>) {
@@ -65,6 +70,7 @@ export class User {
     const newDeviceKey = randomUUID();
 
     return new User({
+      id: -1,
       publicId: randomUUID(),
       name: name ?? `Visitante_${new Date().getTime()}`,
       status: UserStatus.ACTIVE,
@@ -83,6 +89,8 @@ export class User {
       longitude: null,
       locationUpdatedAt: null,
       createdAt: new Date(),
+      avatarImageSource: null,
+      avatarUrl: "",
       updateAt: null,
     });
   }
@@ -97,11 +105,14 @@ export class User {
       console.log("DEBUG: Generated:", { publicId, deviceKey });
 
       return new User({
+        id: -1,
         name,
         publicId,
         deviceKey,
         role: UserRoles.USER,
         status: UserStatus.ACTIVE,
+        avatarImageSource: null,
+        avatarUrl: "",
         ipAddress: null,
         deviceInfo: null,
         bio: null,

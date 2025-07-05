@@ -28,7 +28,6 @@ model User {
   createdAt          DateTime              @default(now()) @map("created_at")
   updatedAt          DateTime              @updatedAt @map("updated_at")
   deletedAt          DateTime?             @map("deleted_at")
-  avatarMediaId      String?               @map("avatar_media_id")
   avatarImageSources Json?                 @map("avatar_image_sources")
   Credentials        UserCredential[]
   UserLogs           UserLog[]

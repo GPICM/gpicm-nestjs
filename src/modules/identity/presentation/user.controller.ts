@@ -40,7 +40,7 @@ export class UserController {
       });
 
       await this.userService.updateUserLocation({
-        userId: user.id!,
+        userId: user.id,
         latitude: body.latitude,
         longitude: body.longitude,
       });

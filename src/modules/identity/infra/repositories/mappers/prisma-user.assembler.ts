@@ -1,10 +1,12 @@
+import { Prisma } from "@prisma/client";
 import { Guest } from "@/modules/identity/domain/entities/Guest";
 import { User } from "@/modules/identity/domain/entities/User";
 import { UserCredential } from "@/modules/identity/domain/entities/UserCredential";
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
-import { Prisma } from "@prisma/client";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
 
 export const userInclude = Prisma.validator<Prisma.UserInclude>()({
   Credentials: true,
@@ -36,6 +38,18 @@ export class UserAssembler {
       });
     }
 
+    let avatarUrl = "";
+    let avatarImageSource: MediaSource | null = null;
+
+    if (prismaData.avatarImageSources) {
+      avatarImageSource = MediaSource.fromJSON(
+        prismaData.avatarImageSources as Record<string, unknown> | null
+      );
+
+      avatarUrl =
+        avatarImageSource?.getVariant(MediaSourceVariantKey.sm)?.url || "";
+    }
+
     if (prismaData.role === "GUEST") {
       return new Guest({
         id: prismaData.id,
@@ -56,6 +70,8 @@ export class UserAssembler {
         longitude: prismaData.longitude,
         locationUpdatedAt: prismaData.locationUpdatedAt,
         credentials: [],
+        avatarImageSource,
+        avatarUrl,
         createdAt: prismaData.createdAt,
         updateAt: prismaData.updatedAt,
       });
@@ -80,6 +96,8 @@ export class UserAssembler {
       longitude: prismaData.longitude,
       locationUpdatedAt: prismaData.locationUpdatedAt,
       credentials,
+      avatarImageSource: null,
+      avatarUrl: "",
       createdAt: prismaData.createdAt,
       updateAt: prismaData.updatedAt,
     });
@@ -106,6 +124,10 @@ export class UserAssembler {
   }
 
   public static toPrismaUpdateInput(user: User): Prisma.UserUpdateInput {
+    const avatarImageSourceJSON = user.avatarImageSource
+      ? user.avatarImageSource.toJSON()
+      : undefined;
+
     return {
       bio: user.bio,
       birthDate: user.birthDate,
@@ -116,6 +138,10 @@ export class UserAssembler {
       isVerified: user.isVerified,
       status: user.status,
       ipAddress: user.ipAddress,
+      avatarImageSources: avatarImageSourceJSON as
+        | Prisma.NullableJsonNullValueInput
+        | Prisma.InputJsonValue
+        | undefined,
       deviceKey: user.deviceKey,
       deviceInfo: (user.deviceInfo ?? undefined) as
         | Prisma.NullableJsonNullValueInput

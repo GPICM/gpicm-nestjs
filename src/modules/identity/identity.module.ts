@@ -18,6 +18,7 @@ import { PartnerApiKeyGuard } from "./presentation/meta/guards/partner-api-key.g
 import { UserController } from "./presentation/user.controller";
 import { UserService } from "./application/user.service";
 import { PoliciesModule } from "./policies/policies.module";
+import { AssetsModule } from "../assets/assets.module";
 
 @Global()
 @Module({
@@ -43,7 +44,7 @@ import { PoliciesModule } from "./policies/policies.module";
       useClass: PrismaUserCredentialsRepository,
     },
   ],
-  imports: [SharedModule, PoliciesModule],
+  imports: [SharedModule, PoliciesModule, AssetsModule],
   exports: [
     Encryptor,
     DefaultJwtStrategy,
