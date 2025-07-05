@@ -196,6 +196,7 @@ export class User {
       birthDate: this.birthDate,
       createdAt: this.createdAt,
       updatedAt: this.updateAt,
+      avatarUrl: this.avatar?.getAvatarUrl() || "",
     };
   }
 }

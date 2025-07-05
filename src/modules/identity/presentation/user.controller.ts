@@ -7,11 +7,16 @@ import {
   UseGuards,
   BadRequestException,
   Get,
+  Patch,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../domain/entities/User";
-import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
+import {
+  UpdateLocationDto,
+  UpdateUserAvatarDto,
+  UpdateUserDataDto,
+} from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { UserGuard } from "./meta/guards/user.guard";
@@ -71,6 +76,27 @@ export class UserController {
       if (!hasAtLeastOneField) {
         throw new BadRequestException("Nenhum dado fornecido para atualização");
       }
+
+      await this.userService.updateUserData(user, body);
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Patch("/profile/avatar")
+  @UseGuards(UserGuard)
+  async updateUserAvatar(
+    @CurrentUser() user: User,
+    @Body() body: UpdateUserAvatarDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user avatar", {
+        userId: user.id,
+        fields: Object.keys(body),
+      });
 
       await this.userService.updateUserData(user, body);
 

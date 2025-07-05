@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
-import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
+import { UpdateUserAvatarDto, UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { UserAvatar } from "../domain/value-objects/user-avatar";
@@ -41,23 +41,6 @@ export class UserService {
     try {
       this.logger.log("Updating user location", userData);
 
-      if (userData.avatarMediaId) {
-        const { avatarMediaId } = userData;
-        this.logger.log("Looking for avatar mediaId", {
-          avatarMediaId,
-        });
-
-        const media = await this.mediaService.findOneById(user, avatarMediaId);
-
-        if (media?.sources) {
-          this.logger.log("Media Found, assigning avatar to user", {
-            avatarMediaId,
-          });
-
-          user.setAvatar(new UserAvatar(media.sources));
-        }
-      }
-
       if (userData.name) {
         user.name = userData.name;
       }
@@ -76,6 +59,39 @@ export class UserService {
 
       if (userData.phoneNumber) {
         user.phoneNumber = userData.phoneNumber;
+      }
+
+      await this.usersRepository.update(user);
+
+      this.logger.log("User data updated successfully");
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user data", { error });
+      throw error;
+    }
+  }
+
+  public async updateUserAvatar(user: User, userData: UpdateUserAvatarDto) {
+    try {
+      this.logger.log("Updating user location", userData);
+
+      const { avatarMediaId } = userData;
+
+      if (!avatarMediaId) {
+        user.setAvatar(null);
+      } else {
+        this.logger.log("Looking for avatar mediaId", {
+          avatarMediaId,
+        });
+
+        const media = await this.mediaService.findOneById(user, avatarMediaId);
+
+        if (media?.sources) {
+          this.logger.log("Media Found, assigning avatar to user", {
+            avatarMediaId,
+          });
+
+          user.setAvatar(new UserAvatar(media.sources));
+        }
       }
 
       await this.usersRepository.update(user);

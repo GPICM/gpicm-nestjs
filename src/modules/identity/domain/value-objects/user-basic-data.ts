@@ -14,4 +14,6 @@ export interface UserBasicData {
   createdAt: Date;
 
   updatedAt: Date | null;
+
+  avatarUrl: string;
 }

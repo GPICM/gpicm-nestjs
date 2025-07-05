@@ -40,8 +40,10 @@ export class UpdateUserDataDto {
   @IsOptional()
   @IsString()
   bio?: string | null;
+}
 
+export class UpdateUserAvatarDto {
   @IsOptional()
   @IsString()
-  avatarMediaId?: string | null;
+  avatarMediaId: string | null;
 }
