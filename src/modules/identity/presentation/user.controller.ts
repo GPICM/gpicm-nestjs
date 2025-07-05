@@ -17,7 +17,7 @@ import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { UserGuard } from "./meta/guards/user.guard";
 import { UserBasicData } from "../domain/value-objects/user-basic-data";
 
-@Controller("users")
+@Controller("identity/users")
 @UseGuards(JwtAuthGuard)
 export class UserController {
   private readonly logger = new Logger(UserController.name);
@@ -52,7 +52,7 @@ export class UserController {
     }
   }
 
-  @Put("profile")
+  @Put("/profile")
   @UseGuards(UserGuard)
   async updateUserData(
     @CurrentUser() user: User,

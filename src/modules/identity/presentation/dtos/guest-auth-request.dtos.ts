@@ -1,12 +1,4 @@
-import {
-  ArrayMinSize,
-  ArrayNotEmpty,
-  IsArray,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class GuestSignInRequestBodyDto {
   @IsString()
