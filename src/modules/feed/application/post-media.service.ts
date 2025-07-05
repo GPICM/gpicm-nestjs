@@ -18,7 +18,7 @@ export class PostMediaService {
     uuid: string
   ): Promise<PostMedia[]> {
     this.logger.log(`Fetching post medias by post Uuid: ${uuid}`);
-    const post = await this.postRepository.findByUuid(uuid, user.id!);
+    const post = await this.postRepository.findByUuid(uuid, user.id);
     if (!post) return [];
 
     const medias = await this.postMediasRepository.findManyByPostId(post.id!);

@@ -16,11 +16,7 @@ export class PostFactory {
   private static logger: Logger = new Logger(PostFactory.name);
 
   static createPost(user: User, dto: CreatePostDto, medias: Media[]): Post {
-    const author = new PostAuthor({
-      id: user.id!,
-      name: user.name ?? "Anonimo",
-      publicId: user?.publicId,
-    });
+    const author = PostAuthor.fromUser(user);
 
     const postMedias = (medias ?? []).map((media, index) =>
       PostMedia.FromMedia(media, index)

@@ -50,7 +50,7 @@ export class IncidentsService {
         reporterName: user?.name ?? "Anonimo",
         incidentType,
         author: new AuthorSummary({
-          id: user.id!,
+          id: user.id,
           name: user.name ?? "Anônimo",
           publicId: user.publicId,
         }),

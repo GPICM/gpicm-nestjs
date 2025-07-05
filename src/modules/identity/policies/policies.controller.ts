@@ -53,7 +53,7 @@ export class PoliciesController {
 
     const userAgreements =
       await this.userPolicyAgreementsRepository.findManyByUserIdWithPolicyIds(
-        user.id!,
+        user.id,
         latestPolicyIds
       );
 
@@ -86,7 +86,7 @@ export class PoliciesController {
     @CurrentUser() user: User
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const userId = user.id!;
+      const userId = user.id;
 
       this.logger.log("Accepting policy", { policyId, userId });
 
@@ -123,7 +123,7 @@ export class PoliciesController {
         ipAddress,
         policyId,
         userAgent,
-        userId: user.id!,
+        userId: user.id,
         policyContentHash,
         consentedAt: new Date(),
       });

@@ -110,7 +110,7 @@ export class AuthenticationService {
           const newCredential = newUser.credentials[0];
           await this.userCredentialsRepository.add(newCredential, tx);
         } else if (guestUser) {
-          userId = guestUser.id!;
+          userId = guestUser.id;
           const newCredential = guestUser.credentials[0];
           await this.userCredentialsRepository.add(newCredential, tx);
           await this.usersRepository.update(guestUser, tx);
@@ -153,7 +153,7 @@ export class AuthenticationService {
         sub: user.publicId,
       });
 
-      await this.logUserAction.execute(user.id!, "SIGNIN");
+      await this.logUserAction.execute(user.id, "SIGNIN");
 
       return { accessToken };
     } catch (error: unknown) {

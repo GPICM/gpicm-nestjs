@@ -5,7 +5,7 @@ import { UserStatus } from "../enums/user-status";
 import { UserCredential } from "./UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
 import { UserBasicData } from "../value-objects/user-basic-data";
-import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { UserAvatar } from "../value-objects/user-avatar";
 
 export class User {
   public id: number;
@@ -46,11 +46,9 @@ export class User {
 
   public updateAt: Date | null;
 
-  public avatarImageSource: MediaSource | null;
+  public avatar: UserAvatar | null;
 
   // Virtual
-  public readonly avatarUrl: string = "";
-
   public credentials: UserCredential[];
 
   constructor(args: NonFunctionProperties<User>) {
@@ -60,6 +58,14 @@ export class User {
   public getCredential(provider: AuthProviders): UserCredential | null {
     const found = this.credentials.find((c) => c.provider === provider);
     return found ?? null;
+  }
+
+  public setAvatar(avatar: UserAvatar | null): void {
+    this.avatar = avatar;
+  }
+
+  public getAvatar(): UserAvatar | null {
+    return this.avatar;
   }
 
   public static CreateGuest(
@@ -89,8 +95,7 @@ export class User {
       longitude: null,
       locationUpdatedAt: null,
       createdAt: new Date(),
-      avatarImageSource: null,
-      avatarUrl: "",
+      avatar: null,
       updateAt: null,
     });
   }
@@ -111,8 +116,7 @@ export class User {
         deviceKey,
         role: UserRoles.USER,
         status: UserStatus.ACTIVE,
-        avatarImageSource: null,
-        avatarUrl: "",
+        avatar: null,
         ipAddress: null,
         deviceInfo: null,
         bio: null,

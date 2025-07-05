@@ -3,7 +3,14 @@ import { PostVote, VoteValue } from "../../domain/entities/PostVote";
 import { UserShallow } from "../../domain/entities/UserShallow";
 
 export const postVoteInclude = Prisma.validator<Prisma.PostVoteInclude>()({
-  User: true,
+  User: {
+    select: {
+      id: true,
+      name: true,
+      avatarUrl: true,
+      publicId: true,
+    },
+  },
 });
 
 type PostVoteJoinModel = Prisma.PostVoteGetPayload<{
@@ -42,6 +49,7 @@ class PostVoteAssembler {
       user: new UserShallow({
         id: userData.id,
         name: userData.name ?? "",
+        avatarUrl: userData.avatarUrl || "",
         publicId: userData.publicId,
       }),
     });

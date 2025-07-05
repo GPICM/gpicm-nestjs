@@ -14,9 +14,9 @@ export const imageTransformMap = {
   [ImageTargetEnum.USERS_AVATAR]: new ImageTransformConfig({
     format: "webp",
     sizes: [
-      { alias: "sm", maxWidth: 64 },
-      { alias: "md", maxWidth: 128 },
-      { alias: "lg", maxWidth: 240 },
+      { alias: "sm", maxWidth: 48 },
+      { alias: "md", maxWidth: 96 },
+      { alias: "lg", maxWidth: 192 },
       { alias: "base", maxWidth: 320 },
     ],
   }),

@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
 import { MediaService } from "@/modules/assets/application/media.service";
+import { UserAvatar } from "../domain/value-objects/user-avatar";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -40,12 +42,20 @@ export class UserService {
       this.logger.log("Updating user location", userData);
 
       if (userData.avatarMediaId) {
-        const media = await this.mediaService.findOneById(
-          user,
-          userData.avatarMediaId
-        );
+        const { avatarMediaId } = userData;
+        this.logger.log("Looking for avatar mediaId", {
+          avatarMediaId,
+        });
 
-        user.avatarImageSource = media?.sources || null;
+        const media = await this.mediaService.findOneById(user, avatarMediaId);
+
+        if (media?.sources) {
+          this.logger.log("Media Found, assigning avatar to user", {
+            avatarMediaId,
+          });
+
+          user.setAvatar(new UserAvatar(media.sources));
+        }
       }
 
       if (userData.name) {

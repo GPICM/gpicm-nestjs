@@ -51,7 +51,7 @@ export class GuestAuthenticationService {
         sub: guestUser.publicId,
       });
 
-      await this.logUserAction.execute(guestUser.id!, "GUEST_SIGNIN");
+      await this.logUserAction.execute(guestUser.id, "GUEST_SIGNIN");
 
       return { accessToken, deviceKey: guestUser.deviceKey };
     } catch (error: unknown) {

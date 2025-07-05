@@ -7,4 +7,4 @@
 -- AlterTable
 ALTER TABLE `users` DROP COLUMN `profile_picture`,
     ADD COLUMN `avatar_image_sources` JSON NULL,
-    ADD COLUMN `avatar_media_id` VARCHAR(191) NULL;
+    ADD COLUMN `avatar_url` VARCHAR(191) NULL;
