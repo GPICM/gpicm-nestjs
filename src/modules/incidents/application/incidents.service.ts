@@ -52,7 +52,6 @@ export class IncidentsService {
         author: new AuthorSummary({
           id: user.id!,
           name: user.name ?? "Anônimo",
-          profilePicture: user.profilePicture ?? "",
           publicId: user.publicId,
         }),
         status: 1,

@@ -19,7 +19,6 @@ export class PostFactory {
     const author = new PostAuthor({
       id: user.id!,
       name: user.name ?? "Anonimo",
-      profilePicture: user?.profilePicture ?? "",
       publicId: user?.publicId,
     });
 

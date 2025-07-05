@@ -27,10 +27,6 @@ export class UpdateUserDataDto {
 
   @IsOptional()
   @IsString()
-  profilePicture?: string | null;
-
-  @IsOptional()
-  @IsString()
   gender?: string | null;
 
   @IsOptional()

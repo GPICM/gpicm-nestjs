@@ -42,7 +42,6 @@ class PostVoteAssembler {
       user: new UserShallow({
         id: userData.id,
         name: userData.name ?? "",
-        profilePicture: userData.profilePicture ?? "",
         publicId: userData.publicId,
       }),
     });

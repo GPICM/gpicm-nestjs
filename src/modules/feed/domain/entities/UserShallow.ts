@@ -5,7 +5,6 @@ export class UserShallow {
   id: number;
   name: string;
   publicId: string;
-  profilePicture: string;
 
   constructor(args: NonFunctionProperties<UserShallow>) {
     Object.assign(this, args);
@@ -15,7 +14,6 @@ export class UserShallow {
     return new UserShallow({
       id: user.id!,
       name: user.name!,
-      profilePicture: user.profilePicture ?? "",
       publicId: user.publicId,
     });
   }

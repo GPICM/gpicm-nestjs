@@ -3,8 +3,6 @@ export interface UserBasicData {
 
   bio: string | null;
 
-  profilePicture?: string | null;
-
   email?: string | null;
 
   gender?: string | null;

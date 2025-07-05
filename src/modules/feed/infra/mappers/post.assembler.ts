@@ -110,7 +110,6 @@ class PostAssembler {
     const author = new PostAuthor({
       id: data.author_id,
       name: data.author_name ?? "Anônimo",
-      profilePicture: data.author_profile_picture ?? "",
       publicId: data.author_public_id,
     });
 

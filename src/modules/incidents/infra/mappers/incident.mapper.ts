@@ -42,7 +42,6 @@ class IncidentAssembler {
     const author = new AuthorSummary({
       id: Author.id,
       name: Author.name ?? "Anônimo",
-      profilePicture: Author.profilePicture ?? "",
       publicId: Author.publicId,
     });
 

@@ -4,7 +4,6 @@ export class AuthorSummary {
   id: number;
   name: string;
   publicId: string;
-  profilePicture: string;
 
   constructor(args: NonFunctionProperties<AuthorSummary>) {
     Object.assign(this, args);

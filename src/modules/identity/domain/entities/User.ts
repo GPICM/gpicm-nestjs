@@ -13,8 +13,6 @@ export class User {
 
   public name: string | null;
 
-  public profilePicture: string | null;
-
   public gender: string | null;
 
   public isVerified: boolean | null;
@@ -80,7 +78,6 @@ export class User {
       isVerified: false,
       lastLoginAt: null,
       phoneNumber: null,
-      profilePicture: null,
       credentials: [],
       latitude: null,
       longitude: null,
@@ -113,7 +110,6 @@ export class User {
         isVerified: false,
         lastLoginAt: null,
         phoneNumber: null,
-        profilePicture: null,
         credentials: [credential],
         latitude: null,
         longitude: null,
@@ -161,7 +157,6 @@ export class User {
       id: this.id,
       publicId: this.publicId,
       name: this.name,
-      profilePicture: this.profilePicture ?? null,
       gender: this.gender ?? null,
       role: this.role,
       latitude: this.latitude,
@@ -182,7 +177,6 @@ export class User {
       email,
       bio: this.bio,
       gender: this.gender ?? null,
-      profilePicture: this.profilePicture ?? null,
       phoneNumber: this.phoneNumber,
       birthDate: this.birthDate,
       createdAt: this.createdAt,
