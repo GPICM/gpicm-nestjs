@@ -211,6 +211,29 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async incrementViews(post: Post): Promise<void> {
+    try {
+      this.logger.log(
+        `Updating post view with ID: ${post.id}, Title: ${post.title}`
+      );
+
+      await this.prisma.post.update({
+        where: { id: post.id! },
+        data: {
+          views: {
+            increment: 1,
+          },
+        },
+      });
+
+      this.logger.log(`Post views incremented successfully for ID: ${post.id}`);
+    } catch (error: unknown) {
+      console.log(error);
+      this.logger.error("Failed to list posts", { error });
+      throw new Error("Failed to list posts");
+    }
+  }
+
   private buildBasePostSelectQuery(whereClauses: string[]): string {
     const where = this.joinWhereCauses(whereClauses);
 

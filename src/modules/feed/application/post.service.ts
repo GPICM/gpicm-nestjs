@@ -95,6 +95,21 @@ export class PostServices {
     }
   }
 
+  async IncrementViews(post: ViewerPost){
+    try{
+
+      this.logger.log("Counting post view", {post});
+      await this.postRepository.incrementViews(post);
+      
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error incrementing post view: ${JSON.stringify(error, null, 4)}`,
+        { error }
+      );
+      throw new Error("Failed to incrementing post view");
+    }
+  }
+
   async vote(user: User, postUuid: string, voteValue: VoteValue) {
     try {
       const userId = user.id;

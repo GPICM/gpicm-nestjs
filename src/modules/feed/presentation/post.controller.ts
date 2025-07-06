@@ -125,8 +125,15 @@ export class PostController {
   }
 
   @Get(":postSlug")
-  getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
-    return this.postService.findOne(postSlug, user);
+  async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
+
+    const post = await this.postService.findOne(postSlug, user);
+
+    if(post != null){
+      await this.postService.IncrementViews(post);
+    }
+    
+    return post;
   }
 
   @Patch(":uuid/vote/up")
