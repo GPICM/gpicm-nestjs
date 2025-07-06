@@ -109,8 +109,8 @@ class PostAssembler {
 
     const author = new PostAuthor({
       id: data.author_id,
-      name: data.author_name ?? "Anônimo",
-      profilePicture: data.author_profile_picture ?? "",
+      name: data.author_name || "Anônimo",
+      avatarUrl: data.author_avatar_url || "",
       publicId: data.author_public_id,
     });
 
@@ -211,6 +211,7 @@ class PostAssembler {
     }
     return posts;
   }
+
   public static parseLocationObjectToGeoPosition(
     locationObjectJson: string
   ): GeoPosition | null {

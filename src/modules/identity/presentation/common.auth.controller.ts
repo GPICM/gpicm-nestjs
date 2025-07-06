@@ -19,6 +19,7 @@ import {
   SignUpRequestBodyDto,
 } from "./dtos/guest-auth-request.dtos";
 import { AuthenticationService } from "../application/authentication.service";
+import { IpAddress } from "@/modules/shared/decorators/IpAddress";
 
 @Controller("identity")
 export class CommonAuthController {
@@ -42,8 +43,8 @@ export class CommonAuthController {
 
   @Post("/signup")
   async signUp(
-    @Ip() ipAddress: string,
-    @Body() body: SignUpRequestBodyDto
+    @Body() body: SignUpRequestBodyDto,
+    @IpAddress() ipAddress: string
   ): Promise<any> {
     try {
       this.logger.log("SignUp started ", { ipAddress, body });
@@ -53,6 +54,7 @@ export class CommonAuthController {
         password: body.password,
         deviceKey: body.deviceKey,
       });
+
       return result;
     } catch (error: unknown) {
       this.logger.error("Failed to sign up guest", { error });

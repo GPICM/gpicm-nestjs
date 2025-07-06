@@ -24,7 +24,7 @@ export class UploadService {
     buffer: Buffer,
     fileName: string
   ): Promise<BlobStorageRepositoryTypes.BlobMetadata> {
-    const userId = user.id!;
+    const userId = user.id;
     this.logger.log(
       `[uploadFile] Preparing to upload for user ${userId}: ${fileName} (size: ${buffer.length} bytes)`
     );
@@ -51,7 +51,7 @@ export class UploadService {
     contentType: string,
     sources: Array<{ buffer: Buffer; alias: string }>
   ): Promise<MediaSource> {
-    const userId = user.id!;
+    const userId = user.id;
     this.logger.log(
       `[uploadImage] Starting image upload for user ${userId} with ${sources.length} variants`
     );
@@ -100,7 +100,7 @@ export class UploadService {
     contentType: string,
     buffer: Buffer
   ): Promise<MediaSource> {
-    const userId = user.id!;
+    const userId = user.id;
     this.logger.log(`[uploadGenericBuffer] Starting upload for user ${userId}`);
 
     try {

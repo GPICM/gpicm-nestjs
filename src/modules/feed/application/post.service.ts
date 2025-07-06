@@ -95,10 +95,10 @@ export class PostServices {
 
   async vote(user: User, postUuid: string, voteValue: VoteValue) {
     try {
-      const userId = user.id!;
+      const userId = user.id;
       this.logger.log("Creating post", { userId, postUuid, voteValue });
 
-      const post = await this.postRepository.findByUuid(postUuid, user.id!);
+      const post = await this.postRepository.findByUuid(postUuid, user.id);
       if (!post) {
         throw new BadRequestException("Post not found");
       }
@@ -144,7 +144,7 @@ export class PostServices {
     user: User
   ): Promise<ViewerPost | null> {
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
-    const post = await this.postRepository.findBySlug(postSlug, user.id!);
+    const post = await this.postRepository.findBySlug(postSlug, user.id);
 
     if (!post) return null;
 

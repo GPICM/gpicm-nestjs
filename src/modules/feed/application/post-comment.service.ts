@@ -25,7 +25,7 @@ export class PostCommentsService {
       throw new BadRequestException("Comentário contém palavras proibidas.");
     }
 
-    const post = await this.postRepository.findByUuid(postUuid, user.id!);
+    const post = await this.postRepository.findByUuid(postUuid, user.id);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }

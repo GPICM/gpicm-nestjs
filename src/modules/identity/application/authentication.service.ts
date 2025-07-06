@@ -9,7 +9,7 @@ import { UsersRepository } from "../domain/interfaces/repositories/users-reposit
 import { User } from "../domain/entities/User";
 import { UserRoles } from "../domain/enums/user-roles";
 import { Guest } from "../domain/entities/Guest";
-import { UserJWTpayload } from "../domain/object-values/user-jwt-payload";
+import { UserJWTpayload } from "../domain/value-objects/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
@@ -37,6 +37,7 @@ export class AuthenticationService {
   }): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started Sign Up", { params });
+
       const { name, email, password, deviceKey } = params;
 
       let accessToken: string = "";
@@ -100,23 +101,21 @@ export class AuthenticationService {
         this.logger.log("DEBUG: accesstoken:", { accessToken });
       }
 
+      let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
         if (newUser) {
-          const userId = await this.usersRepository.add(newUser, tx);
+          userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
 
           const newCredential = newUser.credentials[0];
           await this.userCredentialsRepository.add(newCredential, tx);
         } else if (guestUser) {
-          await this.prismaService.openTransaction(async (tx) => {
-            const newCredential = guestUser.credentials[0];
-            await this.userCredentialsRepository.add(newCredential, tx);
-            await this.usersRepository.update(guestUser, tx);
-          });
+          userId = guestUser.id;
+          const newCredential = guestUser.credentials[0];
+          await this.userCredentialsRepository.add(newCredential, tx);
+          await this.usersRepository.update(guestUser, tx);
         }
       });
-
-      const userId = newUser?.id ?? guestUser?.id;
 
       await this.logUserAction.execute(userId!, "SIGNUP");
 
@@ -154,7 +153,7 @@ export class AuthenticationService {
         sub: user.publicId,
       });
 
-      await this.logUserAction.execute(user.id!, "SIGNIN");
+      await this.logUserAction.execute(user.id, "SIGNIN");
 
       return { accessToken };
     } catch (error: unknown) {

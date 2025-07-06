@@ -124,4 +124,21 @@ export class MediaService {
       throw new Error("Failed to find medias");
     }
   }
+
+  public async findOneById(user: User, id: string): Promise<Media | null> {
+    const userId = user.id;
+
+    this.logger.log("(findManyById) Finding medias by ids", {
+      userId,
+      id,
+    });
+
+    try {
+      const media = await this.mediaRepository.findById(id);
+      return media;
+    } catch (error: unknown) {
+      this.logger.error("(findManyById) Failed to find medias", { error });
+      throw new Error("Failed to find medias");
+    }
+  }
 }

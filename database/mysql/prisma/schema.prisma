@@ -8,36 +8,36 @@ datasource db {
 }
 
 model User {
-  id                Int        @id @default(autoincrement())
-  publicId          String     @default(uuid()) @map("public_id")
-  name              String?
-  profilePicture    String?    @map("profile_picture")
-  gender            String?    @map("gender")
-  isVerified        Boolean?   @map("is_verified")
-  birthDate         DateTime?  @map("birth_date")
-  phoneNumber       String?    @map("phone_number")
-  lastLoginAt       DateTime?  @map("last_login_at")
-  bio               String?
-  status            UserStatus @default(ACTIVE)
-  role              UserRoles  @default(GUEST)
-  deviceKey         String     @unique @map("device_key")
-  ipAddress         String?    @map("ip_address")
-  deviceInfo        Json?      @map("device_info")
-  latitude          Float?
-  longitude         Float?
-  locationUpdatedAt DateTime?  @map("location_updated_at")
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
-  deletedAt         DateTime?  @map("deleted_at")
-
-  Credentials    UserCredential[]
-  UserLogs       UserLog[]
-  UserAgreements UserAgreement[]
-  Incidents      Incident[]
-  Posts          Post[]
-  PostVotes      PostVote[]
-  Comments       PostComment[]
-  Medias         Media[]
+  id                 Int                   @id @default(autoincrement())
+  publicId           String                @default(uuid()) @map("public_id")
+  name               String?
+  gender             String?               @map("gender")
+  isVerified         Boolean?              @map("is_verified")
+  birthDate          DateTime?             @map("birth_date")
+  phoneNumber        String?               @map("phone_number")
+  lastLoginAt        DateTime?             @map("last_login_at")
+  bio                String?
+  status             UserStatus            @default(ACTIVE)
+  role               UserRoles             @default(GUEST)
+  deviceKey          String                @unique @map("device_key")
+  ipAddress          String?               @map("ip_address")
+  deviceInfo         Json?                 @map("device_info")
+  latitude           Float?
+  longitude          Float?
+  locationUpdatedAt  DateTime?             @map("location_updated_at")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  deletedAt          DateTime?             @map("deleted_at")
+  avatarImageSources Json?                 @map("avatar_image_sources")
+  avatarUrl          String?               @map("avatar_url")
+  Credentials        UserCredential[]
+  UserLogs           UserLog[]
+  UserAgreements     UserPolicyAgreement[]
+  Incidents          Incident[]
+  Posts              Post[]
+  PostVotes          PostVote[]
+  Comments           PostComment[]
+  Medias             Media[]
 
   @@unique([publicId])
   @@map("users")
@@ -64,27 +64,31 @@ model UserCredential {
   @@map("user_credentials")
 }
 
-model UserAgreement {
-  id            Int       @id @default(autoincrement())
-  userId        Int       @map("user_id")
-  policyVersion String    @map("policy_version")
-  consentedAt   DateTime  @default(now()) @map("consented_at")
-  deletedAt     DateTime? @map("deleted_at")
+model UserPolicyAgreement {
+  userId            Int       @map("user_id")
+  policyId          String    @map("policy_id")
+  policyContentHash String    @map("policy_content_hash")
+  ipAddress         String    @map("ip_address")
+  userAgent         String    @map("user_agent")
+  deletedAt         DateTime? @map("deleted_at")
+  consentedAt       DateTime  @default(now()) @map("consented_at")
 
-  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, policyVersion])
-  @@map("user_agreements")
+  @@id([userId, policyId])
+  @@map("user_policy_agreements")
 }
 
 model Policy {
-  id          String     @id @default(uuid()) @map("id")
-  version     String
-  type        PolicyType
-  content     String     @db.LongText
-  htmlContent String     @db.LongText
-  createdAt   DateTime   @default(now())
-  deletedAt   DateTime?
+  id                  String                @id @default(uuid()) @map("id")
+  version             String
+  type                PolicyType
+  content             String                @db.LongText
+  htmlContent         String                @db.LongText
+  createdAt           DateTime              @default(now())
+  deletedAt           DateTime?
+  UserPolicyAgreement UserPolicyAgreement[]
 
   @@unique([version, type])
   @@map("policies")
@@ -170,7 +174,7 @@ model Post {
   incidentId        String?               @map("incident_id")
   upVotes           Int                   @default(0) @map("up_votes")
   downVotes         Int                   @default(0) @map("down_votes")
-  commentsCount   Int                   @default(0) @map("comments_count")
+  commentsCount     Int                   @default(0) @map("comments_count")
   score             Int                   @default(0) @map("score")
   location          Unsupported("POINT")?
   locationAddress   String?               @map("location_address")
@@ -180,10 +184,10 @@ model Post {
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
 
-  Author    User        @relation(fields: [authorId], references: [id])
-  Incident  Incident?   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  Author    User          @relation(fields: [authorId], references: [id])
+  Incident  Incident?     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   Votes     PostVote[]
-  Comments       PostComment[]
+  Comments  PostComment[]
   PostMedia PostMedia[]
 
   @@map("posts")
@@ -280,16 +284,17 @@ model Media {
 }
 
 model PostComment {
-  id        Int      @id @default(autoincrement())
-  postId    Int      @map("post_id")
-  userId    Int      @map("user_id")
-  content   String   @db.LongText
-  parentId  Int?     @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int       @id @default(autoincrement())
+  postId    Int       @map("post_id")
+  userId    Int       @map("user_id")
+  content   String    @db.LongText
+  parentId  Int?      @map("parent_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  Post Post @relation(fields: [postId], references: [id])
-  User User @relation(fields: [userId], references: [id])
+  Post      Post      @relation(fields: [postId], references: [id])
+  User      User      @relation(fields: [userId], references: [id])
+
   @@map("post_comments")
 }
 

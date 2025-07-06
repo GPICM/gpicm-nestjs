@@ -9,7 +9,7 @@ export const postCommentInclude = Prisma.validator<Prisma.PostCommentInclude>()(
         id: true,
         name: true,
         publicId: true,
-        profilePicture: true,
+        avatarUrl: true,
       },
     },
   }
@@ -64,7 +64,7 @@ class PostCommentAssembler {
       user: new UserShallow({
         id: userData.id,
         name: userData.name ?? "",
-        profilePicture: userData.profilePicture ?? "",
+        avatarUrl: userData.avatarUrl || "",
         publicId: userData.publicId,
       }),
     });

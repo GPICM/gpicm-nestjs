@@ -4,7 +4,7 @@ import { Encryptor } from "../../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../../domain/interfaces/repositories/users-repository";
 import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
-import { UserJWTpayload } from "../../domain/object-values/user-jwt-payload";
+import { UserJWTpayload } from "../../domain/value-objects/user-jwt-payload";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 
 export class GuestAuthenticationService {
@@ -51,7 +51,7 @@ export class GuestAuthenticationService {
         sub: guestUser.publicId,
       });
 
-      await this.logUserAction.execute(guestUser.id!, "GUEST_SIGNIN");
+      await this.logUserAction.execute(guestUser.id, "GUEST_SIGNIN");
 
       return { accessToken, deviceKey: guestUser.deviceKey };
     } catch (error: unknown) {

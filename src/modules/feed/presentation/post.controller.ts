@@ -84,7 +84,7 @@ export class PostController {
         offset,
         search: filters.search,
       },
-      user.id!
+      user.id
     );
 
     return new PaginatedResponse(records, total, limit, page, filters);
@@ -111,7 +111,7 @@ export class PostController {
         offset,
         search: filters.search,
       },
-      user.id!
+      user.id
     );
 
     return new PaginatedResponse(records, total, limit, page, filters);
@@ -139,7 +139,7 @@ export class PostController {
     @Query() query: ListPostQueryDto,
     @CurrentUser() user: User
   ) {
-    const post = await this.postRepository.findByUuid(uuid, user.id!);
+    const post = await this.postRepository.findByUuid(uuid, user.id);
 
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
@@ -214,7 +214,7 @@ export class PostController {
     @Query() query: ListPostCommentsDto,
     @CurrentUser() user: User
   ) {
-    const post = await this.postRepository.findByUuid(postUuid, user.id!);
+    const post = await this.postRepository.findByUuid(postUuid, user.id);
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }

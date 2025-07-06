@@ -4,8 +4,8 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 export class UserShallow {
   id: number;
   name: string;
+  avatarUrl: string;
   publicId: string;
-  profilePicture: string;
 
   constructor(args: NonFunctionProperties<UserShallow>) {
     Object.assign(this, args);
@@ -13,9 +13,9 @@ export class UserShallow {
 
   public static fromUser(user: User): UserShallow {
     return new UserShallow({
-      id: user.id!,
+      id: user.id,
       name: user.name!,
-      profilePicture: user.profilePicture ?? "",
+      avatarUrl: user?.avatar?.getAvatarUrl() || "",
       publicId: user.publicId,
     });
   }
