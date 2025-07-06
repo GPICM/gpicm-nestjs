@@ -22,6 +22,8 @@ export abstract class PostRepository {
 
   abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
 
+  abstract incrementViews(post: Post): Promise<void>;
+
   abstract listAll(
     filters: BaseRepositoryFindManyFilters,
     userId: number
