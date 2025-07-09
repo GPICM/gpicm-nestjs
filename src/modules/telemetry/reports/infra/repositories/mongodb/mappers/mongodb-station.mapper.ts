@@ -9,7 +9,7 @@ export type MongoStationProjection = MongoStation & {
 };
 class MongoDbStationMapper {
   public static fromMongo(
-    data?: MongoStationProjection | null,
+    data?: MongoStationProjection | null
   ): Station | null {
     if (!data) return null;
 
@@ -18,7 +18,7 @@ class MongoDbStationMapper {
       try {
         geoPosition = new GeoPosition(
           data.geoPosition.coordinates[1],
-          data.geoPosition.coordinates[0],
+          data.geoPosition.coordinates[0]
         );
       } catch (error: unknown) {
         console.error("Invalid geo position", { error });

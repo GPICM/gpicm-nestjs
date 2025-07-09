@@ -6,6 +6,7 @@ import { WeatherTimeSeriesMetricsController } from "./presentation/controllers/w
 import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
 import { PartnerMetricsController } from "./presentation/controllers/partner-metrics.controller";
 import { MongoDbDailyRankingsRepository } from "./infra/repositories/mongodb/mongodb-daily-rankings-repository";
+import { MongoDbStationDailyPrecipitationMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-precipitation-metrics-repository";
 
 @Module({
   controllers: [
@@ -18,6 +19,7 @@ import { MongoDbDailyRankingsRepository } from "./infra/repositories/mongodb/mon
     MongoDbDailyRankingsRepository,
     MongoDbWeatherRecordsRepository,
     MongoDbStationDailyMetricsRepository,
+    MongoDbStationDailyPrecipitationMetricsRepository,
   ],
   imports: [],
 })
