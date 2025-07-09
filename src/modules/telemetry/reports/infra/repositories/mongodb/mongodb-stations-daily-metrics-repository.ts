@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Db } from "mongodb";
+import { DateTime } from "luxon";
 import { MongodbService } from "@/modules/shared/services/mongodb-service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { DateTime } from "luxon";
 
 import {
   STATION_DAILY_METRICS_COLLECTION_NAME,
   MongoStationDailyMetrics,
 } from "#database/mongodb/schemas/station-daily-metrics";
-import { MinuteMetricsByStation } from "@/modules/reports/domain/object-values/MinuteMetricsByStation";
+import { MinuteMetricsByStation } from "@/modules/telemetry/reports/domain/value-objects/MinuteMetricsByStation";
 
 const TIME_ZONE = "America/Sao_Paulo";
 

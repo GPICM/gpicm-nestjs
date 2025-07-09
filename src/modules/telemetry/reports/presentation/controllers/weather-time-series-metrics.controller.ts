@@ -8,8 +8,8 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
-import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mongodb-weather-records-repository";
-import { WeatherTimeSeriesMetricsRequestQuery } from "./dtos/weather-time-series-metrics-request";
+import { MongoDbWeatherRecordsRepository } from "../../infra/repositories/mongodb/mongodb-weather-records-repository";
+import { WeatherTimeSeriesMetricsRequestQuery } from "../dtos/weather-time-series-metrics-request";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 
 @Controller("weather/time-series")

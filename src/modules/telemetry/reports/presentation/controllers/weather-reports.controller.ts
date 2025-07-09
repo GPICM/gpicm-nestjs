@@ -7,12 +7,12 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
-import { MongoDbWeatherRecordsRepository } from "./infra/repositories/mongodb/mongodb-weather-records-repository";
-import { MongoDbDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-daily-metrics-repository";
+import { MongoDbWeatherRecordsRepository } from "../../infra/repositories/mongodb/mongodb-weather-records-repository";
+import { MongoDbDailyMetricsRepository } from "../../infra/repositories/mongodb/mongodb-daily-metrics-repository";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
-import { WeatherMetricsRequestQuery } from "./dtos/weather-reports-metrics-request";
-import { MongoDbStationDailyMetricsRepository } from "./infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
-import { MongoDbDailyRankingsRepository } from "./infra/repositories/mongodb/mongodb-daily-rankings-repository";
+import { WeatherMetricsRequestQuery } from "../dtos/weather-reports-metrics-request";
+import { MongoDbStationDailyMetricsRepository } from "../../infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
+import { MongoDbDailyRankingsRepository } from "../../infra/repositories/mongodb/mongodb-daily-rankings-repository";
 
 @Controller("weather")
 @UseGuards(JwtAuthGuard)

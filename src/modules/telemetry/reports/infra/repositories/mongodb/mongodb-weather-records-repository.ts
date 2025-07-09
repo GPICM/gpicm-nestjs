@@ -7,7 +7,7 @@ import {
   MongoWeatherRecord,
   WEATHER_RECORDS_COLLECTION_NAME,
 } from "#database/mongodb/schemas/weather-records";
-import { TimeSeriesMetric } from "@/modules/reports/domain/entities/TimeSeriesMetrics";
+import { TimeSeriesMetric } from "@/modules/telemetry/reports/domain/value-objects/TimeSeriesMetrics";
 
 export type Granularity =
   | "minutely"
