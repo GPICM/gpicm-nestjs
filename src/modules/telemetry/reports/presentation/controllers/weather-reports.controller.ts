@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Inject,
+  Logger,
   Query,
   UseGuards,
   UseInterceptors,
@@ -18,6 +19,7 @@ import { MongoDbStationDailyPrecipitationMetricsRepository } from "../../infra/r
 @Controller("weather")
 @UseGuards(JwtAuthGuard)
 export class WeatherReportsController {
+  private readonly logger = new Logger(WeatherReportsController.name);
   constructor(
     @Inject(MongoDbWeatherRecordsRepository)
     private readonly mongoDbWeatherRecordsRepository: MongoDbWeatherRecordsRepository,
@@ -66,6 +68,7 @@ export class WeatherReportsController {
   @Get("/metrics/rain/insights")
   @UseInterceptors(CacheInterceptor)
   async getRainMetricsInsights(): Promise<any> {
+    this.logger.log("Getting rain insights");
     return this.stationDailyPrecipitationMetricsRepository.getRainInsights(
       new Date().toISOString()
     );
