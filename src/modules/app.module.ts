@@ -4,14 +4,13 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 import { SharedModule } from "./shared/shared.module";
-import { StationsModule } from "./stations/stations.module";
-import { ReportsModule } from "./reports/reports.module";
 import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
 import { IncidentsModule } from "./incidents/incidents.module";
 import { AssetsModule } from "./assets/assets.module";
 import { FeedModule } from "./feed/feed.module";
 import { AlertsModule } from "./alerts/Alerts.module";
+import { TelemetryModule } from "./telemetry/telemetry.module";
 
 @Module({
   controllers: [AppController],
@@ -35,8 +34,7 @@ import { AlertsModule } from "./alerts/Alerts.module";
       ],
     }),
     SharedModule,
-    StationsModule,
-    ReportsModule,
+    TelemetryModule,
     IdentityModule,
     IncidentsModule,
     AssetsModule,
