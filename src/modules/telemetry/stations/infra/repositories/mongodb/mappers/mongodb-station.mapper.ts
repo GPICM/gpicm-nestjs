@@ -1,5 +1,5 @@
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-import { Station } from "@/modules/stations/domain/Station";
+import { Station } from "@/modules/telemetry/stations/domain/Station";
 
 import { MongoStation } from "#database/mongodb/schemas/stations";
 import { MongoStationDailyMetrics } from "#database/mongodb/schemas/station-daily-metrics";
