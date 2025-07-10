@@ -60,6 +60,8 @@ export class Post<A = unknown> {
 
   public downVotes: number;
 
+  public comments: number;
+
   public score: number;
 
   public views: number;

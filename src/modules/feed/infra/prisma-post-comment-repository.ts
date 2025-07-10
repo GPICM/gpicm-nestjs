@@ -1,7 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostComment } from "../domain/entities/PostComment";
 import {
@@ -22,16 +20,6 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  public async updatePostCommentsCount(postId: number) {
-    const count = await this.prisma.postComment.count({
-      where: { postId, deletedAt: null },
-    });
-
-    await this.prisma.post.update({
-      where: { id: postId },
-      data: { commentsCount: count },
-    });
-  }
 
   public async add(comment: PostComment): Promise<void> {
     await this.prisma.postComment.create({
@@ -59,8 +47,33 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
   public async delete(id: number): Promise<void> {
     await this.prisma.postComment.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: PostCommentAssembler.toPrismaDelete(),
     });
+  }
+
+  public async refreshPostCommentsCount(postId: number): Promise<void> {
+    const count = await this.prisma.postComment.count({
+      where: {
+        postId,
+        deletedAt: null,
+        OR: [
+          { parentId: null },
+          {
+            parentId: { not: null },
+            ParentComment: {
+              deletedAt: null,
+            },
+          },
+        ],
+      },
+    });
+
+    await this.prisma.post.update({
+      where: { id: postId },
+      data: { commentsCount: count },
+    });
+
+    this.logger.log(`Post ${postId} comments count updated to ${count}`);
   }
 
   public async listAllByPostId(
@@ -75,10 +88,12 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
     const where: Prisma.PostCommentWhereInput = {
       postId: postId,
+      deletedAt: null,
     };
 
     if (filters.parentId !== undefined) {
       where.parentId = filters.parentId;
+      where.deletedAt = null;
     }
 
     const [prismaResult, count] = await Promise.all([
@@ -92,7 +107,31 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
       this.prisma.postComment.count({ where }),
     ]);
 
+   
+    const commentIds = prismaResult.map((c) => c.id).filter((id): id is number => typeof id === 'number');
+
+    
+    let commentsWithReplies = new Set<number>();
+    if (commentIds.length > 0) {
+      const replies = await this.prisma.postComment.findMany({
+        where: {
+          parentId: { in: commentIds },
+          deletedAt: null,
+        },
+        select: { parentId: true },
+      });
+      commentsWithReplies = new Set(replies.map((r) => r.parentId!));
+    }
+
     const records = PostCommentAssembler.fromPrismaMany(prismaResult);
+    
+    records.forEach((comment) => {
+      if (typeof comment.id === 'number') {
+        comment.hasReplies = commentsWithReplies.has(comment.id);
+      } else {
+        comment.hasReplies = false;
+      }
+    });
 
     this.logger.log(
       `Listed ${records.length} posts comments out of total ${count}`

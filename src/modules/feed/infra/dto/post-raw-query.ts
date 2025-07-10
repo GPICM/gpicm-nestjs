@@ -1,4 +1,5 @@
 export type PostRawQuery = {
+  
   id: number;
   title: string;
   slug: string;
@@ -10,6 +11,7 @@ export type PostRawQuery = {
   created_at: string | Date;
   updated_at: string | Date;
   down_votes: number;
+  comments_count: number;
   is_pinned: number;
   is_verified: number;
   score: number;
