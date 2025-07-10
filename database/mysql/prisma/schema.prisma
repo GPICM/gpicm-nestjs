@@ -283,7 +283,7 @@ model Media {
   @@map("medias")
 }
 
-// TODO: add comments count
+
 model PostComment {
   id        Int       @id @default(autoincrement())
   postId    Int       @map("post_id")
@@ -295,6 +295,9 @@ model PostComment {
   deletedAt DateTime? @map("deleted_at")
   Post      Post      @relation(fields: [postId], references: [id])
   User      User      @relation(fields: [userId], references: [id])
+
+  ParentComment PostComment?  @relation("parent-comment", fields: [parentId], references: [id])
+  Replies       PostComment[] @relation("parent-comment")
 
   @@map("post_comments")
 }

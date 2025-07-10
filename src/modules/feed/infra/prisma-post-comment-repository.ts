@@ -1,7 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostComment } from "../domain/entities/PostComment";
 import {
@@ -54,37 +52,21 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
   }
 
   public async refreshPostCommentsCount(postId: number): Promise<void> {
-
-    const rootCount = await this.prisma.postComment.count({
+    const count = await this.prisma.postComment.count({
       where: {
         postId,
         deletedAt: null,
-        parentId: null,
+        OR: [
+          { parentId: null },
+          {
+            parentId: { not: null },
+            ParentComment: {
+              deletedAt: null,
+            },
+          },
+        ],
       },
     });
-
-    const validParentIds = await this.prisma.postComment.findMany({
-      where: {
-        postId,
-        deletedAt: null,
-        parentId: null,
-      },
-      select: { id: true },
-    });
-    const parentIds = validParentIds.map((c) => c.id);
-
-    let repliesCount = 0;
-    if (parentIds.length > 0) {
-      repliesCount = await this.prisma.postComment.count({
-        where: {
-          postId,
-          deletedAt: null,
-          parentId: { in: parentIds },
-        },
-      });
-    }
-
-    const count = rootCount + repliesCount;
 
     await this.prisma.post.update({
       where: { id: postId },
