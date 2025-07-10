@@ -15,9 +15,11 @@ import { PostMediasRepository } from "../domain/interfaces/repositories/post-med
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
+import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
+  private readonly viewCooldownMs = 5 * 60 * 1000; // 5 min
 
   constructor(
     @Inject(PostRepository)
@@ -27,6 +29,7 @@ export class PostServices {
     private readonly postMediasRepository: PostMediasRepository,
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
+    private readonly redisAdapter: RedisAdapter,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
   ) {}
@@ -95,12 +98,30 @@ export class PostServices {
     }
   }
 
-  async IncrementViews(post: ViewerPost){
-    try{
+  async IncrementViews(post: ViewerPost, user: User){
+      const postViewKey = `post_view:${user.id}:${post.id}`;
+      const now = Date.now();
 
-      this.logger.log("Counting post view", {post});
+    try{
+      const lastViewTimestampStr = await this.redisAdapter.getValue(postViewKey);
+
+      if(lastViewTimestampStr) {
+        const lastViewTime = parseInt(lastViewTimestampStr, 10);
+        if ((now - lastViewTime) < this.viewCooldownMs) {
+          this.logger.log(`Pulando o incremento de visualização para o post ID: ${post.id} pelo usuário ID: ${user.id} devido ao cooldown.`);
+          return; 
+        }
+      }
+
+      this.logger.log(`Incrementando visualização para o post ID: ${post.id}, Título: ${post.title}`);
       await this.postRepository.incrementViews(post);
-      
+
+      const cooldownSeconds = Math.ceil(this.viewCooldownMs / 1000);
+      await this.redisAdapter.setKeyWithExpire(
+        postViewKey,
+        now.toString(), 
+        cooldownSeconds, 
+      );
     } catch (error: unknown) {
       this.logger.error(
         `Error incrementing post view: ${JSON.stringify(error, null, 4)}`,
