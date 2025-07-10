@@ -20,6 +20,8 @@ export class PostComment {
 
   public readonly parentCommentId?: number | null;
 
+  public hasReplies: boolean = false;
+
   constructor(args: {
     id: number | null;
     postId: number;
@@ -50,6 +52,10 @@ export class PostComment {
     this.content = newContent;
   }
 
+  public setHasReplies(hasReplies: boolean) {
+    this.hasReplies = hasReplies;
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -58,8 +64,9 @@ export class PostComment {
       postId: this.postId,
       content: this.content,
       isEdited: this.isEdited,
-      updatedAt: this.updatedAt,
+      createdAt: this.createdAt,
       parentCommentId: this.parentCommentId ?? null,
+      hasReplies: this.hasReplies,
     };
   }
 }

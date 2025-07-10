@@ -4,15 +4,14 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { debounce } from "lodash";
 import { VoteQueueDto } from "../domain/interfaces/queues/vote-queue";
-import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository"; // TODO: substituir por repositorio de comentarios
 
 @Processor("comments-events")
 export class PostCommentsProcessor extends WorkerHost {
   private postsToUpdate = new Set<number>();
   private readonly debounceTimeMs = 500;
 
-  // TODO: substituir por repositorio de comentarios -> faer contagem e update da tabela de post
-  constructor(private readonly postVotesRepository: PostVotesRepository) {
+  constructor(private readonly postCommentsRepository: PostCommentRepository) {
     super();
   }
 
@@ -21,8 +20,8 @@ export class PostCommentsProcessor extends WorkerHost {
     this.postsToUpdate.clear();
 
     for (const postId of postIds) {
-      console.log(`Recomputing score for post ${postId}`);
-      await this.postVotesRepository.refreshPostScore(postId); // todo: substituir chamada de repo
+      console.log(`Recomputing post comments score for post ${postId}`);
+      await this.postCommentsRepository.refreshPostCommentsCount(postId);
     }
   }, this.debounceTimeMs);
 

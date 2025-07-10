@@ -26,6 +26,7 @@ class PostAssembler {
       isVerified: post.isVerified || false,
       downVotes: post.downVotes,
       upVotes: post.upVotes,
+      commentsCount: post.comments,
       score: post.score,
       Incident:
         post.type === PostTypeEnum.INCIDENT && post.attachment
@@ -71,6 +72,7 @@ class PostAssembler {
         is_verified,
         down_votes,
         up_votes,
+        comments_count,
         score,
         location_address,
         author_id,
@@ -156,6 +158,8 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
+    
+
     let coverImageUrl = "";
     let thumbnailUrl = "";
     const coverImageSource = MediaSource.fromJSON(data.cover_image_sources);
@@ -181,6 +185,7 @@ class PostAssembler {
         score,
         upVotes: upVotes,
         downVotes: downVotes,
+        comments: data.comments_count,
         views: data.views,
         isPinned: !!data.is_pinned,
         isVerified: !!data.is_verified,

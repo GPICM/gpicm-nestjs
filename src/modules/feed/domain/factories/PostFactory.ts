@@ -57,6 +57,7 @@ export class PostFactory {
       views: 0,
       downVotes: 0,
       upVotes: 0,
+      comments: 0,
       score: 0,
     });
   }
