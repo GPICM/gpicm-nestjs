@@ -35,7 +35,13 @@ class PostCommentAssembler {
         },
       },
       content: comment.content,
-      parentId: comment.parentCommentId ?? null,
+      ...(comment.parentCommentId
+        ? {
+            ParentComment: {
+              connect: { id: comment.parentCommentId },
+            },
+          }
+        : {}),
     };
   }
 
