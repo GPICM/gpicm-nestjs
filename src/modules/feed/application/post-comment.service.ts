@@ -81,5 +81,6 @@ export class PostCommentsService {
       );
     }
     await this.postCommentRepository.delete(commentId);
+    await this.commentsQueue.addCommentJob({ postId: comment.postId });
   }
 }

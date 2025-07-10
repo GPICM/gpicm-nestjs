@@ -47,6 +47,12 @@ class PostCommentAssembler {
     };
   }
 
+  public static toPrismaDelete(): Prisma.PostCommentUpdateInput {
+    return {
+      deletedAt: new Date(),
+    };
+  }
+
   public static fromPrisma(
     prismaData: PostCommentJoinModel | null
   ): PostComment | null {
