@@ -46,6 +46,9 @@ model UserCredential {
   userId                     Int           @map("user_id")
   provider                   AuthProviders
   email                      String        @unique
+  emailVerificationToken     String?       @unique @map("email_verification_token")
+  emailIsVerified            Boolean       @default(false) @map("email_is_verified")
+  expiresAt                  DateTime?     @map("expires_at")
   externalId                 String?       @map("external_id")
   passwordHash               String?       @map("password_hash")
   temporaryPasswordHash      String?       @map("temporary_password_hash")

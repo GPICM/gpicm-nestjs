@@ -32,6 +32,9 @@ export class UserAssembler {
           temporaryPasswordExpiresAt: cred.temporaryPasswordExpiresAt,
           temporaryPasswordHash: cred.temporaryPasswordHash,
           userId: cred.userId,
+          emailIsVerified: cred.emailIsVerified,
+          emailVerificationToken: cred.emailVerificationToken,
+          expiresAt: cred.expiresAt,
         });
       });
     }
