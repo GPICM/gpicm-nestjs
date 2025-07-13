@@ -20,6 +20,8 @@ export class PostComment {
 
   public readonly parentCommentId?: number | null;
 
+  public repliesCount: number = 0;
+
   public hasReplies: boolean = false;
 
   constructor(args: {
@@ -52,8 +54,11 @@ export class PostComment {
     this.content = newContent;
   }
 
-  public setHasReplies(hasReplies: boolean) {
-    this.hasReplies = hasReplies;
+  public setRepliesCount(count: number) {
+    this.repliesCount = count;
+    if (this.repliesCount > 0) {
+      this.hasReplies = true;
+    }
   }
 
   toJSON() {
