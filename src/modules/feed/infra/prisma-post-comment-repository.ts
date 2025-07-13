@@ -20,7 +20,6 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-
   public async add(comment: PostComment): Promise<void> {
     await this.prisma.postComment.create({
       data: PostCommentAssembler.toPrismaCreate(comment),
@@ -76,6 +75,22 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
     this.logger.log(`Post ${postId} comments count updated to ${count}`);
   }
 
+  public async refreshPostCommentsRepliesCount(
+    parentId: number
+  ): Promise<void> {
+    const count = await this.prisma.postComment.count({
+      where: {
+        parentId,
+        deletedAt: null,
+      },
+    });
+
+    await this.prisma.postComment.update({
+      where: { id: parentId },
+      data: { repliesCount: count },
+    });
+  }
+
   public async listAllByPostId(
     postId: number,
     filters: BaseRepositoryFindManyFilters & { parentId?: number },
@@ -107,10 +122,10 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
       this.prisma.postComment.count({ where }),
     ]);
 
-   
-    const commentIds = prismaResult.map((c) => c.id).filter((id): id is number => typeof id === 'number');
+    const commentIds = prismaResult
+      .map((c) => c.id)
+      .filter((id): id is number => typeof id === "number");
 
-    
     let commentsWithReplies = new Set<number>();
     if (commentIds.length > 0) {
       const replies = await this.prisma.postComment.findMany({
@@ -124,9 +139,9 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
     }
 
     const records = PostCommentAssembler.fromPrismaMany(prismaResult);
-    
+
     records.forEach((comment) => {
-      if (typeof comment.id === 'number') {
+      if (typeof comment.id === "number") {
         comment.hasReplies = commentsWithReplies.has(comment.id);
       } else {
         comment.hasReplies = false;
