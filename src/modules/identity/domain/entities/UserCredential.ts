@@ -10,11 +10,7 @@ export class UserCredential {
 
   public email: string;
 
-  public emailVerificationToken: string | null;
-
-  public expiresAt: Date | null;
-
-  public emailIsVerified: boolean;
+  public isVerified: boolean;
 
   public externalId: string | null;
 
@@ -61,12 +57,10 @@ export class UserCredential {
 
       const credential = new UserCredential({
         email,
-        emailVerificationToken: null,
-        expiresAt: null,
-        emailIsVerified: false,
         userId,
         passwordHash,
         isPrimary: true,
+        isVerified: false,
         provider: AuthProviders.EMAIL_PASSWORD,
         externalId: null,
         lastPasswordChangeAt: null,
