@@ -44,8 +44,8 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
   }
 
   public async delete(id: number): Promise<void> {
-    await this.prisma.postComment.update({
-      where: { id },
+    await this.prisma.postComment.updateMany({
+      where: { OR: [{ id }, { parentId: id }] },
       data: PostCommentAssembler.toPrismaDelete(),
     });
   }
