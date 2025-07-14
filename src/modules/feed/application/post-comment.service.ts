@@ -88,6 +88,7 @@ export class PostCommentsService {
 
     await this.commentsQueue.addCommentJob({
       postId: comment.postId,
+      commentParentId: comment.parentCommentId || undefined,
     });
   }
 }

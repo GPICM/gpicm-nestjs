@@ -108,7 +108,6 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
     if (filters.parentId !== undefined) {
       where.parentId = filters.parentId;
-      where.deletedAt = null;
     }
 
     const [prismaResult, count] = await Promise.all([
@@ -122,31 +121,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
       this.prisma.postComment.count({ where }),
     ]);
 
-    const commentIds = prismaResult
-      .map((c) => c.id)
-      .filter((id): id is number => typeof id === "number");
-
-    let commentsWithReplies = new Set<number>();
-    if (commentIds.length > 0) {
-      const replies = await this.prisma.postComment.findMany({
-        where: {
-          parentId: { in: commentIds },
-          deletedAt: null,
-        },
-        select: { parentId: true },
-      });
-      commentsWithReplies = new Set(replies.map((r) => r.parentId!));
-    }
-
     const records = PostCommentAssembler.fromPrismaMany(prismaResult);
-
-    records.forEach((comment) => {
-      if (typeof comment.id === "number") {
-        comment.hasReplies = commentsWithReplies.has(comment.id);
-      } else {
-        comment.hasReplies = false;
-      }
-    });
 
     this.logger.log(
       `Listed ${records.length} posts comments out of total ${count}`
