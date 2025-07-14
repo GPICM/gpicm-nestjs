@@ -73,6 +73,7 @@ class PostCommentAssembler {
       createdAt: prismaData.createdAt,
       updatedAt: prismaData.updatedAt,
       parentCommentId: prismaData.parentId,
+      repliesCount: prismaData.repliesCount,
       user: new UserShallow({
         id: userData.id,
         name: userData.name ?? "",

@@ -32,15 +32,14 @@ export class PostCommentsService {
       throw new BadRequestException("Post não encontrado");
     }
 
-    const commentEntity = new PostComment({
-      id: null,
+    const comment = new PostComment({
       postId: post.id,
       content: body.content,
       user: UserShallow.fromUser(user),
       parentCommentId: body.parentCommentId ?? null,
     });
 
-    await this.postCommentRepository.add(commentEntity);
+    await this.postCommentRepository.add(comment);
 
     await this.commentsQueue.addCommentJob({
       postId: post.id,

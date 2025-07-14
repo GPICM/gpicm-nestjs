@@ -10,7 +10,7 @@ import { CommentsQueueDto } from "../domain/interfaces/queues/comments-queue";
 export class PostCommentsProcessor extends WorkerHost {
   private postsToUpdate = new Set<number>();
   private postsCommentsToUpdate = new Set<number>();
-  private readonly debounceTimeMs = 1000;
+  private readonly debounceTimeMs = 2500;
 
   constructor(private readonly postCommentsRepository: PostCommentRepository) {
     super();
