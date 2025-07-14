@@ -35,7 +35,13 @@ class PostCommentAssembler {
         },
       },
       content: comment.content,
-      parentId: comment.parentCommentId ?? null,
+      ...(comment.parentCommentId
+        ? {
+            ParentComment: {
+              connect: { id: comment.parentCommentId },
+            },
+          }
+        : {}),
     };
   }
 
@@ -44,6 +50,12 @@ class PostCommentAssembler {
   ): Prisma.PostCommentUpdateInput {
     return {
       content: comment.content,
+    };
+  }
+
+  public static toPrismaDelete(): Prisma.PostCommentUpdateInput {
+    return {
+      deletedAt: new Date(),
     };
   }
 
@@ -61,6 +73,7 @@ class PostCommentAssembler {
       createdAt: prismaData.createdAt,
       updatedAt: prismaData.updatedAt,
       parentCommentId: prismaData.parentId,
+      repliesCount: prismaData.repliesCount,
       user: new UserShallow({
         id: userData.id,
         name: userData.name ?? "",

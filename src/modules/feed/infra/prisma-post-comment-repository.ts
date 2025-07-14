@@ -1,7 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostComment } from "../domain/entities/PostComment";
 import {
@@ -21,17 +19,6 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
   );
 
   constructor(private readonly prisma: PrismaService) {}
-
-  public async updatePostCommentsCount(postId: number) {
-    const count = await this.prisma.postComment.count({
-      where: { postId, deletedAt: null },
-    });
-
-    await this.prisma.post.update({
-      where: { id: postId },
-      data: { commentsCount: count },
-    });
-  }
 
   public async add(comment: PostComment): Promise<void> {
     await this.prisma.postComment.create({
@@ -57,9 +44,50 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
   }
 
   public async delete(id: number): Promise<void> {
+    await this.prisma.postComment.updateMany({
+      where: { OR: [{ id }, { parentId: id }] },
+      data: PostCommentAssembler.toPrismaDelete(),
+    });
+  }
+
+  public async refreshPostCommentsCount(postId: number): Promise<void> {
+    const count = await this.prisma.postComment.count({
+      where: {
+        postId,
+        deletedAt: null,
+        OR: [
+          { parentId: null },
+          {
+            parentId: { not: null },
+            ParentComment: {
+              deletedAt: null,
+            },
+          },
+        ],
+      },
+    });
+
+    await this.prisma.post.update({
+      where: { id: postId },
+      data: { commentsCount: count },
+    });
+
+    this.logger.log(`Post ${postId} comments count updated to ${count}`);
+  }
+
+  public async refreshPostCommentsRepliesCount(
+    parentId: number
+  ): Promise<void> {
+    const count = await this.prisma.postComment.count({
+      where: {
+        parentId,
+        deletedAt: null,
+      },
+    });
+
     await this.prisma.postComment.update({
-      where: { id },
-      data: { deletedAt: new Date() },
+      where: { id: parentId },
+      data: { repliesCount: count },
     });
   }
 
@@ -75,6 +103,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
     const where: Prisma.PostCommentWhereInput = {
       postId: postId,
+      deletedAt: null,
     };
 
     if (filters.parentId !== undefined) {

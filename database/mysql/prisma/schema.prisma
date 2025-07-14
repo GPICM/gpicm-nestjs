@@ -284,16 +284,20 @@ model Media {
 }
 
 model PostComment {
-  id        Int       @id @default(autoincrement())
-  postId    Int       @map("post_id")
-  userId    Int       @map("user_id")
-  content   String    @db.LongText
-  parentId  Int?      @map("parent_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  Post      Post      @relation(fields: [postId], references: [id])
-  User      User      @relation(fields: [userId], references: [id])
+  id           Int       @id @default(autoincrement())
+  postId       Int       @map("post_id")
+  userId       Int       @map("user_id")
+  content      String    @db.LongText
+  parentId     Int?      @map("parent_id")
+  repliesCount Int       @default(0) @map("replies_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+  Post         Post      @relation(fields: [postId], references: [id])
+  User         User      @relation(fields: [userId], references: [id])
+
+  ParentComment PostComment?  @relation("parent-comment", fields: [parentId], references: [id])
+  Replies       PostComment[] @relation("parent-comment")
 
   @@map("post_comments")
 }
