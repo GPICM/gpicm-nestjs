@@ -8,12 +8,14 @@ import { PostRepository } from "../domain/interfaces/repositories/post-repositor
 import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
+import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
 
 @Injectable()
 export class PostCommentsService {
   constructor(
     private readonly postCommentRepository: PostCommentRepository,
-    private readonly postRepository: PostRepository
+    private readonly postRepository: PostRepository,
+    private readonly commentsQueue: CommentsQueue
   ) {}
 
   async addComment(
@@ -30,15 +32,19 @@ export class PostCommentsService {
       throw new BadRequestException("Post não encontrado");
     }
 
-    const commentEntity = new PostComment({
-      id: null,
+    const comment = new PostComment({
       postId: post.id,
       content: body.content,
       user: UserShallow.fromUser(user),
       parentCommentId: body.parentCommentId ?? null,
     });
 
-    return this.postCommentRepository.add(commentEntity);
+    await this.postCommentRepository.add(comment);
+
+    await this.commentsQueue.addCommentJob({
+      postId: post.id,
+      commentParentId: body.parentCommentId,
+    });
   }
 
   async updateComment(
@@ -71,11 +77,18 @@ export class PostCommentsService {
     if (!comment) {
       throw new BadRequestException("Comentário não encontrado");
     }
+
     if (comment.user.id !== user.id) {
       throw new BadRequestException(
         "Você não tem permissão para excluir este comentário"
       );
     }
+
     await this.postCommentRepository.delete(commentId);
+
+    await this.commentsQueue.addCommentJob({
+      postId: comment.postId,
+      commentParentId: comment.parentCommentId || undefined,
+    });
   }
 }

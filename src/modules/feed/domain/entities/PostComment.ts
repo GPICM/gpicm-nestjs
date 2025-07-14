@@ -6,7 +6,7 @@ export enum CommentType {
 }
 
 export class PostComment {
-  public readonly id: number | null;
+  public readonly id: number;
 
   public readonly postId: number;
 
@@ -20,22 +20,28 @@ export class PostComment {
 
   public readonly parentCommentId?: number | null;
 
+  public repliesCount: number = 0;
+
+  public hasReplies: boolean = false;
+
   constructor(args: {
-    id: number | null;
+    id?: number;
     postId: number;
     content: string;
     user: UserShallow;
     createdAt?: Date;
     updatedAt?: Date;
     parentCommentId?: number | null;
+    repliesCount?: number;
   }) {
-    this.id = args.id ?? null;
+    this.id = args.id ?? -1;
     this.postId = args.postId;
     this.content = args.content;
     this.user = args.user;
     this.createdAt = args.createdAt ?? new Date();
     this.updatedAt = args.updatedAt ?? new Date();
     this.parentCommentId = args.parentCommentId ?? null;
+    this.repliesCount = args.repliesCount || 0;
   }
 
   get type(): CommentType {
@@ -50,15 +56,25 @@ export class PostComment {
     this.content = newContent;
   }
 
+  public setRepliesCount(count: number) {
+    this.repliesCount = count;
+    if (this.repliesCount > 0) {
+      this.hasReplies = true;
+    }
+  }
+
   toJSON() {
     return {
       id: this.id,
+      user: this.user,
+      type: this.type,
       postId: this.postId,
       content: this.content,
-      user: this.user,
-      parentCommentId: this.parentCommentId ?? null,
-      type: this.type,
       isEdited: this.isEdited,
+      createdAt: this.createdAt,
+      parentCommentId: this.parentCommentId ?? null,
+      hasReplies: this.hasReplies,
+      repliesCount: this.repliesCount,
     };
   }
 }
