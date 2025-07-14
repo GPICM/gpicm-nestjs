@@ -2,7 +2,7 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
-import { UserCredential } from "./UserCredential";
+import { UserCredential } from "../../authentication/domain/UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
 import { UserBasicData } from "../value-objects/user-basic-data";
 import { UserAvatar } from "../value-objects/user-avatar";

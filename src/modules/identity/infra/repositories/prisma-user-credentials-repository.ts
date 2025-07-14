@@ -1,7 +1,7 @@
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../../domain/interfaces/repositories/user-credentials-repository";
 import { Inject, Logger } from "@nestjs/common";
-import { UserCredential } from "../../domain/entities/UserCredential";
+import { UserCredential } from "../../authentication/domain/UserCredential";
 import { PrismaClient } from "@prisma/client";
 
 export class PrismaUserCredentialsRepository

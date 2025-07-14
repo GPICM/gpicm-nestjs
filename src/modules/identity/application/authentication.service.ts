@@ -15,8 +15,8 @@ import { UserCredentialsRepository } from "../domain/interfaces/repositories/use
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
-import { UserCredential } from "../domain/entities/UserCredential";
-import { EmailVerificationService } from "./email-verification.service";
+import { UserCredential } from "../authentication/domain/UserCredential";
+/* import { EmailVerificationService } from "./email-verification.service";*/
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -27,8 +27,8 @@ export class AuthenticationService {
     private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
-    private readonly prismaService: PrismaService,
-    private readonly emailVerificationService: EmailVerificationService
+    private readonly prismaService: PrismaService
+    /* private readonly emailVerificationService: EmailVerificationService */
   ) {}
 
   public async signUp(params: {
@@ -120,14 +120,16 @@ export class AuthenticationService {
       });
 
       await this.logUserAction.execute(userId!, "SIGNUP");
-      
-      if(newUser){
-        const emailCredential = newUser.getCredential(AuthProviders.EMAIL_PASSWORD);
+      /*       
+      if (newUser) {
+        const emailCredential = newUser.getCredential(
+          AuthProviders.EMAIL_PASSWORD
+        );
 
-        if(emailCredential) {
+        if (emailCredential) {
           await this.emailVerificationService.sendVerificationEmail(newUser);
         }
-      }
+      } */
 
       return { accessToken };
     } catch (error: unknown) {
