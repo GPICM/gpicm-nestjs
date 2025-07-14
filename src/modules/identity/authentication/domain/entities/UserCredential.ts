@@ -4,7 +4,7 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 
 export class UserCredential {
-  public userId: number | null;
+  public userId: number;
 
   public provider: AuthProviders;
 
@@ -57,7 +57,7 @@ export class UserCredential {
 
       const credential = new UserCredential({
         email,
-        userId,
+        userId: -1,
         passwordHash,
         isPrimary: true,
         isVerified: false,

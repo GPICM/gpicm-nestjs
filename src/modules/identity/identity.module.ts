@@ -19,6 +19,8 @@ import { UserController } from "./presentation/user.controller";
 import { UserService } from "./application/user.service";
 import { PoliciesModule } from "./policies/policies.module";
 import { AssetsModule } from "../assets/assets.module";
+import { UserVerificationRepository } from "./authentication/domain/interfaces/repositories/user-verification-repository";
+import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 
 @Global()
 @Module({
@@ -42,6 +44,10 @@ import { AssetsModule } from "../assets/assets.module";
     {
       provide: UserCredentialsRepository,
       useClass: PrismaUserCredentialsRepository,
+    },
+    {
+      provide: UserVerificationRepository,
+      useClass: PrismaUserVerificationRepository,
     },
   ],
   imports: [SharedModule, PoliciesModule, AssetsModule],
