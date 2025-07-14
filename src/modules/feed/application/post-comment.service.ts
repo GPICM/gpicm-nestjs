@@ -42,7 +42,10 @@ export class PostCommentsService {
 
     await this.postCommentRepository.add(commentEntity);
 
-    await this.commentsQueue.addCommentJob({ postId: post.id });
+    await this.commentsQueue.addCommentJob({
+      postId: post.id,
+      commentParentId: body.parentCommentId,
+    });
   }
 
   async updateComment(
@@ -75,12 +78,17 @@ export class PostCommentsService {
     if (!comment) {
       throw new BadRequestException("Comentário não encontrado");
     }
+
     if (comment.user.id !== user.id) {
       throw new BadRequestException(
         "Você não tem permissão para excluir este comentário"
       );
     }
+
     await this.postCommentRepository.delete(commentId);
-    await this.commentsQueue.addCommentJob({ postId: comment.postId });
+
+    await this.commentsQueue.addCommentJob({
+      postId: comment.postId,
+    });
   }
 }

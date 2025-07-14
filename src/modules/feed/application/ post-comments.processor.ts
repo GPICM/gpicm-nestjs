@@ -3,13 +3,14 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { debounce } from "lodash";
-import { VoteQueueDto } from "../domain/interfaces/queues/vote-queue";
-import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository"; // TODO: substituir por repositorio de comentarios
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+import { CommentsQueueDto } from "../domain/interfaces/queues/comments-queue";
 
 @Processor("comments-events")
 export class PostCommentsProcessor extends WorkerHost {
   private postsToUpdate = new Set<number>();
-  private readonly debounceTimeMs = 500;
+  private postsCommentsToUpdate = new Set<number>();
+  private readonly debounceTimeMs = 1000;
 
   constructor(private readonly postCommentsRepository: PostCommentRepository) {
     super();
@@ -20,14 +21,32 @@ export class PostCommentsProcessor extends WorkerHost {
     this.postsToUpdate.clear();
 
     for (const postId of postIds) {
-      console.log(`Recomputing post comments score for post ${postId}`);
+      console.log(`Recomputing post comments count for post ${postId}`);
       await this.postCommentsRepository.refreshPostCommentsCount(postId);
     }
   }, this.debounceTimeMs);
 
-  public async process(job: Job<VoteQueueDto>) {
+  private debouncedRepliesCounter = debounce(async () => {
+    const commentIds = Array.from(this.postsCommentsToUpdate);
+    this.postsCommentsToUpdate.clear();
+
+    for (const commentId of commentIds) {
+      console.log(`Recomputing post comments replies. Comment: ${commentId}`);
+      await this.postCommentsRepository.refreshPostCommentsRepliesCount(
+        commentId
+      );
+    }
+  }, this.debounceTimeMs);
+
+  public async process(job: Job<CommentsQueueDto>) {
     this.postsToUpdate.add(job.data.postId);
+
+    if (job.data.commentParentId) {
+      this.postsCommentsToUpdate.add(job.data.commentParentId);
+    }
+
     this.debouncedAggregate();
+    this.debouncedRepliesCounter();
     return Promise.resolve();
   }
 }
