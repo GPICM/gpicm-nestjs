@@ -1,7 +1,7 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { User } from "./User";
 import { UserRoles } from "../enums/user-roles";
-import { UserCredential } from "../../authentication/domain/UserCredential";
+import { UserCredential } from "../../authentication/domain/entities/UserCredential";
 
 export class Guest extends User {
   constructor(args: NonFunctionProperties<User>) {

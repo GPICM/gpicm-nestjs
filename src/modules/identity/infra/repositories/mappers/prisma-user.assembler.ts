@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Guest } from "@/modules/identity/domain/entities/Guest";
 import { User } from "@/modules/identity/domain/entities/User";
-import { UserCredential } from "@/modules/identity/authentication/domain/UserCredential";
+import { UserCredential } from "@/modules/identity/authentication/domain/entities/UserCredential";
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
