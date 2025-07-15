@@ -8,8 +8,8 @@ import { UserLogsRepository } from "./domain/interfaces/repositories/user-logs-r
 import { PrismaUserLogsRepository } from "./infra/repositories/prisma-user-logs-repository";
 import { LogUserAction } from "./application/log-user-action";
 import { EmailService } from "./domain/interfaces/services/email-service";
-import { NodemailerEmailService } from "./infra/lib/nodemailer/nodemailer-email-service";
 import { MailerModule } from "@nestjs-modules/mailer";
+import { MockMailerService } from "./infra/MockMailerService";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -34,6 +34,10 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
   controllers: [],
   providers: [
     MongodbService,
+    {
+      provide: EmailService,
+      useClass: MockMailerService, // NodemailerEmailService,
+    },
     PrismaService,
     {
       provide: MongoClient,
@@ -51,10 +55,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: UserLogsRepository,
       useClass: PrismaUserLogsRepository,
     },
-    {
-      provide: EmailService,
-      useClass: NodemailerEmailService,
-    },
     LogUserAction,
   ],
   exports: [
@@ -63,6 +63,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     MongodbService,
     HttpClient,
     PrismaService,
+    EmailService,
   ],
 })
 export class SharedModule {}

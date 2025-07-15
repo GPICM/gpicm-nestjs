@@ -15,7 +15,8 @@ import { UserCredentialsRepository } from "../domain/interfaces/repositories/use
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
-import { UserCredential } from "../authentication/domain/UserCredential";
+import { UserCredential } from "../authentication/domain/entities/UserCredential";
+import { UserVerificationService } from "../authentication/application/user/user-verification.service";
 /* import { EmailVerificationService } from "./email-verification.service";*/
 
 export class AuthenticationService {
@@ -27,8 +28,8 @@ export class AuthenticationService {
     private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
-    private readonly prismaService: PrismaService
-    /* private readonly emailVerificationService: EmailVerificationService */
+    private readonly prismaService: PrismaService,
+    private readonly userVerificationService: UserVerificationService
   ) {}
 
   public async signUp(params: {
@@ -105,31 +106,27 @@ export class AuthenticationService {
 
       let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
+        let userCredential: UserCredential | undefined;
+
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
-
-          const newCredential = newUser.credentials[0];
-          await this.userCredentialsRepository.add(newCredential, tx);
+          userCredential = newUser.credentials[0];
+          await this.userCredentialsRepository.add(userCredential, tx);
         } else if (guestUser) {
           userId = guestUser.id;
-          const newCredential = guestUser.credentials[0];
-          await this.userCredentialsRepository.add(newCredential, tx);
+          userCredential = guestUser.credentials[0];
+          await this.userCredentialsRepository.add(userCredential, tx);
           await this.usersRepository.update(guestUser, tx);
         }
+
+        await this.userVerificationService.startUserVerification(
+          userCredential!,
+          tx
+        );
       });
 
       await this.logUserAction.execute(userId!, "SIGNUP");
-      /*       
-      if (newUser) {
-        const emailCredential = newUser.getCredential(
-          AuthProviders.EMAIL_PASSWORD
-        );
-
-        if (emailCredential) {
-          await this.emailVerificationService.sendVerificationEmail(newUser);
-        }
-      } */
 
       return { accessToken };
     } catch (error: unknown) {

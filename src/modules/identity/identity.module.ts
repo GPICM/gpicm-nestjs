@@ -21,11 +21,13 @@ import { PoliciesModule } from "./policies/policies.module";
 import { AssetsModule } from "../assets/assets.module";
 import { UserVerificationRepository } from "./authentication/domain/interfaces/repositories/user-verification-repository";
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
+import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 
 @Global()
 @Module({
   controllers: [GuestAuthController, CommonAuthController, UserController],
   providers: [
+    UserVerificationService,
     AuthenticationService,
     GuestAuthenticationService,
     UserService,
