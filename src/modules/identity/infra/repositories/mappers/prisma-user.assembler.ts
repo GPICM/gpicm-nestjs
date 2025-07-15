@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { Guest } from "@/modules/identity/domain/entities/Guest";
 import { User } from "@/modules/identity/domain/entities/User";
 import { UserCredential } from "@/modules/identity/authentication/domain/entities/UserCredential";
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
@@ -48,32 +47,6 @@ export class UserAssembler {
       if (avatarImageSource) {
         avatar = new UserAvatar(avatarImageSource);
       }
-    }
-
-    if (prismaData.role === "GUEST") {
-      return new Guest({
-        id: prismaData.id,
-        publicId: prismaData.publicId,
-        name: prismaData.name ?? null,
-        role: prismaData.role as UserRoles,
-        ipAddress: prismaData.ipAddress ?? null,
-        deviceKey: prismaData.deviceKey ?? null,
-        deviceInfo: prismaData.deviceInfo as Record<string, unknown> | null,
-        bio: prismaData.bio,
-        birthDate: prismaData.birthDate,
-        gender: prismaData.gender,
-        isVerified: prismaData.isVerified,
-        lastLoginAt: prismaData.lastLoginAt,
-        phoneNumber: prismaData.phoneNumber,
-        status: prismaData.status as UserStatus,
-        latitude: prismaData.latitude,
-        longitude: prismaData.longitude,
-        locationUpdatedAt: prismaData.locationUpdatedAt,
-        credentials: [],
-        avatar,
-        createdAt: prismaData.createdAt,
-        updateAt: prismaData.updatedAt,
-      });
     }
 
     return new User({

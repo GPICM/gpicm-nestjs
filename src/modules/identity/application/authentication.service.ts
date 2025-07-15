@@ -8,7 +8,6 @@ import { Encryptor } from "../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { User } from "../domain/entities/User";
 import { UserRoles } from "../domain/enums/user-roles";
-import { Guest } from "../domain/entities/Guest";
 import { UserJWTpayload } from "../domain/value-objects/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
@@ -43,14 +42,12 @@ export class AuthenticationService {
 
       const { name, email, password, deviceKey } = params;
 
-      let accessToken: string = "";
-
-      let guestUser: Guest | null = null;
+      let guestUser: User | null = null;
       if (deviceKey) {
         this.logger.log("DEvice key intercepted. searching for its guest");
-        guestUser = (await this.usersRepository.findUserByDeviceKey(deviceKey, {
+        guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
           roles: [UserRoles.GUEST],
-        })) as Guest | null;
+        });
       }
 
       const emailExists = await this.usersRepository.findByCredentials(
@@ -64,69 +61,41 @@ export class AuthenticationService {
         );
       }
 
+      const emailPasswordCredential =
+        UserCredential.CreateEmailPasswordCredential(email, password);
+
       let newUser: User | null = null;
-      if (!guestUser) {
-        this.logger.log("DEBUG: Creating a new user: -> ");
-        try {
-          const newCredential = UserCredential.CreateEmailPasswordCredential(
-            null,
-            email,
-            password
-          );
-
-          this.logger.log("DEBUG: newCredential:", { newCredential });
-
-          newUser = User.Create(name, newCredential);
-
-          this.logger.log("DEBUG: [newUser'", { newUser });
-          accessToken = this.encryptor.generateToken({
-            sub: newUser.publicId,
-          });
-
-          this.logger.log("DEBUG: accesstoken:", { accessToken });
-        } catch (error: unknown) {
-          console.log(
-            "DEBUG: Faled to create user",
-            JSON.stringify(error, null, 4)
-          );
-        }
+      if (guestUser) {
+        guestUser.setName(name);
+        guestUser.addCredentials(emailPasswordCredential);
       } else {
-        this.logger.log("Upgrading guest user");
-
-        guestUser.upgrade(name, email, password);
-
-        this.logger.log("DEBUG:  guest upgraded", { guestUser });
-
-        accessToken = this.encryptor.generateToken({
-          sub: guestUser.publicId,
-        });
-
-        this.logger.log("DEBUG: accesstoken:", { accessToken });
+        newUser = User.Create(name, emailPasswordCredential);
       }
 
       let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
-        let userCredential: UserCredential | undefined;
-
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
-          userCredential = newUser.credentials[0];
-          await this.userCredentialsRepository.add(userCredential, tx);
+          emailPasswordCredential.setUserId(userId);
         } else if (guestUser) {
           userId = guestUser.id;
-          userCredential = guestUser.credentials[0];
-          await this.userCredentialsRepository.add(userCredential, tx);
           await this.usersRepository.update(guestUser, tx);
         }
 
+        await this.userCredentialsRepository.add(emailPasswordCredential, tx);
+
         await this.userVerificationService.startUserVerification(
-          userCredential!,
+          emailPasswordCredential,
           tx
         );
       });
 
       await this.logUserAction.execute(userId!, "SIGNUP");
+
+      const accessToken = this.encryptor.generateToken({
+        sub: (guestUser?.publicId || newUser?.publicId)!,
+      });
 
       return { accessToken };
     } catch (error: unknown) {

@@ -68,39 +68,7 @@ export class User {
     return this.avatar;
   }
 
-  public static CreateGuest(
-    name?: string,
-    ipAddress?: string,
-    deviceInfo?: Record<string, unknown>
-  ) {
-    const newDeviceKey = randomUUID();
-
-    return new User({
-      id: -1,
-      publicId: randomUUID(),
-      name: name ?? `Visitante_${new Date().getTime()}`,
-      status: UserStatus.ACTIVE,
-      role: UserRoles.GUEST,
-      deviceKey: newDeviceKey,
-      deviceInfo: deviceInfo ?? null,
-      ipAddress: ipAddress ?? null,
-      bio: null,
-      birthDate: null,
-      gender: null,
-      isVerified: false,
-      lastLoginAt: null,
-      phoneNumber: null,
-      credentials: [],
-      latitude: null,
-      longitude: null,
-      locationUpdatedAt: null,
-      createdAt: new Date(),
-      avatar: null,
-      updateAt: null,
-    });
-  }
-
-  public static Create(name: string, credential: UserCredential) {
+  public static Create(name: string, credential?: UserCredential) {
     try {
       console.log("DEBUG: Creating user", { name, credential });
 
@@ -114,8 +82,9 @@ export class User {
         name,
         publicId,
         deviceKey,
-        role: UserRoles.USER,
+        role: UserRoles.GUEST,
         status: UserStatus.ACTIVE,
+        credentials: credential ? [credential] : [],
         avatar: null,
         ipAddress: null,
         deviceInfo: null,
@@ -125,7 +94,6 @@ export class User {
         isVerified: false,
         lastLoginAt: null,
         phoneNumber: null,
-        credentials: [credential],
         latitude: null,
         longitude: null,
         locationUpdatedAt: null,
@@ -164,6 +132,7 @@ export class User {
   }
 
   public addCredentials(credential: UserCredential) {
+    credential.userId = this.id;
     this.credentials.push(credential);
   }
 

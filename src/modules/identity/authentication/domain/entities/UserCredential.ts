@@ -37,13 +37,12 @@ export class UserCredential {
   }
 
   public static CreateEmailPasswordCredential(
-    userId: number | null,
     email: string,
-    password: string
+    password: string,
+    userId?: number
   ): UserCredential {
     try {
       console.log("DEBUG: creating  EMAIL_PASSWORD credential", {
-        userId,
         email,
         password,
       });
@@ -57,7 +56,7 @@ export class UserCredential {
 
       const credential = new UserCredential({
         email,
-        userId: -1,
+        userId: userId ?? -1,
         passwordHash,
         isPrimary: true,
         isVerified: false,
