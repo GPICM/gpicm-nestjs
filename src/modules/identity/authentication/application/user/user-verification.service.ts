@@ -1,5 +1,11 @@
 import { randomUUID } from "crypto";
-import { ForbiddenException, GoneException, Injectable } from "@nestjs/common";
+import {
+  ForbiddenException,
+  GoneException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from "@nestjs/common";
 
 import {
   UserVerification,
@@ -17,6 +23,8 @@ import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 
 @Injectable()
 export class UserVerificationService {
+  private readonly logger = new Logger(UserVerificationService.name);
+
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly userCredentialsRepository: UserCredentialsRepository,
@@ -61,52 +69,67 @@ export class UserVerificationService {
   }
 
   async verifyToken(token: string): Promise<void> {
-    const userVerification =
-      await this.userVerificationRepository.findByToken(token);
+    try {
+      const userVerification =
+        await this.userVerificationRepository.findByToken(token);
 
-    if (!userVerification) {
-      throw new ForbiddenException("Token inválido");
+      if (!userVerification) {
+        throw new ForbiddenException("Token inválido");
+      }
+
+      const now = new Date();
+
+      if (userVerification.expiresAt && userVerification.expiresAt < now) {
+        throw new ForbiddenException("Token expirado");
+      }
+
+      if (userVerification.used) {
+        throw new ForbiddenException("Este link já foi utilizado");
+      }
+
+      const userCredential = await this.userCredentialsRepository.findOne({
+        userId: userVerification.userId,
+        provider: userVerification.provider,
+      });
+
+      if (!userCredential) {
+        throw new GoneException("Credencial de usuário não encontrada");
+      }
+
+      const user = await this.userRepository.findById(userCredential.userId);
+
+      if (!user) {
+        throw new GoneException("Usuário não encontrado");
+      }
+
+      userVerification.used = true;
+      userVerification.verifiedAt = now;
+      userVerification.attempts += 1;
+
+      userCredential.isVerified = true;
+      user.role = UserRoles.USER;
+
+      await this.prismaService.openTransaction(async (tx) => {
+        await this.userVerificationRepository.update(userVerification, tx);
+        await this.userCredentialsRepository.update(userCredential, tx);
+        await this.userRepository.update(user, tx);
+      });
+    } catch (error: unknown) {
+      this.logger.error("Erro ao verificar token de e-mail", {
+        token,
+        error,
+      });
+
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof GoneException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        "Erro ao processar a verificação de e-mail"
+      );
     }
-
-    const now = new Date();
-
-    if (userVerification.expiresAt && userVerification.expiresAt < now) {
-      throw new ForbiddenException("Token expirado");
-    }
-
-    if (userVerification.used) {
-      throw new ForbiddenException("Este link já foi utilizado");
-    }
-
-    const userCredential = await this.userCredentialsRepository.findOne({
-      userId: userVerification.userId,
-      provider: userVerification.provider,
-    });
-
-    if (!userCredential) {
-      throw new GoneException("Credencial de usuário não encontrada");
-    }
-
-    const user = await this.userRepository.findById(userCredential.userId);
-
-    if (!user) {
-      throw new GoneException("Usuário não encontrado");
-    }
-
-    userVerification.used = true;
-    userVerification.verifiedAt = now;
-    userVerification.attempts += 1;
-
-    userCredential.isVerified = true;
-
-    user.role = UserRoles.USER;
-
-    await this.prismaService.openTransaction(async (tx) => {
-      await this.userVerificationRepository.update(userVerification, tx);
-
-      await this.userCredentialsRepository.update(userCredential, tx);
-
-      await this.userRepository.update(user, tx);
-    });
   }
 }

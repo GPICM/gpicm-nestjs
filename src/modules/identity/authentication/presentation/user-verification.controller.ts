@@ -1,13 +1,13 @@
 import {
   Controller,
   Query,
-  Get,
   Logger,
   BadRequestException,
+  Post,
 } from "@nestjs/common";
 import { UserVerificationService } from "../application/user/user-verification.service";
 
-@Controller("user-verification")
+@Controller("identity/user-verification")
 export class UserVerificationController {
   private readonly logger = new Logger(UserVerificationController.name);
 
@@ -15,7 +15,7 @@ export class UserVerificationController {
     private readonly userVerificationService: UserVerificationService
   ) {}
 
-  @Get("/email")
+  @Post("/email")
   async emailVerification(
     @Query("token") token: string
   ): Promise<{ success: boolean }> {
@@ -31,7 +31,7 @@ export class UserVerificationController {
         "Falha ao verificar o e-mail",
         error instanceof Error ? error.stack : String(error)
       );
-      throw new BadRequestException("Erro ao verificar o e-mail");
+      throw error;
     }
   }
 }
