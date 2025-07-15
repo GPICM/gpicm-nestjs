@@ -84,4 +84,28 @@ export class PrismaUserVerificationRepository
       throw new Error("Error adding user");
     }
   }
+
+  public async update(
+    verification: UserVerification,
+    tx?: unknown
+  ): Promise<void> {
+    try {
+      const prisma = this.prisma.getConnection() ?? tx;
+
+      await prisma.userVerification.update({
+        where: { id: verification.id },
+        data: {
+          attempts: verification.attempts,
+          used: verification.used,
+          verifiedAt: verification.verifiedAt,
+        },
+      });
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user verification", {
+        verification,
+        error,
+      });
+      throw new Error("Error updating user verification");
+    }
+  }
 }
