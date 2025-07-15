@@ -22,10 +22,16 @@ import { AssetsModule } from "../assets/assets.module";
 import { UserVerificationRepository } from "./authentication/domain/interfaces/repositories/user-verification-repository";
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
+import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
 
 @Global()
 @Module({
-  controllers: [GuestAuthController, CommonAuthController, UserController],
+  controllers: [
+    UserController,
+    GuestAuthController,
+    CommonAuthController,
+    UserVerificationController,
+  ],
   providers: [
     UserVerificationService,
     AuthenticationService,

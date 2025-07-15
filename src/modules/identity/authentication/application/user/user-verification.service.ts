@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, GoneException, Injectable } from "@nestjs/common";
 
 import {
   UserVerification,
@@ -10,11 +10,18 @@ import { uuidv7 } from "uuidv7";
 import { UserVerificationRepository } from "../../domain/interfaces/repositories/user-verification-repository";
 import { EmailService } from "@/modules/shared/domain/interfaces/services/email-service";
 import { generateVerificationEmailContent } from "../../domain/utils/generate-verification-email";
+import { UserCredentialsRepository } from "@/modules/identity/domain/interfaces/repositories/user-credentials-repository";
+import { PrismaService } from "@/modules/shared/services/prisma-services";
+import { UsersRepository } from "@/modules/identity/domain/interfaces/repositories/users-repository";
+import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 
 @Injectable()
 export class UserVerificationService {
   constructor(
+    private readonly userRepository: UsersRepository,
+    private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly userVerificationRepository: UserVerificationRepository,
+    private readonly prismaService: PrismaService,
     private readonly emailService: EmailService
   ) {}
 
@@ -54,6 +61,52 @@ export class UserVerificationService {
   }
 
   async verifyToken(token: string): Promise<void> {
-    // todo: Validar token de User Verifications
+    const userVerification =
+      await this.userVerificationRepository.findByToken(token);
+
+    if (!userVerification) {
+      throw new ForbiddenException("Token inválido");
+    }
+
+    const now = new Date();
+
+    if (userVerification.expiresAt && userVerification.expiresAt < now) {
+      throw new ForbiddenException("Token expirado");
+    }
+
+    if (userVerification.used) {
+      throw new ForbiddenException("Este link já foi utilizado");
+    }
+
+    const userCredential = await this.userCredentialsRepository.findOne({
+      userId: userVerification.userId,
+      provider: userVerification.provider,
+    });
+
+    if (!userCredential) {
+      throw new GoneException("Credencial de usuário não encontrada");
+    }
+
+    const user = await this.userRepository.findById(userCredential.userId);
+
+    if (!user) {
+      throw new GoneException("Usuário não encontrado");
+    }
+
+    userVerification.used = true;
+    userVerification.verifiedAt = now;
+    userVerification.attempts += 1;
+
+    userCredential.isVerified = true;
+
+    user.role = UserRoles.USER;
+
+    await this.prismaService.openTransaction(async (tx) => {
+      await this.userVerificationRepository.update(userVerification, tx);
+
+      await this.userCredentialsRepository.update(userCredential, tx);
+
+      await this.userRepository.update(user, tx);
+    });
   }
 }
