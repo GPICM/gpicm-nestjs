@@ -7,5 +7,5 @@ export abstract class UserCredentialsRepository {
   abstract findOne(
     filters: { userId: number; provider: AuthProviders },
     tx?: unknown
-  ): Promise<void>;
+  ): Promise<UserCredential | null>;
 }
