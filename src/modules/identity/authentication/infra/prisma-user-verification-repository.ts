@@ -2,7 +2,10 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Inject, Logger } from "@nestjs/common";
 import { UserVerificationRepository } from "../domain/interfaces/repositories/user-verification-repository";
-import { UserVerification } from "../domain/entities/UserVerification";
+import {
+  UserVerification,
+  UserVerificationType,
+} from "../domain/entities/UserVerification";
 import { AuthProviders } from "../../domain/enums/auth-provider";
 
 export class PrismaUserVerificationRepository
@@ -29,11 +32,17 @@ export class PrismaUserVerificationRepository
 
       return new UserVerification({
         id: result.id,
+        used: result.used,
         email: result.email,
         token: result.token,
-        expiresAt: result.expiresAt,
-        provider: result.provider as AuthProviders,
         userId: result.userId,
+        attempts: result.attempts,
+        expiresAt: result.expiresAt,
+        verifiedAt: result.verifiedAt,
+        ipAddress: result.ipAddress || "",
+        userAgent: result.userAgent || "",
+        provider: result.provider as AuthProviders,
+        type: result.type as UserVerificationType,
       });
     } catch (error: unknown) {
       this.logger.error(`Failed to add user Credentials`, {
@@ -54,11 +63,17 @@ export class PrismaUserVerificationRepository
       await prisma.userVerification.create({
         data: {
           id: userVerification.id,
+          type: userVerification.type,
+          used: userVerification.used,
           email: userVerification.email,
           token: userVerification.token,
           expiresAt: userVerification.expiresAt,
           provider: userVerification.provider,
           userId: userVerification.userId,
+          attempts: userVerification.attempts,
+          ipAddress: userVerification.ipAddress,
+          userAgent: userVerification.userAgent,
+          verifiedAt: userVerification.verifiedAt,
         },
       });
     } catch (error: unknown) {

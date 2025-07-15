@@ -1,7 +1,10 @@
 import { randomUUID } from "crypto";
 import { Injectable } from "@nestjs/common";
 
-import { UserVerification } from "../../domain/entities/UserVerification";
+import {
+  UserVerification,
+  UserVerificationType,
+} from "../../domain/entities/UserVerification";
 import { UserCredential } from "../../domain/entities/UserCredential";
 import { uuidv7 } from "uuidv7";
 import { UserVerificationRepository } from "../../domain/interfaces/repositories/user-verification-repository";
@@ -24,16 +27,22 @@ export class UserVerificationService {
 
     const userVerification = new UserVerification({
       token,
+      expiresAt,
       id: uuidv7(),
       email: userCredential.email,
       userId: userCredential.userId,
       provider: userCredential.provider,
-      expiresAt,
+      attempts: 0,
+      used: false,
+      ipAddress: "",
+      userAgent: "",
+      verifiedAt: null,
+      type: UserVerificationType.EMAIL_VERIFICATION,
     });
 
     await this.userVerificationRepository.add(userVerification, tx);
 
-    const link = `${String(process.env.FRONT_END_URL)}/verificar-email?token=${token}`;
+    const link = `${String(process.env.FRONT_END_URL)}/verify-email?token=${token}`;
     const { html, text } = generateVerificationEmailContent(link);
 
     await this.emailService.sendEmail({
