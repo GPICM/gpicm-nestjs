@@ -95,8 +95,8 @@ export class PrismaUserVerificationRepository
       await prisma.userVerification.update({
         where: { id: verification.id },
         data: {
-          attempts: verification.attempts,
           used: verification.used,
+          attempts: verification.attempts,
           verifiedAt: verification.verifiedAt,
         },
       });

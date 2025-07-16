@@ -95,7 +95,6 @@ export class PrismaUserCredentialsRepository
           isVerified: user.isVerified ?? undefined,
           isPrimary: user.isPrimary,
           externalId: user.externalId,
-          passwordHash: user.passwordHash,
           email: user.email,
         },
       });
