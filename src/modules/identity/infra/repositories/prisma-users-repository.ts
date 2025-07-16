@@ -80,6 +80,22 @@ export class PrismaUserRepository implements UsersRepository {
     }
   }
 
+  public async findById(id: number): Promise<User | null> {
+    try {
+      this.logger.log(`Finding user by id: ${id}`);
+
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: userInclude,
+      });
+
+      return user ? UserAssembler.fromPrisma(user) : null;
+    } catch (error: unknown) {
+      this.logger.error(`Failed to find user by id: ${id}`, { error });
+      throw new Error("Error retrieving user by id");
+    }
+  }
+
   public async add(user: User, tx?: PrismaClient): Promise<number> {
     try {
       const connection = this.prisma.getConnection() ?? tx;

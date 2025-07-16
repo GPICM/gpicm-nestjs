@@ -47,6 +47,7 @@ model UserCredential {
   userId                     Int           @map("user_id")
   provider                   AuthProviders
   email                      String        @unique
+  isVerified                 Boolean       @default(false) @map("is_verified")
   externalId                 String?       @map("external_id")
   passwordHash               String?       @map("password_hash")
   temporaryPasswordHash      String?       @map("temporary_password_hash")
@@ -57,11 +58,39 @@ model UserCredential {
   updatedAt                  DateTime      @updatedAt @map("updated_at")
   deletedAt                  DateTime?     @map("deleted_at")
 
-  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  UserVerification UserVerification[]
 
   @@id([userId, provider])
   @@unique([userId, isPrimary], name: "unique_primary_email_per_user")
   @@map("user_credentials")
+}
+
+model UserVerification {
+  id         String           @id @default(uuid())
+  type       VerificationType
+  email      String
+  token      String           @unique
+  used       Boolean          @default(false)
+  attempts   Int              @default(0)
+  ipAddress  String?          @map("ip_address")
+  userAgent  String?          @map("user_agent")
+  verifiedAt DateTime?        @map("verified_at")
+  expiresAt  DateTime         @map("expires_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  userId     Int              @map("user_id")
+
+  provider       AuthProviders
+  UserCredential UserCredential @relation(fields: [userId, provider], references: [userId, provider], onDelete: Cascade)
+
+  @@map("user_verifications")
+}
+
+enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  EMAIL_CHANGE
+  MFA
 }
 
 model UserPolicyAgreement {

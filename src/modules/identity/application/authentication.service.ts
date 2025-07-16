@@ -8,14 +8,15 @@ import { Encryptor } from "../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import { User } from "../domain/entities/User";
 import { UserRoles } from "../domain/enums/user-roles";
-import { Guest } from "../domain/entities/Guest";
 import { UserJWTpayload } from "../domain/value-objects/user-jwt-payload";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
 import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
-import { UserCredential } from "../domain/entities/UserCredential";
+import { UserCredential } from "../authentication/domain/entities/UserCredential";
+import { UserVerificationService } from "../authentication/application/user/user-verification.service";
+/* import { EmailVerificationService } from "./email-verification.service";*/
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -26,7 +27,8 @@ export class AuthenticationService {
     private readonly userCredentialsRepository: UserCredentialsRepository,
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
-    private readonly prismaService: PrismaService
+    private readonly prismaService: PrismaService,
+    private readonly userVerificationService: UserVerificationService
   ) {}
 
   public async signUp(params: {
@@ -40,14 +42,12 @@ export class AuthenticationService {
 
       const { name, email, password, deviceKey } = params;
 
-      let accessToken: string = "";
-
-      let guestUser: Guest | null = null;
+      let guestUser: User | null = null;
       if (deviceKey) {
         this.logger.log("DEvice key intercepted. searching for its guest");
-        guestUser = (await this.usersRepository.findUserByDeviceKey(deviceKey, {
+        guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
           roles: [UserRoles.GUEST],
-        })) as Guest | null;
+        });
       }
 
       const emailExists = await this.usersRepository.findByCredentials(
@@ -61,44 +61,15 @@ export class AuthenticationService {
         );
       }
 
+      const emailPasswordCredential =
+        UserCredential.CreateEmailPasswordCredential(email, password);
+
       let newUser: User | null = null;
-      if (!guestUser) {
-        this.logger.log("DEBUG: Creating a new user: -> ");
-        try {
-          const newCredential = UserCredential.CreateEmailPasswordCredential(
-            null,
-            email,
-            password
-          );
-
-          this.logger.log("DEBUG: newCredential:", { newCredential });
-
-          newUser = User.Create(name, newCredential);
-
-          this.logger.log("DEBUG: [newUser'", { newUser });
-          accessToken = this.encryptor.generateToken({
-            sub: newUser.publicId,
-          });
-
-          this.logger.log("DEBUG: accesstoken:", { accessToken });
-        } catch (error: unknown) {
-          console.log(
-            "DEBUG: Faled to create user",
-            JSON.stringify(error, null, 4)
-          );
-        }
+      if (guestUser) {
+        guestUser.setName(name);
+        guestUser.addCredentials(emailPasswordCredential);
       } else {
-        this.logger.log("Upgrading guest user");
-
-        guestUser.upgrade(name, email, password);
-
-        this.logger.log("DEBUG:  guest upgraded", { guestUser });
-
-        accessToken = this.encryptor.generateToken({
-          sub: guestUser.publicId,
-        });
-
-        this.logger.log("DEBUG: accesstoken:", { accessToken });
+        newUser = User.Create(name, emailPasswordCredential);
       }
 
       let userId: number;
@@ -106,18 +77,25 @@ export class AuthenticationService {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
-
-          const newCredential = newUser.credentials[0];
-          await this.userCredentialsRepository.add(newCredential, tx);
+          emailPasswordCredential.setUserId(userId);
         } else if (guestUser) {
           userId = guestUser.id;
-          const newCredential = guestUser.credentials[0];
-          await this.userCredentialsRepository.add(newCredential, tx);
           await this.usersRepository.update(guestUser, tx);
         }
+
+        await this.userCredentialsRepository.add(emailPasswordCredential, tx);
+
+        await this.userVerificationService.startUserVerification(
+          emailPasswordCredential,
+          tx
+        );
       });
 
       await this.logUserAction.execute(userId!, "SIGNUP");
+
+      const accessToken = this.encryptor.generateToken({
+        sub: (guestUser?.publicId || newUser?.publicId)!,
+      });
 
       return { accessToken };
     } catch (error: unknown) {

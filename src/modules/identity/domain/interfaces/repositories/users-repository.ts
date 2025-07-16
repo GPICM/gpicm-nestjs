@@ -3,6 +3,8 @@ import { User } from "../../entities/User";
 import { UserRoles } from "../../enums/user-roles";
 
 export abstract class UsersRepository {
+  abstract findById(id: number): Promise<User | null>;
+
   abstract findByPublicId(
     uuid: string,
     filters?: { roles?: UserRoles[] }
@@ -19,7 +21,6 @@ export abstract class UsersRepository {
       email: string;
     }
   ): Promise<User | null>;
-  
 
   abstract add(user: User, tx?: unknown): Promise<number>;
 
