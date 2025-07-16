@@ -42,7 +42,7 @@ export class GuestAuthenticationService {
       }
 
       if (!guestUser) {
-        guestUser = User.CreateGuest(name, ipAddress, deviceInfo);
+        guestUser = User.Create(name ?? `Visitante_${new Date().getTime()}`);
         const newUserId = await this.usersRepository.add(guestUser);
         guestUser.setId(newUserId);
       }
