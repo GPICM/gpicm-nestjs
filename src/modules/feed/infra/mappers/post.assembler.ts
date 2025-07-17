@@ -91,6 +91,7 @@ class PostAssembler {
         ${post.isVerified ? 1 : 0},
         ${post.downVotes ?? 0},
         ${post.upVotes ?? 0},
+        ${post.comments ?? 0},            
         ${post.score ?? 0},
         ${post.address ? `'${escapeString(address)}'` : "NULL"},
         '${post.author.id}',
