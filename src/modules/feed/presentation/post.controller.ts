@@ -94,6 +94,26 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
+  @Get("mine")
+  async listMine(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
+    this.logger.log(`Fetching personal posts for user ${user.id}`);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = (page - 1) * limit;
+
+    const { records, count: total } = await this.postRepository.listMine(
+      {
+        limit,
+        offset,
+        search: query.search,
+      },
+      user.id
+    );
+
+    return new PaginatedResponse(records, total, limit, page, query);
+  }
+
   @Get("hot")
   async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts", { query });

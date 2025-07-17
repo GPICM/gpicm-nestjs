@@ -113,6 +113,50 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async listMine(
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
+    try {
+      const skip = filters.offset ?? 0;
+      const take = filters.limit ?? 10;
+      const sort = filters.sort ?? "published_at";
+      const order = filters.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+      this.logger.log(
+        `Listing posts by user ${userId} with filters: offset=${skip}, limit=${take}, sort=${sort}, order=${order}`
+      );
+
+      const query =
+        this.buildBasePostSelectQuery(`WHERE p.author_id = ?`) +
+        ` ORDER BY p.${sort} ${order} LIMIT ? OFFSET ?`;
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const [result, countResult] = await Promise.all([
+        await this.prisma.$queryRawUnsafe<any>(
+          query,
+          userId,
+          userId,
+          take,
+          skip
+        ),
+        await this.prisma.$queryRawUnsafe<any>(
+          `SELECT COUNT(*) AS total FROM posts p WHERE p.author_id = ?`,
+          userId
+        ),
+      ]);
+
+      const records = PostAssembler.fromSqlMany(result, userId);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const count = Number(countResult[0]?.total ?? 0);
+
+      return { records, count };
+    } catch (error: unknown) {
+      this.logger.error("Failed to list user's posts", { error });
+      throw new Error("Failed to list user's posts");
+    }
+  }
+
   public async listAll(
     filters: PostFindManyFilters,
     userId: number
