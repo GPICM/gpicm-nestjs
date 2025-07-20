@@ -2,6 +2,7 @@
 
 import { Post } from "../../entities/Post";
 import { ViewerPost } from "../../entities/ViewerPost";
+import { PostSortBy } from "../../enum/OrderBy";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
@@ -23,14 +24,16 @@ export abstract class PostRepository {
   abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
 
   abstract listAll(
-    filters: BaseRepositoryFindManyFilters,
+    filters: PostFindManyFilters,
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
+}
 
-  abstract listByRelevance(
-    filters: BaseRepositoryFindManyFilters,
-    userId: number
-  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
+export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
+  startDate?: Date;
+  endDate?: Date;
+  sortBy?: PostSortBy
+  tags?: string[];
 }
 
 export * from "../dto/base-repository-filters";

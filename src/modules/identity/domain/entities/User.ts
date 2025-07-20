@@ -70,19 +70,15 @@ export class User {
 
   public static Create(name: string, credential?: UserCredential) {
     try {
-      console.log("DEBUG: Creating user", { name, credential });
-
       const publicId = randomUUID();
       const deviceKey = randomUUID();
-
-      console.log("DEBUG: Generated:", { publicId, deviceKey });
 
       return new User({
         id: -1,
         name,
         publicId,
         deviceKey,
-        role: UserRoles.GUEST,
+        role: credential ? UserRoles.USER : UserRoles.GUEST,
         status: UserStatus.ACTIVE,
         credentials: credential ? [credential] : [],
         avatar: null,
