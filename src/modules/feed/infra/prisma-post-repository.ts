@@ -219,11 +219,7 @@ export class PrismaPostRepository implements PostRepository {
 
       await this.prisma.post.update({
         where: { id: post.id! },
-        data: {
-          views: {
-            increment: 1,
-          },
-        },
+        data: { views: { increment: 1 } },
       });
 
       this.logger.log(`Post views incremented successfully for ID: ${post.id}`);

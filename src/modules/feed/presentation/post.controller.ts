@@ -127,12 +127,10 @@ export class PostController {
   @Get(":postSlug")
   async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
 
-    let post = await this.postService.findOne(postSlug, user);
+    const post = await this.postService.findOne(postSlug, user);
 
-    if(post != null){
-      await this.postService.IncrementViews(post, user);
-
-      post = await this.postService.findOne(postSlug, user);
+    if(post){
+      await this.postService.incrementViews(post, user);
     }
     
     return post;
