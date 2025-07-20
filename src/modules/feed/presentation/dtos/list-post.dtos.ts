@@ -41,13 +41,13 @@ export class ListPostQueryDto {
   endDate?: Date;
   
   @IsOptional()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) return value.map(String);
-    if (typeof value === 'string') return value.split(',').map(String);
-    return [];
-  })
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    return [value];
+  })
   readonly tags: string[] = [];
 
   @IsOptional()
