@@ -54,6 +54,7 @@ export class PostFactory {
       upVotes: 0,
       comments: 0,
       score: 0,
+      tags: [],
     });
   }
 

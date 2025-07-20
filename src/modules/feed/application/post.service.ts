@@ -45,18 +45,6 @@ export class PostServices {
 
       await this.prismaService.openTransaction(
         async (transactionContext: PrismaService) => {
-          const postId = await this.postRepository.add(post, {
-            transactionContext,
-          });
-
-          post.setId(postId);
-          const postMedias = post.getMedias();
-
-          if (postMedias) {
-            await this.postMediasRepository.bulkAdd(postMedias, {
-              transactionContext,
-            });
-          }
 
           if (dto.type == PostTypeEnum.INCIDENT) {
             const incident = await this.incidentsService.create(user, {
@@ -75,9 +63,23 @@ export class PostServices {
             post.setAttachment(
               new PostAttachment(incident.id, incident, "Incident")
             );
-            post.setStatus(PostStatusEnum.PUBLISHED);
 
-            await this.postRepository.update(post, { transactionContext });
+            post.setTags([incident.incidentType.slug]);
+
+            post.setStatus(PostStatusEnum.PUBLISHED);
+          }
+
+          const postId = await this.postRepository.add(post, {
+            transactionContext,
+          });
+
+          post.setId(postId);
+          const postMedias = post.getMedias();
+
+          if (postMedias) {
+            await this.postMediasRepository.bulkAdd(postMedias, {
+              transactionContext,
+            });
           }
         }
       );

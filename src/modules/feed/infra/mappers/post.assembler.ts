@@ -56,6 +56,10 @@ class PostAssembler {
       ? JSON.stringify(coverImageSource.toJSON())
       : null;
 
+    const tagsJSON: string | null = post.tags?.length
+      ? JSON.stringify(post.tags)
+      : null;
+
     const escapeString = (str: string) => str.replace(/'/g, "''");
 
     const sql = `
@@ -77,7 +81,8 @@ class PostAssembler {
         location_address,
         author_id,
         location,
-        cover_image_sources
+        cover_image_sources,
+        tags
       ) VALUES (
           '${post.uuid}',
           '${escapeString(post.title)}',
@@ -96,7 +101,8 @@ class PostAssembler {
           ${post.address ? `'${escapeString(address)}'` : "NULL"},
           '${post.author.id}',
           ${pointWKT},
-          ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
+          ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"},
+          ${tagsJSON ? `'${escapeString(tagsJSON)}'` : "NULL"}
         );
     `;
 
@@ -159,8 +165,6 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
-    
-
     let coverImageUrl = "";
     let thumbnailUrl = "";
     const coverImageSource = MediaSource.fromJSON(data.cover_image_sources);
@@ -198,6 +202,7 @@ class PostAssembler {
         author,
         attachment,
         medias: [],
+        tags: [],
       },
       userId,
       voteValue
