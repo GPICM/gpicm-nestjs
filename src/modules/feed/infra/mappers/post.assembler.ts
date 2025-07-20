@@ -177,6 +177,15 @@ class PostAssembler {
         coverImageSource?.getVariant(MediaSourceVariantKey.md)?.url || "";
     }
 
+    let tags: string[] = [];
+    if (data.tags) {
+      try {
+        tags = JSON.parse(data.tags);
+      } catch (error: unknown) {
+        console.error("failed to parse tags", { error });
+      }
+    }
+
     return new ViewerPost(
       {
         id: data.id,
@@ -202,7 +211,7 @@ class PostAssembler {
         author,
         attachment,
         medias: [],
-        tags: [],
+        tags,
       },
       userId,
       voteValue
