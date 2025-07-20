@@ -52,5 +52,5 @@ export class ListPostQueryDto {
 
   @IsOptional()
   @IsEnum(PostSortBy)
-  readonly sort: PostSortBy = PostSortBy.NEWEST;
+  readonly sortBy: PostSortBy = PostSortBy.NEWEST;
 }

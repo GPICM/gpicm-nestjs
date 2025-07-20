@@ -32,6 +32,7 @@ import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
 import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
+import { PostSortBy } from "../domain/enum/OrderBy";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -85,6 +86,7 @@ export class PostController {
         search: query.search,
         endDate: query.endDate,
         startDate: query.startDate,
+        sortBy: query.sortBy
       },
       user.id
     );
@@ -114,7 +116,7 @@ export class PostController {
         search: query.search,
         endDate: query.endDate,
         startDate: query.startDate,
-        sort: "score",
+        sortBy: PostSortBy.MOST_POPULAR,
       },
       user.id
     );

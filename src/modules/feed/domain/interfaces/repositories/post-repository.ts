@@ -2,6 +2,7 @@
 
 import { Post } from "../../entities/Post";
 import { ViewerPost } from "../../entities/ViewerPost";
+import { PostSortBy } from "../../enum/OrderBy";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
@@ -31,6 +32,7 @@ export abstract class PostRepository {
 export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
   startDate?: Date;
   endDate?: Date;
+  sortBy?: PostSortBy
   tags?: string[];
 }
 

@@ -9,6 +9,7 @@ import { Post } from "../domain/entities/Post";
 import { PrismaClient } from "@prisma/client";
 import { PostAssembler } from "./mappers/post.assembler";
 import { ViewerPost } from "../domain/entities/ViewerPost";
+import { PostSortBy } from "../domain/enum/OrderBy";
 
 export class PrismaPostRepository implements PostRepository {
   private readonly logger: Logger = new Logger(PrismaPostRepository.name);
@@ -121,12 +122,6 @@ export class PrismaPostRepository implements PostRepository {
       const skip = filters.offset ?? 0;
       const take = filters.limit ?? 10;
 
-      const allowedSortFields = ["score", "published_at", "created_at"];
-
-      const sort = allowedSortFields.includes(filters.sort ?? "")
-        ? filters.sort
-        : "published_at";
-
       const order = filters.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
       const whereClauses: string[] = [];
@@ -154,13 +149,12 @@ export class PrismaPostRepository implements PostRepository {
       }
 
       this.logger.log(
-        `Listing posts with filters: skip=${skip}, take=${take}, sort=${sort}, order=${order}, search=${filters.search ?? "none"}`
+        `Listing posts with filters: skip=${skip}, take=${take}, order=${order}, search=${filters.search ?? "none"}`
       );
 
-      const orderByClause =
-        sort === "score"
-          ? `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`
-          : `p.${sort} ${order}`;
+      const orderByClause = this.getOrderByClause(
+        filters.sortBy ?? PostSortBy.NEWEST
+      );
 
       const query =
         this.buildBasePostSelectQuery(whereClauses) +
@@ -186,6 +180,34 @@ export class PrismaPostRepository implements PostRepository {
       console.log(error);
       this.logger.error("Failed to list posts", { error });
       throw new Error("Failed to list posts");
+    }
+  }
+
+  private getOrderByClause(sortBy: PostSortBy): string {
+    switch (sortBy) {
+      case PostSortBy.NEWEST:
+        return `p.published_at DESC`;
+      case PostSortBy.OLDEST:
+        return `p.published_at ASC`;
+      case PostSortBy.MOST_POPULAR:
+        // Por exemplo, score decrescente com decaimento por data
+        return `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
+      case PostSortBy.LEAST_POPULAR:
+        return `p.score ASC`;
+      case PostSortBy.MOST_COMMENTED:
+        return `p.comments_count DESC`;
+      case PostSortBy.LEAST_COMMENTED:
+        return `p.comments_count ASC`;
+      case PostSortBy.MOST_LIKED:
+        return `p.up_votes DESC`;
+      case PostSortBy.LEAST_LIKED:
+        return `p.up_votes ASC`;
+      case PostSortBy.TITLE_ASC:
+        return `p.title ASC`;
+      case PostSortBy.TITLE_DESC:
+        return `p.title DESC`;
+      default:
+        return `p.published_at DESC`; // padrão
     }
   }
 
@@ -220,14 +242,3 @@ export class PrismaPostRepository implements PostRepository {
     return where;
   }
 }
-
-/*        
-JSON_ARRAYAGG(
-  JSON_OBJECT(
-    'media_id', pm.media_id,
-    'display_order', pm.display_order,
-    'media_caption', m.caption,
-    'media_sources', m.sources
-  )
-  ) AS post_media_obj 
-*/
