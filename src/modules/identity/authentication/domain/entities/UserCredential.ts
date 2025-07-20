@@ -50,10 +50,6 @@ export class UserCredential {
       const salt = bcrypt.genSaltSync(8);
       const passwordHash = bcrypt.hashSync(password, salt);
 
-      console.log("DEBUG: passwordHash", {
-        passwordHash,
-      });
-
       const credential = new UserCredential({
         email,
         userId: userId ?? -1,
