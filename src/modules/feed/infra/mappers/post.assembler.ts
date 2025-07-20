@@ -79,24 +79,25 @@ class PostAssembler {
         location,
         cover_image_sources
       ) VALUES (
-        '${post.uuid}',
-        '${escapeString(post.title)}',
-        '${escapeString(post.content)}',
-        '${escapeString(post.slug)}',
-        '${post.type}',
-        '${post.status}',
-        ${publishedAtValue},
-        NOW(),
-        ${post.isPinned ? 1 : 0},
-        ${post.isVerified ? 1 : 0},
-        ${post.downVotes ?? 0},
-        ${post.upVotes ?? 0},
-        ${post.score ?? 0},
-        ${post.address ? `'${escapeString(address)}'` : "NULL"},
-        '${post.author.id}',
-        ${pointWKT},
-        ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
-      );
+          '${post.uuid}',
+          '${escapeString(post.title)}',
+          '${escapeString(post.content)}',
+          '${escapeString(post.slug)}',
+          '${post.type}',
+          '${post.status}',
+          ${publishedAtValue},
+          NOW(),
+          ${post.isPinned ? 1 : 0},
+          ${post.isVerified ? 1 : 0},
+          ${post.downVotes ?? 0},
+          ${post.upVotes ?? 0},
+          ${post.comments ?? 0},
+          ${post.score ?? 0},
+          ${post.address ? `'${escapeString(address)}'` : "NULL"},
+          '${post.author.id}',
+          ${pointWKT},
+          ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
+        );
     `;
 
     return sql.trim();
