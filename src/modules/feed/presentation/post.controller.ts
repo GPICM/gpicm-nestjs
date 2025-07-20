@@ -65,29 +65,31 @@ export class PostController {
 
   @Get()
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
-    this.logger.log("Fetching all posts");
+    this.logger.log("Fetching all posts", { query });
 
     // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
-    const filters = {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    };
-
-    const page = filters.page ?? 1;
-    const limit = filters.limit ?? 16;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
+
+    if(query.startDate && query.endDate){
+      query.startDate.setHours(0,0,0,0);
+      query.endDate.setHours(23,59,59,999);
+    }
 
     const { records, count: total } = await this.postRepository.listAll(
       {
         limit,
         offset,
-        search: filters.search,
+        tags: query.tags,
+        search: query.search,
+        endDate: query.endDate,
+        startDate: query.startDate,
       },
       user.id
     );
 
-    return new PaginatedResponse(records, total, limit, page, filters);
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 
   @Get("hot")

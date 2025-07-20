@@ -1,6 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable prettier/prettier */
 import { Transform, Type } from "class-transformer";
-import { IsDate, IsInt, IsOptional, IsString, Min } from "class-validator";
-
+import {
+  IsArray,
+  IsDate,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
+import { PostSortBy } from "../../domain/enum/OrderBy";
 export class ListPostQueryDto {
   @IsInt()
   @Min(1)
@@ -27,4 +39,18 @@ export class ListPostQueryDto {
   @IsOptional()
   @Transform((p) => (p.value === "" ? undefined : new Date(p.value)))
   endDate?: Date;
+  
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value.map(String);
+    if (typeof value === 'string') return value.split(',').map(String);
+    return [];
+  })
+  @IsArray()
+  @IsString({ each: true })
+  readonly tags: string[] = [];
+
+  @IsOptional()
+  @IsEnum(PostSortBy)
+  readonly sort: PostSortBy = PostSortBy.NEWEST;
 }
