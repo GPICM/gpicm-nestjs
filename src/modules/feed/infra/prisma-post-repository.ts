@@ -190,8 +190,8 @@ export class PrismaPostRepository implements PostRepository {
       case PostSortBy.OLDEST:
         return `p.published_at ASC`;
       case PostSortBy.MOST_POPULAR:
-        // Por exemplo, score decrescente com decaimento por data
-        return `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
+        //return `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
+        return `(p.score + LOG10(p.views + 1) + LOG10(p.comments_count + 1)) * POW(0.95, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
       case PostSortBy.LEAST_POPULAR:
         return `p.score ASC`;
       case PostSortBy.MOST_COMMENTED:
