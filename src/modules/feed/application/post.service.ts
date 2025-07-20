@@ -19,7 +19,7 @@ import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
-  private readonly viewCooldownMs = 1 * 60 * 1000; // 5 min
+  private readonly viewCooldownMs = 30 * 1000; // 30 secs
 
   constructor(
     @Inject(PostRepository)
