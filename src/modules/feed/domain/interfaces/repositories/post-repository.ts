@@ -27,6 +27,11 @@ export abstract class PostRepository {
     filters: PostFindManyFilters,
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
+
+  abstract listMine(
+    filters: BaseRepositoryFindManyFilters,
+    userId: number
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 }
 
 export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
