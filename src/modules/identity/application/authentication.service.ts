@@ -44,10 +44,12 @@ export class AuthenticationService {
 
       let guestUser: User | null = null;
       if (deviceKey) {
-        this.logger.log("DEvice key intercepted. searching for its guest");
+        this.logger.log("Device key intercepted. searching for its guest");
         guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
           roles: [UserRoles.GUEST],
         });
+
+        this.logger.log("Device key search result", { guestUser });
       }
 
       const emailExists = await this.usersRepository.findByCredentials(

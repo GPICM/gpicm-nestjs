@@ -1,5 +1,4 @@
 export type PostRawQuery = {
-  
   id: number;
   title: string;
   slug: string;
@@ -16,6 +15,7 @@ export type PostRawQuery = {
   is_verified: number;
   score: number;
   views: number;
+  tags: string | null;
   keywords: string;
   cover_image_sources: string | null;
   up_votes: number;

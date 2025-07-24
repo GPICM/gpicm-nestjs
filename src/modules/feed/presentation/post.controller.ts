@@ -32,6 +32,7 @@ import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
 import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto";
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
+import { PostSortBy } from "../domain/enum/OrderBy";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -65,61 +66,74 @@ export class PostController {
 
   @Get()
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
-    this.logger.log("Fetching all posts");
+    this.logger.log("Fetching all posts", { query });
 
     // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
-    const filters = {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    };
-
-    const page = filters.page ?? 1;
-    const limit = filters.limit ?? 16;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
+
+    if(query.startDate && query.endDate){
+      query.startDate.setHours(0,0,0,0);
+      query.endDate.setHours(23,59,59,999);
+    }
 
     const { records, count: total } = await this.postRepository.listAll(
       {
         limit,
         offset,
-        search: filters.search,
+        tags: query.tags,
+        search: query.search,
+        endDate: query.endDate,
+        startDate: query.startDate,
+        sortBy: query.sortBy
       },
       user.id
     );
 
-    return new PaginatedResponse(records, total, limit, page, filters);
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 
   @Get("hot")
   async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
-    this.logger.log("Fetching all posts");
+    this.logger.log("Fetching all posts", { query });
 
     // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
-    const filters = {
-      page: query.page,
-      limit: query.limit,
-      search: query.search,
-    };
-
-    const page = filters.page ?? 1;
-    const limit = filters.limit ?? 16;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
 
-    const { records, count: total } = await this.postRepository.listByRelevance(
+    if(query.startDate && query.endDate){
+      query.startDate.setHours(0,0,0,0);
+      query.endDate.setHours(23,59,59,999);
+    }
+
+    const { records, count: total } = await this.postRepository.listAll(
       {
         limit,
         offset,
-        search: filters.search,
+        tags: query.tags,
+        search: query.search,
+        endDate: query.endDate,
+        startDate: query.startDate,
+        sortBy: PostSortBy.MOST_POPULAR,
       },
       user.id
     );
 
-    return new PaginatedResponse(records, total, limit, page, filters);
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 
   @Get(":postSlug")
-  getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
-    return this.postService.findOne(postSlug, user);
+  async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
+
+    const post = await this.postService.findOne(postSlug, user);
+
+    if(post){
+      await this.postService.incrementViews(post, user);
+    }
+    
+    return post;
   }
 
   @Patch(":uuid/vote/up")

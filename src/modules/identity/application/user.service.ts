@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Logger } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
-import { UpdateUserAvatarDto, UpdateUserDataDto } from "../presentation/dtos/user-request.dtos";
+import {
+  UpdateUserAvatarDto,
+  UpdateUserDataDto,
+} from "../presentation/dtos/user-request.dtos";
 import { User } from "../domain/entities/User";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { UserAvatar } from "../domain/value-objects/user-avatar";

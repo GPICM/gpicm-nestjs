@@ -200,6 +200,7 @@ model Post {
   type              PostType              @default(INCIDENT)
   publishedAt       DateTime?             @map("published_at")
   authorId          Int                   @map("author_id")
+  author            Json?
   incidentId        String?               @map("incident_id")
   upVotes           Int                   @default(0) @map("up_votes")
   downVotes         Int                   @default(0) @map("down_votes")
@@ -209,6 +210,7 @@ model Post {
   locationAddress   String?               @map("location_address")
   views             Int                   @default(0)
   keywords          String?
+  tags              Json?
   coverImageSources Json?                 @map("cover_image_sources")
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
