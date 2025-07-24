@@ -17,14 +17,15 @@ export class UserVerificationController {
 
   @Post("/email")
   async emailVerification(
-    @Query("token") token: string
+    @Query("token") token: string,
+    @Query("publicId") publicId: string
   ): Promise<{ success: boolean }> {
-    if (!token) {
-      throw new BadRequestException("Token not found");
+    if (!token || !publicId) {
+      throw new BadRequestException("Token or PublicId not found");
     }
 
     try {
-      await this.userVerificationService.verifyToken(token);
+      await this.userVerificationService.verifyToken(token, publicId);
       return { success: true };
     } catch (error) {
       this.logger.error(

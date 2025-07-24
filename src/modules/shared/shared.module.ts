@@ -10,6 +10,7 @@ import { LogUserAction } from "./application/log-user-action";
 import { EmailService } from "./domain/interfaces/services/email-service";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { MockMailerService } from "./infra/MockMailerService";
+import { NodemailerEmailService } from "./infra/lib/nodemailer/nodemailer-email-service";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 

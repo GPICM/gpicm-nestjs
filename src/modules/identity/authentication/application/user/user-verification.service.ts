@@ -68,7 +68,7 @@ export class UserVerificationService {
     });
   }
 
-  async verifyToken(token: string): Promise<void> {
+  async verifyToken(token: string, publicId: string): Promise<void> {
     try {
       const userVerification =
         await this.userVerificationRepository.findByToken(token);
@@ -100,6 +100,10 @@ export class UserVerificationService {
 
       if (!user) {
         throw new GoneException("Usuário não encontrado");
+      }
+
+      if (user.publicId !== publicId) {
+        throw new ForbiddenException("PublicId inválido");
       }
 
       userVerification.used = true;
