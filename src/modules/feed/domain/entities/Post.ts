@@ -50,6 +50,7 @@ export class Post<A = unknown> {
 
   public readonly publishedAt: Date | null;
 
+
   public coverImageSource: MediaSource | null;
 
   public status: PostStatusEnum;

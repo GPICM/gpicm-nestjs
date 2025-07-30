@@ -46,6 +46,22 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async delete(post: Post): Promise<void> {
+    try {
+      this.logger.log(
+        `Deleting post with ID: ${post.id}, Title: ${post.title}`
+      );
+      await this.prisma.post.update({
+        where: { id: post.id! },
+        data: { deletedAt: new Date() },
+      });
+      this.logger.log(`Post deleted successfully with ID: ${post.id}`);
+    } catch (error: unknown) {
+      this.logger.error("Failed to delete post", { post, error });
+      throw new Error("Failed to delete post");
+    }
+  }
+
   public async update(
     post: Post,
     options?: { transactionContext?: PrismaClient }
@@ -190,8 +206,8 @@ export class PrismaPostRepository implements PostRepository {
       case PostSortBy.OLDEST:
         return `p.published_at ASC`;
       case PostSortBy.MOST_POPULAR:
-        // Por exemplo, score decrescente com decaimento por data
-        return `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
+        //return `p.score * POW(0.90, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
+        return `(p.score + LOG10(p.views + 1) + LOG10(p.comments_count + 1)) * POW(0.95, DATEDIFF(CURRENT_DATE, p.published_at)) DESC`;
       case PostSortBy.LEAST_POPULAR:
         return `p.score ASC`;
       case PostSortBy.MOST_COMMENTED:
@@ -231,7 +247,11 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   private buildBasePostSelectQuery(whereClauses: string[]): string {
-    const where = this.joinWhereCauses(whereClauses);
+    const clauses = whereClauses ? [...whereClauses] : [];
+    if (!clauses.some((c) => c.includes("p.deleted_at IS NULL"))) {
+      clauses.push("p.deleted_at IS NULL");
+    }
+    const where = this.joinWhereCauses(clauses);
 
     return `
     SELECT  

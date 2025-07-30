@@ -6,16 +6,16 @@ export const imageTransformMap = {
     format: "webp",
     sizes: [
       { alias: "sm", maxWidth: 128 },
-      { alias: "md", maxWidth: 320 },
-      { alias: "lg", maxWidth: 560 },
-      { alias: "base", maxWidth: 720 },
+      { alias: "md", maxWidth: 520 },
+      { alias: "lg", maxWidth: 720 },
+      { alias: "base", maxWidth: 1080 },
     ],
   }),
   [ImageTargetEnum.USERS_AVATAR]: new ImageTransformConfig({
     format: "webp",
     sizes: [
-      { alias: "sm", maxWidth: 48 },
-      { alias: "md", maxWidth: 96 },
+      { alias: "sm", maxWidth: 32 },
+      { alias: "md", maxWidth: 64 },
       { alias: "lg", maxWidth: 192 },
       { alias: "base", maxWidth: 320 },
     ],

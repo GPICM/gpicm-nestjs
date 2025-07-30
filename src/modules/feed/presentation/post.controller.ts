@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Delete,
+  NotFoundException,
 } from "@nestjs/common";
 
 import {
@@ -94,6 +95,17 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
+  @Delete(":postUuid")
+  @UseGuards(UserGuard)
+  async delete(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
+    this.logger.log("Deleting post", { postUuid });
+    const post = await this.postRepository.findByUuid(postUuid, user.id);
+    if (!post) {
+      throw new NotFoundException("Post not found");
+    }
+    await this.postRepository.delete(post);
+  }
+  
   @Get("hot")
   async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts", { query });

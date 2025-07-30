@@ -29,6 +29,9 @@ export abstract class PostRepository {
     filters: PostFindManyFilters,
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
+
+  abstract delete(post: Post): Promise<void>;
+  
 }
 
 export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
