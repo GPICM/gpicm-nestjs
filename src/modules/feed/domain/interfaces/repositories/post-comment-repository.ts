@@ -17,4 +17,5 @@ export abstract class PostCommentRepository {
   abstract delete(id: number): Promise<void>;
   abstract refreshPostCommentsCount(postId: number): Promise<void>;
   abstract refreshPostCommentsRepliesCount(parentId: number): Promise<void>;
+  abstract findByUserId(userId: number): Promise<PostComment[]>;
 }

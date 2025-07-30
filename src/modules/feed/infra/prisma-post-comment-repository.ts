@@ -129,4 +129,13 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
     return { records, count };
   }
+
+  public async findByUserId(userId: number): Promise<PostComment[]> {
+    const comments = await this.prisma.postComment.findMany({
+      where: { userId, deletedAt: null },
+      include: postCommentInclude,
+    });
+
+    return PostCommentAssembler.fromPrismaMany(comments);
+  }
 }

@@ -68,7 +68,6 @@ export class PostController {
   async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts", { query });
 
-    // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
     const page = query.page ?? 1;
     const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
@@ -246,5 +245,11 @@ export class PostController {
       });
 
     return new PaginatedResponse(records, total, limit, page, {});
+  }
+
+  @Get("comments/user")
+  async listUserComments(@CurrentUser() user: User) {
+    const comments = await this.postCommentRepository.findByUserId(user.id);
+    return comments;
   }
 }
