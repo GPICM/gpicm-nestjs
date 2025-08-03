@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Query, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Logger, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 import { InterpolatedMapsRepository } from "../../domain/interfaces/interpolated-maps-repository";
@@ -8,11 +8,18 @@ import { FilterInterpolatedMapsRequestDto } from "../dtos/filter-interpolated-ma
 @Controller("maps")
 @UseGuards(JwtAuthGuard)
 export class InterpolatedMapsController {
+
+  private readonly logger: Logger = new Logger(
+    InterpolatedMapsController.name
+  );
+
   constructor(private readonly interpolatedMaps: InterpolatedMapsRepository) {}
 
   @Get()
   @UseInterceptors(CacheInterceptor)
-  async finalAll(@Query() query: FilterInterpolatedMapsRequestDto): Promise<any> {
+  async findAll (@Query() query: FilterInterpolatedMapsRequestDto): Promise<any> {
+
+    this.logger.log("InterpolatedMapsController -> findAll Started", { query });
     const result = await this.interpolatedMaps.findMany({
       endDate: query.endDate,
       startDate: query.startDate,

@@ -23,6 +23,8 @@ export class MongoDbInterpolatedMapsRepository implements InterpolatedMapsReposi
     endDate: Date;
   }): Promise<InterpolatedMap[]> {
     try {
+
+      this.logger.log("[findMany] started", { filters })
       const { endDate, field, startDate } = filters;
 
       this.db = this.mongoService.getDatabase();
@@ -30,7 +32,7 @@ export class MongoDbInterpolatedMapsRepository implements InterpolatedMapsReposi
         MONGO_INTERPOLATED_MAP_COLLECTION_NAME
       );
 
-      const mognoDbResult = await collection
+      const mongoDbResult = await collection
         .aggregate<MongoInterpolatedMap>([
           {
             $match: {
@@ -41,13 +43,17 @@ export class MongoDbInterpolatedMapsRepository implements InterpolatedMapsReposi
               },
             },
           },
+          {
+            $limit: 144,
+          },
           { $sort: { timestamp: 1 } },
         ])
         .toArray();
 
+      this.logger.log("[findMany] MongoResult", { filters, mongoDbResult })
       const result: InterpolatedMap[] = [];
 
-      for (const data of mognoDbResult) {
+      for (const data of mongoDbResult) {
         const parsed = new InterpolatedMap({
           id: data._id.toString(),
           field: data.field,
