@@ -117,6 +117,40 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, filters);
   }
 
+  @Get("by-author/:authorPublicId") // Usando o public_id na rota
+  async listByAuthor(
+    @Param("authorPublicId") authorPublicId: string, // Pega o public_id do autor da URL
+    @Query() query: ListPostQueryDto, // Pode ter filtros de paginação/busca/ordenacao
+    @CurrentUser() user: User // Ainda precisamos do usuário logado para o "viewerId"
+  ) {
+      this.logger.log(`Fetching all posts by author ${authorPublicId}`);
+
+      
+      const filters = {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+      };
+
+      const page = filters.page ?? 1;
+      const limit = filters.limit ?? 16;
+      const offset = limit * (page - 1);
+
+      const { records, count: total } = await this.postRepository.listByAuthor(
+        {
+          limit,
+          offset,
+          search: filters.search,
+        },
+        user.id,
+        authorPublicId
+      );
+
+      return new PaginatedResponse(records, total, limit, page, filters);
+  }
+
+  
+
   @Get(":postSlug")
   getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
     return this.postService.findOne(postSlug, user);

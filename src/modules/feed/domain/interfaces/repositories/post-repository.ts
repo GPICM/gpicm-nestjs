@@ -27,6 +27,12 @@ export abstract class PostRepository {
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 
+  abstract listByAuthor(
+    filters: BaseRepositoryFindManyFilters,
+    userId: number,
+    authorPublicId: string
+  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>
+
   abstract listByRelevance(
     filters: BaseRepositoryFindManyFilters,
     userId: number
