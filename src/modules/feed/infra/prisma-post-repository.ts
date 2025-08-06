@@ -112,14 +112,14 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  public async listByAuthor(
+  public async listAllByAuthor(
     filters: BaseRepositoryFindManyFilters,
     viewerId: number, // Este é o userId do usuário logado (pode ser undefined/null se a rota for pública)
     authorPublicId: string // Este é o ID público do autor dos posts
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
     try {
       const skip = filters.offset ?? 0;
-      const take = filters.limit ?? 10;
+      const take = filters.limit ?? 6;
       const sort = filters.sort ?? "published_at"; // Ou outro padrão para posts de autor
       const order = filters.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
