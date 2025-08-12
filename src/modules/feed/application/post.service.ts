@@ -194,6 +194,18 @@ export class PostServices {
     return post;
   }
 
+  public async findOneByUuid(
+    postUuid: string,
+    user: User
+  ): Promise<ViewerPost | null> {
+    this.logger.log(`Fetching incident with postUuid: ${postUuid}`);
+    const post = await this.postRepository.findByUuid(postUuid, user.id);
+
+    if (!post) return null;
+
+    return post;
+  }
+
   private async validateMedias(
     user: User,
     mediaIds: string[]

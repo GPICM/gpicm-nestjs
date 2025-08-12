@@ -93,8 +93,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
   public async listAllByPostId(
     postId: number,
-    filters: BaseRepositoryFindManyFilters & { parentId?: number },
-    userId?: number
+    filters: BaseRepositoryFindManyFilters & { parentId?: number }
   ): Promise<BaseRepositoryFindManyResult<PostComment>> {
     const skip = filters.offset;
     const take = filters.limit;
@@ -130,12 +129,49 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
     return { records, count };
   }
 
-  public async findByUserId(userId: number): Promise<PostComment[]> {
-    const comments = await this.prisma.postComment.findMany({
-      where: { userId, deletedAt: null },
-      include: postCommentInclude,
-    });
+  public async findByUserId(
+    userId: number,
+    filters: BaseRepositoryFindManyFilters = {}
+  ): Promise<BaseRepositoryFindManyResult<PostComment>> {
+    const skip = filters.offset ?? 0;
+    const take = filters.limit ?? 10;
+    const sort = filters.sort ?? "createdAt";
+    const order = filters.order ?? "desc";
 
-    return PostCommentAssembler.fromPrismaMany(comments);
+    const where: Prisma.PostCommentWhereInput = {
+      userId,
+      deletedAt: null,
+      OR: [
+        { parentId: null },
+        {
+          parentId: { not: null },
+          ParentComment: {
+            deletedAt: null,
+          },
+        },
+      ],
+    };
+
+    const [prismaResult, count] = await Promise.all([
+      this.prisma.postComment.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { [sort]: order },
+        include: postCommentInclude,
+      }),
+      this.prisma.postComment.count({ where }),
+    ]);
+
+    const records = PostCommentAssembler.fromPrismaMany(prismaResult);
+
+    this.logger.log(
+      `Listed ${records.length} posts comments out of total ${count} testing`
+    );
+
+    return {
+      records,
+      count,
+    };
   }
 }

@@ -33,6 +33,7 @@ import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
 import { PostSortBy } from "../domain/enum/OrderBy";
+import { query } from "winston";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -97,7 +98,6 @@ export class PostController {
   async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts", { query });
 
-    // TODO: IMPLEMENT GEO LOCATION AND SCORE FILTERS
     const page = query.page ?? 1;
     const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
@@ -134,6 +134,19 @@ export class PostController {
     
     return post;
   }
+
+  @Get("uuid/:postUuid")
+  async getOneInternal(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
+
+    const post = await this.postService.findOneByUuid(postUuid, user);
+
+    if(post){
+      await this.postService.incrementViews(post, user);
+    }
+    
+    return post;
+  }
+
 
   @Patch(":uuid/vote/up")
   async upVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
@@ -247,9 +260,25 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
+
   @Get("comments/user")
-  async listUserComments(@CurrentUser() user: User) {
+  async listUserComments(
+    @CurrentUser() user: User,
+    @Query() query: ListPostCommentsDto,
+  ) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } =
+      await this.postCommentRepository.findByUserId(user.id, {
+        limit,
+        offset,
+      });
     const comments = await this.postCommentRepository.findByUserId(user.id);
-    return comments;
+    if(!comments){
+      throw new BadRequestException("Nenhum comentário encontrado para o usuário");
+    }
+    return new PaginatedResponse(records, total, limit, page, {});
   }
 }
