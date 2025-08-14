@@ -72,3 +72,16 @@ services:
       - '3003:4500'
     networks:
       - gpicm-production
+
+  worker4:
+    image: fonsecabarreto/gpicm-map-interpolation-app:latest
+    container_name: gpicm-map-interpolation-app
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env.production
+    restart: always
+    ports:
+      - '3004:8081'
+    networks:
+      - gpicm-production
