@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./modules/app.module";
@@ -8,6 +9,7 @@ import {
   VersioningType,
 } from "@nestjs/common";
 import { winstonLogger, logtail } from "./logger";
+import { LoggerMiddleware } from "./modules/shared/LoggerMiddleware";
 
 async function bootstrap(): Promise<INestApplication<any>> {
   const banner = `
@@ -59,6 +61,8 @@ async function main() {
     await logtail.flush(); // flush Logs
     process.exit(0);
   });
+
+  app.use(new LoggerMiddleware().use);
 
   await app.listen(process.env.PORT ?? 9000);
 }

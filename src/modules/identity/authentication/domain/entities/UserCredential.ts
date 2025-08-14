@@ -4,11 +4,13 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { AuthProviders } from "@/modules/identity/domain/enums/auth-provider";
 
 export class UserCredential {
-  public userId: number | null;
+  public userId: number;
 
   public provider: AuthProviders;
 
   public email: string;
+
+  public isVerified: boolean;
 
   public externalId: string | null;
 
@@ -35,13 +37,12 @@ export class UserCredential {
   }
 
   public static CreateEmailPasswordCredential(
-    userId: number | null,
     email: string,
-    password: string
+    password: string,
+    userId?: number
   ): UserCredential {
     try {
       console.log("DEBUG: creating  EMAIL_PASSWORD credential", {
-        userId,
         email,
         password,
       });
@@ -49,15 +50,12 @@ export class UserCredential {
       const salt = bcrypt.genSaltSync(8);
       const passwordHash = bcrypt.hashSync(password, salt);
 
-      console.log("DEBUG: passwordHash", {
-        passwordHash,
-      });
-
       const credential = new UserCredential({
         email,
-        userId,
+        userId: userId ?? -1,
         passwordHash,
         isPrimary: true,
+        isVerified: false,
         provider: AuthProviders.EMAIL_PASSWORD,
         externalId: null,
         lastPasswordChangeAt: null,

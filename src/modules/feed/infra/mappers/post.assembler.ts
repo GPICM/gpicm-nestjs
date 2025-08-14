@@ -56,6 +56,10 @@ class PostAssembler {
       ? JSON.stringify(coverImageSource.toJSON())
       : null;
 
+    const tagsJSON: string | null = post.tags?.length
+      ? JSON.stringify(post.tags)
+      : null;
+
     const escapeString = (str: string) => str.replace(/'/g, "''");
 
     const sql = `
@@ -77,26 +81,29 @@ class PostAssembler {
         location_address,
         author_id,
         location,
-        cover_image_sources
+        cover_image_sources,
+        tags
       ) VALUES (
-        '${post.uuid}',
-        '${escapeString(post.title)}',
-        '${escapeString(post.content)}',
-        '${escapeString(post.slug)}',
-        '${post.type}',
-        '${post.status}',
-        ${publishedAtValue},
-        NOW(),
-        ${post.isPinned ? 1 : 0},
-        ${post.isVerified ? 1 : 0},
-        ${post.downVotes ?? 0},
-        ${post.upVotes ?? 0},
-        ${post.score ?? 0},
-        ${post.address ? `'${escapeString(address)}'` : "NULL"},
-        '${post.author.id}',
-        ${pointWKT},
-        ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"}
-      );
+          '${post.uuid}',
+          '${escapeString(post.title)}',
+          '${escapeString(post.content)}',
+          '${escapeString(post.slug)}',
+          '${post.type}',
+          '${post.status}',
+          ${publishedAtValue},
+          NOW(),
+          ${post.isPinned ? 1 : 0},
+          ${post.isVerified ? 1 : 0},
+          ${post.downVotes ?? 0},
+          ${post.upVotes ?? 0},
+          ${post.comments ?? 0},
+          ${post.score ?? 0},
+          ${post.address ? `'${escapeString(address)}'` : "NULL"},
+          '${post.author.id}',
+          ${pointWKT},
+          ${coverImageSourceJSON ? `'${escapeString(coverImageSourceJSON)}'` : "NULL"},
+          ${tagsJSON ? `'${escapeString(tagsJSON)}'` : "NULL"}
+        );
     `;
 
     return sql.trim();
@@ -158,8 +165,6 @@ class PostAssembler {
       location = this.parseLocationObjectToGeoPosition(data.location_obj);
     }
 
-    
-
     let coverImageUrl = "";
     let thumbnailUrl = "";
     const coverImageSource = MediaSource.fromJSON(data.cover_image_sources);
@@ -170,6 +175,15 @@ class PostAssembler {
 
       thumbnailUrl =
         coverImageSource?.getVariant(MediaSourceVariantKey.md)?.url || "";
+    }
+
+    let tags: string[] = [];
+    if (data.tags) {
+      try {
+        tags = JSON.parse(data.tags);
+      } catch (error: unknown) {
+        console.error("failed to parse tags", { error });
+      }
     }
 
     return new ViewerPost(
@@ -197,6 +211,7 @@ class PostAssembler {
         author,
         attachment,
         medias: [],
+        tags,
       },
       userId,
       voteValue

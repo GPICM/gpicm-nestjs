@@ -50,6 +50,7 @@ export class Post<A = unknown> {
 
   public readonly publishedAt: Date | null;
 
+
   public coverImageSource: MediaSource | null;
 
   public status: PostStatusEnum;
@@ -68,12 +69,18 @@ export class Post<A = unknown> {
 
   public medias?: PostMedia[];
 
+  public tags: string[] = [];
+
   constructor(args: NonFunctionProperties<Post<A>>) {
     Object.assign(this, args);
   }
 
   public setAttachment(newAttachment: PostAttachment<A>): void {
     this.attachment = newAttachment;
+  }
+
+  public setTags(tags: string[]): void {
+    this.tags = tags;
   }
 
   public setStatus(newStatus: PostStatusEnum): void {

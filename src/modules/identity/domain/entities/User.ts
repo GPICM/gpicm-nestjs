@@ -2,7 +2,7 @@ import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-fun
 import { UserRoles } from "../enums/user-roles";
 import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
-import { UserCredential } from "./UserCredential";
+import { UserCredential } from "../../authentication/domain/entities/UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
 import { UserBasicData } from "../value-objects/user-basic-data";
 import { UserAvatar } from "../value-objects/user-avatar";
@@ -68,54 +68,19 @@ export class User {
     return this.avatar;
   }
 
-  public static CreateGuest(
-    name?: string,
-    ipAddress?: string,
-    deviceInfo?: Record<string, unknown>
-  ) {
-    const newDeviceKey = randomUUID();
-
-    return new User({
-      id: -1,
-      publicId: randomUUID(),
-      name: name ?? `Visitante_${new Date().getTime()}`,
-      status: UserStatus.ACTIVE,
-      role: UserRoles.GUEST,
-      deviceKey: newDeviceKey,
-      deviceInfo: deviceInfo ?? null,
-      ipAddress: ipAddress ?? null,
-      bio: null,
-      birthDate: null,
-      gender: null,
-      isVerified: false,
-      lastLoginAt: null,
-      phoneNumber: null,
-      credentials: [],
-      latitude: null,
-      longitude: null,
-      locationUpdatedAt: null,
-      createdAt: new Date(),
-      avatar: null,
-      updateAt: null,
-    });
-  }
-
-  public static Create(name: string, credential: UserCredential) {
+  public static Create(name: string, credential?: UserCredential) {
     try {
-      console.log("DEBUG: Creating user", { name, credential });
-
       const publicId = randomUUID();
       const deviceKey = randomUUID();
-
-      console.log("DEBUG: Generated:", { publicId, deviceKey });
 
       return new User({
         id: -1,
         name,
         publicId,
         deviceKey,
-        role: UserRoles.USER,
+        role: credential ? UserRoles.USER : UserRoles.GUEST,
         status: UserStatus.ACTIVE,
+        credentials: credential ? [credential] : [],
         avatar: null,
         ipAddress: null,
         deviceInfo: null,
@@ -125,7 +90,6 @@ export class User {
         isVerified: false,
         lastLoginAt: null,
         phoneNumber: null,
-        credentials: [credential],
         latitude: null,
         longitude: null,
         locationUpdatedAt: null,
@@ -164,6 +128,7 @@ export class User {
   }
 
   public addCredentials(credential: UserCredential) {
+    credential.userId = this.id;
     this.credentials.push(credential);
   }
 

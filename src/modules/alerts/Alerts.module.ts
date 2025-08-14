@@ -3,9 +3,10 @@ import { CivilDefenseAlertsController } from "./Alerts.controller";
 import { CivilDefenseAlertsRepository } from "./domain/interfaces/alerts-repository";
 import { PrismaCivilDefenseAlertsRepository } from "./infra/repositories/prisma-alerts-repository";
 import { PrismaService } from "../shared/services/prisma-services";
+import { PartnerAlertsController } from "./partner-alerts.controller";
 
 @Module({
-  controllers: [CivilDefenseAlertsController],
+  controllers: [CivilDefenseAlertsController, PartnerAlertsController],
   providers: [
     PrismaService,
     {

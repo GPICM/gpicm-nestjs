@@ -15,9 +15,11 @@ import { PostMediasRepository } from "../domain/interfaces/repositories/post-med
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
+import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
+  private readonly viewCooldownMs = 30 * 1000; // 30 secs
 
   constructor(
     @Inject(PostRepository)
@@ -27,6 +29,7 @@ export class PostServices {
     private readonly postMediasRepository: PostMediasRepository,
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
+    private readonly redisAdapter: RedisAdapter,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
   ) {}
@@ -45,19 +48,6 @@ export class PostServices {
 
       await this.prismaService.openTransaction(
         async (transactionContext: PrismaService) => {
-          const postId = await this.postRepository.add(post, {
-            transactionContext,
-          });
-
-          post.setId(postId);
-          const postMedias = post.getMedias();
-
-          if (postMedias) {
-            await this.postMediasRepository.bulkAdd(postMedias, {
-              transactionContext,
-            });
-          }
-
           if (dto.type == PostTypeEnum.INCIDENT) {
             const incident = await this.incidentsService.create(user, {
               title: post.title,
@@ -75,9 +65,23 @@ export class PostServices {
             post.setAttachment(
               new PostAttachment(incident.id, incident, "Incident")
             );
-            post.setStatus(PostStatusEnum.PUBLISHED);
 
-            await this.postRepository.update(post, { transactionContext });
+            post.setTags([incident.incidentType.slug]);
+
+            post.setStatus(PostStatusEnum.PUBLISHED);
+          }
+
+          const postId = await this.postRepository.add(post, {
+            transactionContext,
+          });
+
+          post.setId(postId);
+          const postMedias = post.getMedias();
+
+          if (postMedias) {
+            await this.postMediasRepository.bulkAdd(postMedias, {
+              transactionContext,
+            });
           }
         }
       );
@@ -90,6 +94,45 @@ export class PostServices {
         { error }
       );
       throw new Error("Failed to create post");
+    }
+  }
+
+  async incrementViews(post: ViewerPost, user: User) {
+    const postViewKey = `post_view:${user.id}:${post.id}`;
+    const now = Date.now();
+
+    try {
+      const lastViewTimestampStr =
+        await this.redisAdapter.getValue(postViewKey);
+
+      if (lastViewTimestampStr) {
+        const lastViewTime = parseInt(lastViewTimestampStr, 10);
+
+        if (now - lastViewTime < this.viewCooldownMs) {
+          this.logger.log(
+            `Pulando o incremento de visualização para o post ID: ${post.id} pelo usuário ID: ${user.id} devido ao cooldown.`
+          );
+          return;
+        }
+      }
+
+      this.logger.log(
+        `Incrementando visualização para o post ID: ${post.id}, Título: ${post.title}`
+      );
+      await this.postRepository.incrementViews(post);
+
+      const cooldownSeconds = Math.ceil(this.viewCooldownMs / 1000);
+
+      await this.redisAdapter.setKeyWithExpire(
+        postViewKey,
+        now.toString(),
+        cooldownSeconds
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error incrementing post view: ${JSON.stringify(error, null, 4)}`,
+        { error }
+      );
     }
   }
 
@@ -145,6 +188,18 @@ export class PostServices {
   ): Promise<ViewerPost | null> {
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
     const post = await this.postRepository.findBySlug(postSlug, user.id);
+
+    if (!post) return null;
+
+    return post;
+  }
+
+  public async findOneByUuid(
+    postUuid: string,
+    user: User
+  ): Promise<ViewerPost | null> {
+    this.logger.log(`Fetching incident with postUuid: ${postUuid}`);
+    const post = await this.postRepository.findByUuid(postUuid, user.id);
 
     if (!post) return null;
 

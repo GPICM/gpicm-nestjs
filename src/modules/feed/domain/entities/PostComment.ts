@@ -10,6 +10,8 @@ export class PostComment {
 
   public readonly postId: number;
 
+  public readonly postUuid?: string;
+
   public content: string;
 
   public readonly createdAt: Date;
@@ -27,6 +29,7 @@ export class PostComment {
   constructor(args: {
     id?: number;
     postId: number;
+    postUuid?: string;
     content: string;
     user: UserShallow;
     createdAt?: Date;
@@ -36,6 +39,7 @@ export class PostComment {
   }) {
     this.id = args.id ?? -1;
     this.postId = args.postId;
+    this.postUuid = args.postUuid;
     this.content = args.content;
     this.user = args.user;
     this.createdAt = args.createdAt ?? new Date();
@@ -69,6 +73,7 @@ export class PostComment {
       user: this.user,
       type: this.type,
       postId: this.postId,
+      postUuid: this.postUuid,
       content: this.content,
       isEdited: this.isEdited,
       createdAt: this.createdAt,
