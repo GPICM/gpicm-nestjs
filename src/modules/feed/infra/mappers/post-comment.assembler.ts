@@ -12,6 +12,11 @@ export const postCommentInclude = Prisma.validator<Prisma.PostCommentInclude>()(
         avatarUrl: true,
       },
     },
+    Post: {
+      select: {
+        uuid: true,
+      },
+    },
   }
 );
 
@@ -69,6 +74,7 @@ class PostCommentAssembler {
     return new PostComment({
       id: prismaData.id,
       postId: prismaData.postId,
+      postUuid: prismaData.Post.uuid,
       content: prismaData.content,
       createdAt: prismaData.createdAt,
       updatedAt: prismaData.updatedAt,
