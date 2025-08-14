@@ -39,6 +39,7 @@ export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
   endDate?: Date;
   sortBy?: PostSortBy
   tags?: string[];
+  authorId?: number;
 }
 
 export * from "../dto/base-repository-filters";

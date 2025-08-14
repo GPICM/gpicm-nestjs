@@ -164,6 +164,11 @@ export class PrismaPostRepository implements PostRepository {
         );
       }
 
+      if (filters.authorId) {
+        whereClauses.push("(p.author_id = ?)");
+        searchParams.push(filters.authorId);
+      }
+
       this.logger.log(
         `Listing posts with filters: skip=${skip}, take=${take}, order=${order}, search=${filters.search ?? "none"}`
       );
