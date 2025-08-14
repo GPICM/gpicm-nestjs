@@ -30,16 +30,6 @@ export abstract class PostRepository {
     userId: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 
-  abstract listAllByAuthor(
-    filters: BaseRepositoryFindManyFilters,
-    userId: number,
-    authorPublicId: string
-  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>
-
-  abstract listByRelevance(
-    filters: BaseRepositoryFindManyFilters,
-    userId: number
-  ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
   abstract delete(post: Post): Promise<void>;
   
 }
@@ -49,6 +39,7 @@ export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
   endDate?: Date;
   sortBy?: PostSortBy
   tags?: string[];
+  authorId?: number;
 }
 
 export * from "../dto/base-repository-filters";

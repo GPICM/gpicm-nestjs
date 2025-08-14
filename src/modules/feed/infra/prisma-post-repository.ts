@@ -129,66 +129,6 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  public async listAllByAuthor(
-    filters: BaseRepositoryFindManyFilters,
-    viewerId: number, // Este é o userId do usuário logado (pode ser undefined/null se a rota for pública)
-    authorPublicId: string // Este é o ID público do autor dos posts
-  ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
-    try {
-      const skip = filters.offset ?? 0;
-      const take = filters.limit ?? 6;
-      const sort = filters.sort ?? "published_at"; // Ou outro padrão para posts de autor
-      const order = filters.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
-
-      const searchFilter = filters.search ? `%${filters.search}%` : null;
-
-      this.logger.log(
-        `Listing posts by author (raw) with filters: authorPublicId=${authorPublicId}, skip=${skip}, take=${take}, sort=${sort}, order=${order}, search=${filters.search ?? "none"}`
-      );
-
-      // A condição WHERE agora precisa incluir o public_id do autor
-      let whereClause = `WHERE a.public_id = ?`;
-      const params: (string | number)[] = [viewerId, authorPublicId]; // viewerId é sempre o primeiro parâmetro do buildBasePostSelectQuery
-
-      if (searchFilter) {
-        whereClause += ` AND (p.title LIKE ? OR p.content LIKE ?)`;
-        params.push(searchFilter, searchFilter);
-      }
-
-      const query =
-        this.buildBasePostSelectQuery(whereClause) +
-        ` ORDER BY p.${sort} ${order} LIMIT ? OFFSET ?`;
-
-      params.push(take, skip);
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const [result, countResult] = await Promise.all([
-        this.prisma.$queryRawUnsafe<any>(query, ...params),
-        this.prisma.$queryRawUnsafe<any>(
-          `
-          SELECT COUNT(*) AS total
-          FROM posts p
-            LEFT JOIN users a ON p.author_id = a.id
-          WHERE a.public_id = ?
-            ${searchFilter ? "AND (p.title LIKE ? OR p.content LIKE ?)" : ""}
-          `,
-          authorPublicId, // Apenas o authorPublicId para a contagem
-          ...(searchFilter ? [searchFilter, searchFilter] : [])
-        ),
-      ]);
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const count = Number(countResult[0]?.total ?? 0);
-      const records = PostAssembler.fromSqlMany(result, viewerId); // Use viewerId para o assembler
-
-      return { records: records, count };
-    } catch (error: unknown) {
-      console.log(error);
-      this.logger.error(`Failed to list posts by author ${authorPublicId}`, { error });
-      throw new Error("Failed to list posts by author");
-    }
-  }
-
   public async listAll(
     filters: PostFindManyFilters,
     userId: number
@@ -222,6 +162,11 @@ export class PrismaPostRepository implements PostRepository {
           filters.startDate.toISOString(),
           filters.endDate.toISOString()
         );
+      }
+
+      if (filters.authorId) {
+        whereClauses.push("(p.author_id = ?)");
+        searchParams.push(filters.authorId);
       }
 
       this.logger.log(

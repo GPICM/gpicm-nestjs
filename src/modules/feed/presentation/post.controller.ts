@@ -34,7 +34,7 @@ import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
 import { PostSortBy } from "../domain/enum/OrderBy";
-import { query } from "winston";
+import { UsersRepository } from "@/modules/identity/domain/interfaces/repositories/users-repository";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -42,6 +42,7 @@ export class PostController {
   private readonly logger: Logger = new Logger(PostController.name);
 
   constructor(
+    private readonly userRepository: UsersRepository,
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
     private readonly postMedias: PostMediaService,
@@ -74,9 +75,9 @@ export class PostController {
     const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
 
-    if(query.startDate && query.endDate){
-      query.startDate.setHours(0,0,0,0);
-      query.endDate.setHours(23,59,59,999);
+    if (query.startDate && query.endDate) {
+      query.startDate.setHours(0, 0, 0, 0);
+      query.endDate.setHours(23, 59, 59, 999);
     }
 
     const { records, count: total } = await this.postRepository.listAll(
@@ -87,7 +88,7 @@ export class PostController {
         search: query.search,
         endDate: query.endDate,
         startDate: query.startDate,
-        sortBy: query.sortBy
+        sortBy: query.sortBy,
       },
       user.id
     );
@@ -105,7 +106,7 @@ export class PostController {
     }
     await this.postRepository.delete(post);
   }
-  
+
   @Get("hot")
   async listHot(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
     this.logger.log("Fetching all posts", { query });
@@ -114,9 +115,9 @@ export class PostController {
     const limit = query.limit ?? 16;
     const offset = limit * (page - 1);
 
-    if(query.startDate && query.endDate){
-      query.startDate.setHours(0,0,0,0);
-      query.endDate.setHours(23,59,59,999);
+    if (query.startDate && query.endDate) {
+      query.startDate.setHours(0, 0, 0, 0);
+      query.endDate.setHours(23, 59, 59, 999);
     }
 
     const { records, count: total } = await this.postRepository.listAll(
@@ -135,64 +136,61 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
-  @Get("by-author/:authorPublicId")
+  @Get("author/:authorPublicId")
   async listAllPostsByAuthor(
     @Param("authorPublicId") authorPublicId: string,
     @Query() query: ListPostQueryDto,
     @CurrentUser() user: User
   ) {
-      this.logger.log(`Fetching all posts by author ${authorPublicId}`);
+    const author = await this.userRepository.findByPublicId(authorPublicId);
+    if (!author) throw new NotFoundException("Autor nao encontradok");
 
-      
-      const filters = {
-        page: query.page,
-        limit: query.limit,
+    this.logger.log(`Fetching all posts by author ${authorPublicId}`);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } = await this.postRepository.listAll(
+      {
+        limit,
+        offset,
+        tags: query.tags,
         search: query.search,
-      };
-
-      const page = filters.page ?? 1;
-      const limit = filters.limit ?? 16;
-      const offset = limit * (page - 1);
-
-      const { records, count: total } = await this.postRepository.listAllByAuthor(
-        {
-          limit,
-          offset,
-          search: filters.search,
-        },
-        user.id,
-        authorPublicId
-      );
-
-      return new PaginatedResponse(records, total, limit, page, filters);
+        endDate: query.endDate,
+        startDate: query.startDate,
+        sortBy: PostSortBy.MOST_POPULAR,
+        authorId: author.id,
+      },
+      user.id
+    );
+    return new PaginatedResponse(records, total, limit, page, {});
   }
-
-  
 
   @Get(":postSlug")
   async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
-
     const post = await this.postService.findOne(postSlug, user);
 
-    if(post){
+    if (post) {
       await this.postService.incrementViews(post, user);
     }
-    
+
     return post;
   }
 
   @Get("uuid/:postUuid")
-  async getOneInternal(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
-
+  async getOneInternal(
+    @Param("postUuid") postUuid: string,
+    @CurrentUser() user: User
+  ) {
     const post = await this.postService.findOneByUuid(postUuid, user);
 
-    if(post){
+    if (post) {
       await this.postService.incrementViews(post, user);
     }
-    
+
     return post;
   }
-
 
   @Patch(":uuid/vote/up")
   async upVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
@@ -300,17 +298,16 @@ export class PostController {
       await this.postCommentRepository.listAllByPostId(postId, {
         limit,
         offset,
-        parentId: query.parentId ?? null
+        parentId: query.parentId ?? null,
       });
 
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
-
   @Get("comments/user")
   async listUserComments(
     @CurrentUser() user: User,
-    @Query() query: ListPostCommentsDto,
+    @Query() query: ListPostCommentsDto
   ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 16;
@@ -321,10 +318,14 @@ export class PostController {
         limit,
         offset,
       });
+    
     const comments = await this.postCommentRepository.findByUserId(user.id);
-    if(!comments){
-      throw new BadRequestException("Nenhum comentário encontrado para o usuário");
+    if (!comments) {
+      throw new BadRequestException(
+        "Nenhum comentário encontrado para o usuário"
+      );
     }
+
     return new PaginatedResponse(records, total, limit, page, {});
   }
 }

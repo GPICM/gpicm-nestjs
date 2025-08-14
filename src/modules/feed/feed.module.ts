@@ -26,6 +26,7 @@ import { PostCommentsService } from "./application/post-comment.service";
 import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
 import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
 import { PostCommentsProcessor } from "./application/ post-comments.processor";
+import { IdentityModule } from "../identity/identity.module";
 
 @Module({
   controllers: [PostController],
@@ -43,6 +44,7 @@ import { PostCommentsProcessor } from "./application/ post-comments.processor";
     }),
     SharedModule,
     IncidentsModule,
+    IdentityModule
   ],
   providers: [
     PostCommentsProcessor,

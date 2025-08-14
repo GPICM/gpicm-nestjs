@@ -64,6 +64,7 @@ import { UserVerificationController } from "./authentication/presentation/user-v
     DefaultJwtStrategy,
     PartnerApiKeysRepository,
     PartnerApiKeyGuard,
+    UsersRepository
   ],
 })
 export class IdentityModule {}
