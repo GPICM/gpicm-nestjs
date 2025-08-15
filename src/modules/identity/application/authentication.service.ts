@@ -69,6 +69,7 @@ export class AuthenticationService {
       let newUser: User | null = null;
       if (guestUser) {
         guestUser.setName(name);
+        guestUser.setRole(UserRoles.USER);
         guestUser.addCredentials(emailPasswordCredential);
       } else {
         newUser = User.Create(name, emailPasswordCredential);
@@ -87,14 +88,13 @@ export class AuthenticationService {
 
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
 
-        await this.userVerificationService.startUserVerification(
+        /*  await this.userVerificationService.startUserVerification(
           emailPasswordCredential,
           tx
-        );
+        ); */
       });
 
       await this.logUserAction.execute(userId!, "SIGNUP");
-
       const accessToken = this.encryptor.generateToken({
         sub: (guestUser?.publicId || newUser?.publicId)!,
       });
