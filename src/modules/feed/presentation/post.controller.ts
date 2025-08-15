@@ -304,6 +304,30 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
+
+  @Get("comments/author/:authorPublicId")
+   async listCommentsByAuthor(
+    @Param("authorPublicId") authorPublicId: string,
+    @Query() query: ListPostCommentsDto,
+  ) {
+
+    const author = await this.userRepository.findByPublicId(authorPublicId);
+    if (!author) throw new NotFoundException("Autor nao encontradok");
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 16;
+    const offset = limit * (page - 1);
+
+    const { records, count: total } =
+      await this.postCommentRepository.findByUserId(author.id, {
+        limit,
+        offset,
+      });
+    
+    return new PaginatedResponse(records, total, limit, page, {});
+  }
+
+
   @Get("comments/user")
   async listUserComments(
     @CurrentUser() user: User,
@@ -319,13 +343,6 @@ export class PostController {
         offset,
       });
     
-    const comments = await this.postCommentRepository.findByUserId(user.id);
-    if (!comments) {
-      throw new BadRequestException(
-        "Nenhum comentário encontrado para o usuário"
-      );
-    }
-
     return new PaginatedResponse(records, total, limit, page, {});
   }
 }
