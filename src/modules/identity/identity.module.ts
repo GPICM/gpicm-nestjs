@@ -23,6 +23,8 @@ import { UserVerificationRepository } from "./authentication/domain/interfaces/r
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
+import { ProfileRepository } from "../feed/domain/interfaces/repositories/profile-repository";
+import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository";
 
 @Global()
 @Module({
@@ -52,6 +54,10 @@ import { UserVerificationController } from "./authentication/presentation/user-v
     {
       provide: UserCredentialsRepository,
       useClass: PrismaUserCredentialsRepository,
+    },
+    {
+      provide: ProfileRepository,
+      useClass: PrismaProfileRepository,
     },
     {
       provide: UserVerificationRepository,

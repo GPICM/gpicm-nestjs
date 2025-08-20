@@ -38,6 +38,7 @@ model User {
   PostVotes          PostVote[]
   Comments           PostComment[]
   Medias             Media[]
+  Profile            Profile?         
 
   @@unique([publicId])
   @@map("users")
@@ -312,6 +313,40 @@ model Media {
 
   @@index([ownerId])
   @@map("medias")
+}
+
+model Profile {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique @map("user_id")
+  bio             String?  @db.LongText
+  profileImage    String?  @map("profile_image")
+  latitude           Float?
+  longitude          Float?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  postCounts      Int      @default(0) @map("post_counts")
+  commentCounts   Int      @default(0) @map("comment_counts")
+  followersCount  Int      @default(0) @map("followers_count")
+  followingCount  Int      @default(0) @map("following_count")
+
+  Follows   ProfileFollow[] @relation("FollowerRelation")
+  Followed  ProfileFollow[] @relation("FollowingRelation")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("profiles")
+}
+
+model ProfileFollow {
+  followerId Int
+  followingId Int
+
+  Follower Profile @relation("FollowerRelation", fields: [followerId], references: [id])
+  Following Profile @relation("FollowingRelation", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+  @@map("profile_follows")
 }
 
 model PostComment {
