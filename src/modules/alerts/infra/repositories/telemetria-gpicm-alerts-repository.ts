@@ -52,10 +52,12 @@ export class TelemetriaGpicmAlertsRepository
             ? AlertStatus.ACTIVE
             : AlertStatus.INACTIVE;
 
+        const plainDescription = alert.description.replace(/<[^>]+>/g, '');
+
         return new CivilDefenseAlerts({
           id: -1,
           title: alert.title,
-          description: alert.description,
+          description: plainDescription,
           gravityLevel: alert.gravity_level as GravityLevel,
           externalReference: alert.id,
           createdAt: new Date(alert.updated_at ?? Date.now()),
