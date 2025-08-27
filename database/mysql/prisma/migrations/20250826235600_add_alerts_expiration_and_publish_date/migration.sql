@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `civil_defense_alerts` ADD COLUMN `expires_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    ADD COLUMN `external_reference` VARCHAR(191) NULL,
+    ADD COLUMN `publish_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
