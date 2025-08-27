@@ -18,14 +18,12 @@ export class PartnerAlertsController {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly telemetriaGpicmAlertsRepository: TelemetriaGpicmAlertsRepository,
-    private readonly civilDefenseAlertsRepository: CivilDefenseAlertsRepository,
-
+    private readonly civilDefenseAlertsRepository: CivilDefenseAlertsRepository
   ) {}
 
   @Post("/")
   @Throttle({ default: { limit: 6, ttl: 60000 } })
   public async webhook(): Promise<any> {
-
     const newAlerts = await this.telemetriaGpicmAlertsRepository.listAll();
 
     await this.prismaService.openTransaction(async (txContext) => {
