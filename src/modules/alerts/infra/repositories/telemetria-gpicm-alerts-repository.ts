@@ -1,4 +1,6 @@
+import z from "zod";
 import https from "https";
+
 import { Injectable, Logger } from "@nestjs/common";
 
 import { HttpClient } from "@/modules/shared/domain/interfaces/http-client/http-client";
@@ -10,7 +12,6 @@ import {
 } from "../../domain/entities/alerts";
 import { CivilDefenseAlertsRepository } from "../../domain/interfaces/alerts-repository";
 import { CivilDefenseAlertDtoSchema } from "./utils/telemetria-gpicm-utils";
-import z from "zod";
 
 @Injectable()
 export class TelemetriaGpicmAlertsRepository
@@ -29,7 +30,7 @@ export class TelemetriaGpicmAlertsRepository
       const response = await this.httpClient.request({
         url: "https://projetos.macae.ufrj.br:8090/Api/obterAlertasDefesaCivil",
         method: "GET",
-        httpAgent: new https.Agent({
+        httpsAgent: new https.Agent({
           rejectUnauthorized: false,
         }),
       });

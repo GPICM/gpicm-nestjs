@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller, Post, UseGuards } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { PartnerApiKeyGuard } from "../identity/presentation/meta/guards/partner-api-key.guard";
 import { CivilDefenseAlertsRepository } from "./domain/interfaces/alerts-repository";
 import { PrismaService } from "../shared/services/prisma-services";
+import { PartnerApiKeyGuard } from "../identity/presentation/meta/guards/partner-api-key.guard";
 import { TelemetriaGpicmAlertsRepository } from "./infra/repositories/telemetria-gpicm-alerts-repository";
 
 @Controller("alerts/webhook")
@@ -43,7 +36,7 @@ export class PartnerAlertsController {
     return Promise.resolve({ status: "Recebido" });
   }
 
-  @Post("/publish")
+  /* @Post("/publish")
   @Throttle({ default: { limit: 6, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   public async publishAlert(
@@ -57,5 +50,5 @@ export class PartnerAlertsController {
   @HttpCode(HttpStatus.OK)
   public async clearAlerts(): Promise<{ status: string }> {
     return Promise.resolve({ status: "alertas limpos" });
-  }
+  } */
 }
