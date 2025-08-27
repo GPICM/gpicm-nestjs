@@ -1,3 +1,4 @@
+import https from "https";
 import { Injectable, Logger } from "@nestjs/common";
 
 import { HttpClient } from "@/modules/shared/domain/interfaces/http-client/http-client";
@@ -28,6 +29,9 @@ export class TelemetriaGpicmAlertsRepository
       const response = await this.httpClient.request({
         url: "https://projetos.macae.ufrj.br:8090/Api/obterAlertasDefesaCivil",
         method: "GET",
+        httpAgent: new https.Agent({
+          rejectUnauthorized: false,
+        }),
       });
 
       if (response.statusCode !== 200) {
