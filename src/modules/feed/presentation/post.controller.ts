@@ -304,7 +304,6 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
-
   @Get("comments/author/:authorPublicId")
    async listCommentsByAuthor(
     @Param("authorPublicId") authorPublicId: string,
