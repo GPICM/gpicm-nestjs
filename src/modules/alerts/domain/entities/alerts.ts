@@ -22,11 +22,11 @@ export class CivilDefenseAlerts {
 
   gravityLevel: GravityLevel;
 
-  createdAt: Date | null;
+  externalReference: string;
 
-  externalReference: string | null;
+  createdAt: Date;
 
-  publishAt: Date | null;
+  publishAt: Date;
 
   expiresAt: Date | null;
 
