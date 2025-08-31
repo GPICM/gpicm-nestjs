@@ -8,6 +8,8 @@ import {
   BadRequestException,
   Get,
   Patch,
+  Param,
+  NotFoundException,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
@@ -21,6 +23,7 @@ import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { UserGuard } from "./meta/guards/user.guard";
 import { UserBasicData } from "../domain/value-objects/user-basic-data";
+import { UserPublicData } from "../domain/value-objects/user-public-data";
 
 @Controller("identity/users")
 @UseGuards(JwtAuthGuard)
@@ -106,4 +109,37 @@ export class UserController {
       throw new BadRequestException();
     }
   }
+
+  @Get("/profile")
+  @UseGuards(UserGuard)
+  getMyBasicData(@CurrentUser() user: User): UserBasicData {
+    try {
+      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
+      return user.toUserBasicData();
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user basic data", { error });
+      throw new BadRequestException();
+    }
+  }
+  
+  @Get("/public-data/:publicId")
+  async getPublicData(@Param("publicId") publicId: string): Promise<UserPublicData> {
+    try{
+      this.logger.log(`Fetching public data for current user: ${publicId}`);
+
+      const user = await this.userService.getPublicUserDataByPublicId(publicId);
+
+      if(!user){
+        throw new NotFoundException(`User with public ID ${publicId} not found.`);
+      }
+
+      return user;
+    } catch (error){
+    this.logger.error("Failed to get user public data", { error });
+    throw new BadRequestException();
+    }
+  }
+
+  
+  
 }

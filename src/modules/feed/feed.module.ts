@@ -26,6 +26,8 @@ import { PostCommentsService } from "./application/post-comment.service";
 import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
 import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
 import { PostCommentsProcessor } from "./application/ post-comments.processor";
+import { IdentityModule } from "../identity/identity.module";
+
 import { ProfileService } from "@/modules/identity/application/profile.service";
 import { PrismaProfileRepository } from "./infra/prisma-profile-repository";
 import { PrismaProfileFollowRepository } from "./infra/prisma-profile-repository";
@@ -51,6 +53,7 @@ import { Profile } from "./domain/entities/Profile";
     }),
     SharedModule,
     IncidentsModule,
+    IdentityModule
   ],
   providers: [
     PostCommentsProcessor,

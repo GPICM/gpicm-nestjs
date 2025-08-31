@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Inject, Logger } from "@nestjs/common";
+import { Inject, Logger, NotFoundException } from "@nestjs/common";
 import { UsersRepository } from "../domain/interfaces/repositories/users-repository";
 import {
   UpdateUserAvatarDto,
@@ -8,6 +8,7 @@ import {
 import { User } from "../domain/entities/User";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { UserAvatar } from "../domain/value-objects/user-avatar";
+import { UserPublicData } from "../domain/value-objects/user-public-data";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -18,6 +19,34 @@ export class UserService {
     @Inject(MediaService)
     private readonly mediaService: MediaService
   ) {}
+
+  public async getPublicUserDataByPublicId(publicId: string): Promise<UserPublicData>{
+  try{
+    this.logger.log(`Attempting to fetch public data for publicId: ${publicId}`);
+
+
+    const user = await this.usersRepository.findByPublicId(publicId);
+
+
+    if (!user) {
+      throw new NotFoundException(`User with public ID ${publicId} not found.`);
+    }
+
+
+    const userPublicData: UserPublicData = {
+      name: user.name,
+      bio: user.bio,
+      avatarUrl: user.avatar?.avatarUrl
+    };
+
+
+    this.logger.log(`Successfully fetched public data for publicId: ${publicId}`);
+    return userPublicData;
+    } catch(error){
+    this.logger.error("Failed to get public user data", { error });
+    throw error;
+    }
+  }
 
   public async updateUserLocation(params: {
     userId: number;

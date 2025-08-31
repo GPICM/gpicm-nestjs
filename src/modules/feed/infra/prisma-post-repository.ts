@@ -46,6 +46,22 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
+  public async delete(post: Post): Promise<void> {
+    try {
+      this.logger.log(
+        `Deleting post with ID: ${post.id}, Title: ${post.title}`
+      );
+      await this.prisma.post.update({
+        where: { id: post.id! },
+        data: { deletedAt: new Date() },
+      });
+      this.logger.log(`Post deleted successfully with ID: ${post.id}`);
+    } catch (error: unknown) {
+      this.logger.error("Failed to delete post", { post, error });
+      throw new Error("Failed to delete post");
+    }
+  }
+
   public async update(
     post: Post,
     options?: { transactionContext?: PrismaClient }
@@ -148,6 +164,11 @@ export class PrismaPostRepository implements PostRepository {
         );
       }
 
+      if (filters.authorId) {
+        whereClauses.push("(p.author_id = ?)");
+        searchParams.push(filters.authorId);
+      }
+
       this.logger.log(
         `Listing posts with filters: skip=${skip}, take=${take}, order=${order}, search=${filters.search ?? "none"}`
       );
@@ -231,7 +252,11 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   private buildBasePostSelectQuery(whereClauses: string[]): string {
-    const where = this.joinWhereCauses(whereClauses);
+    const clauses = whereClauses ? [...whereClauses] : [];
+    if (!clauses.some((c) => c.includes("p.deleted_at IS NULL"))) {
+      clauses.push("p.deleted_at IS NULL");
+    }
+    const where = this.joinWhereCauses(clauses);
 
     return `
     SELECT  
