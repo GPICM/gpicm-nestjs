@@ -26,7 +26,15 @@ import { PostCommentsService } from "./application/post-comment.service";
 import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
 import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
 import { PostCommentsProcessor } from "./application/ post-comments.processor";
-
+import { ProfileService } from "@/modules/identity/application/profile.service";
+import { PrismaProfileRepository } from "./infra/prisma-profile-repository";
+import { PrismaProfileFollowRepository } from "./infra/prisma-profile-repository";
+import { ProfileFollowRepository } from "./domain/interfaces/repositories/profile-repository";
+import { PrismaAchievementRepository } from "./infra/prisma-achievement-repository";
+import { AchievementsRepository } from "./domain/interfaces/repositories/achievements-repository";
+import { AchievementService } from "@/modules/identity/application/achievement.service";
+import { ProfileRepository } from "./domain/interfaces/repositories/profile-repository";
+import { Profile } from "./domain/entities/Profile";
 @Module({
   controllers: [PostController],
   imports: [
@@ -48,6 +56,11 @@ import { PostCommentsProcessor } from "./application/ post-comments.processor";
     PostCommentsProcessor,
     PostScoreProcessor,
     PostMediaService,
+    ProfileService,
+    PrismaProfileRepository,
+    PrismaProfileFollowRepository,
+    PrismaAchievementRepository,
+    AchievementService,
     { provide: VoteQueue, useClass: BullMqVoteQueueAdapter },
     { provide: CommentsQueue, useClass: BullMqCommentsQueueAdapter },
     {
@@ -66,6 +79,18 @@ import { PostCommentsProcessor } from "./application/ post-comments.processor";
     {
       provide: PostMediasRepository,
       useClass: PrismaPostMediasRepository,
+    },
+    {
+      provide: AchievementsRepository,
+      useClass: PrismaAchievementRepository,
+    },
+    {
+      provide: ProfileRepository,
+      useClass: PrismaProfileRepository,
+    },
+    {
+      provide: ProfileFollowRepository,
+      useClass: PrismaProfileFollowRepository,
     },
     PostServices,
     UploadService,

@@ -12,6 +12,10 @@ export class ProfileService {
     private readonly profileFollowRepository: PrismaProfileFollowRepository
   ) {}
 
+  async refreshPostCount(userId: number): Promise<void> {
+    await this.profileRepository.refreshPostCount(userId);
+  }
+
   async getProfile(userId: number): Promise<Profile | null> {
     return await this.profileRepository.findByUserId(userId);
   }

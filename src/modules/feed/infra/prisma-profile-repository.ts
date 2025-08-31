@@ -40,6 +40,13 @@ export class PrismaProfileRepository implements ProfileRepository {
     return new Profile(data);
   }
 
+  async refreshPostCount(userId: number): Promise<void> {
+    await this.prisma.profile.update({
+      where: { userId },
+      data: { postCounts: { increment: 1 } },
+    });
+  }
+
   async update(profile: Profile): Promise<Profile> {
     const data = await this.prisma.profile.update({
       where: { id: profile.id },

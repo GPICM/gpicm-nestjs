@@ -16,6 +16,9 @@ import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
+import { ProfileService } from "@/modules/identity/application/profile.service";
+
+
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -30,6 +33,7 @@ export class PostServices {
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
     private readonly redisAdapter: RedisAdapter,
+    private readonly profileService: ProfileService,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
   ) {}
@@ -85,7 +89,7 @@ export class PostServices {
           }
         }
       );
-
+      await this.profileService.refreshPostCount(user.id);
       this.logger.log("post created successfully", { post });
       return post;
     } catch (error: unknown) {

@@ -6,6 +6,7 @@ export abstract class ProfileRepository {
   abstract create(profile: Profile): Promise<Profile>;
   abstract update(profile: Profile): Promise<Profile>;
   abstract delete(id: number): Promise<void>;
+  abstract refreshPostCount(userId: number): Promise<void>;
 }
 
 export abstract class ProfileFollowRepository {

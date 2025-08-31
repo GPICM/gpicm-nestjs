@@ -10,6 +10,7 @@ export class Profile {
   longitude: number | null;
   followersCount: number;
   followingCount: number;
+  postCount?: number;
 
   constructor(args: NonFunctionProperties<Profile>) {
     Object.assign(this, args);
@@ -24,6 +25,7 @@ export class Profile {
       longitude: user.longitude ?? null,
       followersCount: 0,
       followingCount: 0,
+      postCount: 0,
     });
   }
 }
