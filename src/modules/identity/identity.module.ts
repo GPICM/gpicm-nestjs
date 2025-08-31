@@ -24,7 +24,14 @@ import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
 import { ProfileRepository } from "../feed/domain/interfaces/repositories/profile-repository";
+import { ProfileFollowRepository } from "../feed/domain/interfaces/repositories/profile-repository";
+import { PrismaProfileFollowRepository } from "../feed/infra/prisma-profile-repository";
 import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository";
+import { PrismaAchievementRepository } from "../feed/infra/prisma-achievement-repository";
+import { AchievementsRepository } from "../feed/domain/interfaces/repositories/achievements-repository";
+import { AchievementService } from "./application/achievement.service";
+import { SocialController } from "./presentation/social.controller";
+import { ProfileService } from "./application/profile.service";
 
 @Global()
 @Module({
@@ -33,6 +40,7 @@ import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository
     GuestAuthController,
     CommonAuthController,
     UserVerificationController,
+    SocialController,
   ],
   providers: [
     UserVerificationService,
@@ -42,6 +50,11 @@ import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository
     AuthorizationService,
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
+    AchievementService,
+    PrismaAchievementRepository,
+    PrismaProfileFollowRepository,
+    PrismaProfileRepository,
+    ProfileService,
     {
       provide: Encryptor,
       useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
@@ -62,6 +75,14 @@ import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository
     {
       provide: UserVerificationRepository,
       useClass: PrismaUserVerificationRepository,
+    },
+    {
+      provide: AchievementsRepository,
+      useClass: PrismaAchievementRepository,
+    },
+    {
+      provide: ProfileFollowRepository,
+      useClass: PrismaProfileFollowRepository,
     },
   ],
   imports: [SharedModule, PoliciesModule, AssetsModule],

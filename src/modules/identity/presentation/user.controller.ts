@@ -106,16 +106,4 @@ export class UserController {
       throw new BadRequestException();
     }
   }
-
-  @Get("/profile")
-  @UseGuards(UserGuard)
-  getMyBasicData(@CurrentUser() user: User): UserBasicData {
-    try {
-      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
-      return user.toUserBasicData();
-    } catch (error: unknown) {
-      this.logger.error("Failed to get user basic data", { error });
-      throw new BadRequestException();
-    }
-  }
 }

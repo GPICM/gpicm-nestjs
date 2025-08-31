@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Profile } from "@/modules/feed/domain/entities/Profile";
 import { User } from "@/modules/identity/domain/entities/User";
+import { Logger } from "@nestjs/common";
 import {
   ProfileRepository,
   ProfileFollowRepository,
@@ -9,6 +10,8 @@ import {
 
 @Injectable()
 export class PrismaProfileRepository implements ProfileRepository {
+  private readonly logger = new Logger(PrismaProfileRepository.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: number): Promise<Profile | null> {
@@ -17,6 +20,7 @@ export class PrismaProfileRepository implements ProfileRepository {
   }
 
   async findByUserId(userId: number): Promise<Profile | null> {
+    this.logger.log(`PRISMA: WORKED: ${userId}`);
     const data = await this.prisma.profile.findUnique({ where: { userId } });
     return data ? new Profile(data) : null;
   }
@@ -65,7 +69,6 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
       data: { followerId, followingId },
     });
 
-    // Atualizar contadores
     await this.prisma.profile.update({
       where: { id: followerId },
       data: { followingCount: { increment: 1 } },
@@ -82,7 +85,6 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
       where: { followerId_followingId: { followerId, followingId } },
     });
 
-    // Atualizar contadores
     await this.prisma.profile.update({
       where: { id: followerId },
       data: { followingCount: { decrement: 1 } },
