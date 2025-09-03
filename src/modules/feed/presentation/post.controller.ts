@@ -193,32 +193,6 @@ export class PostController {
     return post;
   }
 
-  @Get("uuid/:postUuid")
-  async getOneInternal(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
-
-    const post = await this.postService.findOneByUuid(postUuid, user);
-
-    if (post) {
-      await this.postService.incrementViews(post, user);
-    }
-
-    return post;
-  }
-
-  @Get("uuid/:postUuid")
-  async getOneInternal(
-    @Param("postUuid") postUuid: string,
-    @CurrentUser() user: User
-  ) {
-    const post = await this.postService.findOneByUuid(postUuid, user);
-
-    if (post) {
-      await this.postService.incrementViews(post, user);
-    }
-
-    return post;
-  }
-
   @Patch(":uuid/vote/up")
   async upVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
     return this.postService.vote(user, uuid, 1);
@@ -372,25 +346,4 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
-
-  @Get("comments/user")
-  async listUserComments(
-    @CurrentUser() user: User,
-    @Query() query: ListPostCommentsDto,
-  ) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 16;
-    const offset = limit * (page - 1);
-
-    const { records, count: total } =
-      await this.postCommentRepository.findByUserId(user.id, {
-        limit,
-        offset,
-      });
-    const comments = await this.postCommentRepository.findByUserId(user.id);
-    if(!comments){
-      throw new BadRequestException("Nenhum comentário encontrado para o usuário");
-    }
-    return new PaginatedResponse(records, total, limit, page, {});
-  }
 }

@@ -78,7 +78,7 @@ export class AuthenticationService {
       } else {
         newUser = User.Create(name, emailPasswordCredential);
       }
-      let userId: number | undefined;
+      let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
@@ -105,7 +105,7 @@ export class AuthenticationService {
       await this.profileRepository.create(
         new Profile({
           id: 0,
-          userId: userId,
+          userId: userId!,
           bio: "",
           profileImage: null,
           latitude: newUser?.latitude || null,
