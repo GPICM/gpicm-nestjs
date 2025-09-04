@@ -42,9 +42,8 @@ export class UserCredential {
     userId?: number
   ): UserCredential {
     try {
-      console.log("DEBUG: creating  EMAIL_PASSWORD credential", {
+      console.log("Creating new EMAIL_PASSWORD credential", {
         email,
-        password,
       });
 
       const salt = bcrypt.genSaltSync(8);
@@ -63,13 +62,9 @@ export class UserCredential {
         temporaryPasswordHash: null,
       });
 
-      console.log("DEBUG: cred", {
-        credential,
-      });
-
       return credential;
     } catch (error: unknown) {
-      console.error("DEBUG: failed to create credentialsk", {
+      console.error("Failed to create credentialsk", {
         error: JSON.stringify(error, null, 4),
       });
       throw error;

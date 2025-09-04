@@ -87,12 +87,11 @@ export class AuthenticationService {
         }
 
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
-
-        /*  await this.userVerificationService.startUserVerification(
-          emailPasswordCredential,
-          tx
-        ); */
       });
+
+      await this.userVerificationService.startUserVerification(
+        emailPasswordCredential
+      );
 
       await this.logUserAction.execute(userId!, "SIGNUP");
       const accessToken = this.encryptor.generateToken({
