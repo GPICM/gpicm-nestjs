@@ -1,9 +1,9 @@
 import {
   Controller,
-  Query,
   Logger,
   BadRequestException,
   Post,
+  Body,
 } from "@nestjs/common";
 import { UserVerificationService } from "../application/user/user-verification.service";
 
@@ -17,7 +17,7 @@ export class UserVerificationController {
 
   @Post("/email")
   async emailVerification(
-    @Query("token") token: string
+    @Body("token") token: string
   ): Promise<{ success: boolean }> {
     if (!token) {
       throw new BadRequestException("Token not found");
@@ -25,6 +25,7 @@ export class UserVerificationController {
 
     try {
       await this.userVerificationService.verifyToken(token);
+
       return { success: true };
     } catch (error) {
       this.logger.error(

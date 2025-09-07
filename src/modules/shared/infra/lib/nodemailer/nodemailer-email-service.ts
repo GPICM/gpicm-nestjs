@@ -17,6 +17,7 @@ export class NodemailerEmailService extends EmailService {
   async sendEmail(options: SendEmailOptions): Promise<void> {
     try {
       await this.mailerService.sendMail({
+        from: process.env.SMTP_USER,
         to: options.to,
         subject: options.subject,
         html: options.html,

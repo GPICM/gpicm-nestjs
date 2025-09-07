@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomBytes } from "crypto";
 import {
   ForbiddenException,
   GoneException,
@@ -35,37 +35,41 @@ export class UserVerificationService {
 
   async startUserVerification(
     userCredential: UserCredential,
-    tx: unknown
+    options?: { tx?: unknown }
   ): Promise<void> {
-    const token = randomUUID();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 2); // 2h
+    try {
+      const token = randomBytes(32).toString("base64url");
+      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 2); // 2h
 
-    const userVerification = new UserVerification({
-      token,
-      expiresAt,
-      id: uuidv7(),
-      email: userCredential.email,
-      userId: userCredential.userId,
-      provider: userCredential.provider,
-      attempts: 0,
-      used: false,
-      ipAddress: "",
-      userAgent: "",
-      verifiedAt: null,
-      type: UserVerificationType.EMAIL_VERIFICATION,
-    });
+      const userVerification = new UserVerification({
+        token,
+        expiresAt,
+        id: uuidv7(),
+        email: userCredential.email,
+        userId: userCredential.userId,
+        provider: userCredential.provider,
+        attempts: 0,
+        used: false,
+        ipAddress: "",
+        userAgent: "",
+        verifiedAt: null,
+        type: UserVerificationType.EMAIL_VERIFICATION,
+      });
 
-    await this.userVerificationRepository.add(userVerification, tx);
+      await this.userVerificationRepository.add(userVerification, options?.tx);
 
-    const link = `${String(process.env.FRONT_END_URL)}/verify-email?token=${token}`;
-    const { html, text } = generateVerificationEmailContent(link);
+      const link = `${String(process.env.FRONT_END_URL)}/verificar-email?token=${token}`;
+      const { html, text } = generateVerificationEmailContent(link);
 
-    await this.emailService.sendEmail({
-      html,
-      text,
-      subject: "Confirme seu e-mail",
-      to: userVerification.email,
-    });
+      await this.emailService.sendEmail({
+        html,
+        text,
+        subject: "BEM-VINDO AO METCOLAB",
+        to: userVerification.email,
+      });
+    } catch (error: unknown) {
+      console.error("Failed to generate user verification invite", { error });
+    }
   }
 
   async verifyToken(token: string): Promise<void> {
