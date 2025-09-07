@@ -357,6 +357,7 @@ model Achievement {
 model ProfileAchievement {
   profileId Int
   achievementId Int
+  createdAt DateTime @default(now()) @map("created_at")
 
   Profile Profile @relation("ProfileAchievements", fields: [profileId], references: [id], onDelete: Cascade)
   Achievement Achievement @relation("ProfileAchievements", fields: [achievementId], references: [id], onDelete: Cascade)
@@ -368,6 +369,7 @@ model ProfileAchievement {
 model ProfileFollow {
   followerId Int
   followingId Int
+  createdAt DateTime @default(now()) @map("created_at")
 
   Follower Profile @relation("FollowerRelation", fields: [followerId], references: [id])
   Following Profile @relation("FollowingRelation", fields: [followingId], references: [id])
