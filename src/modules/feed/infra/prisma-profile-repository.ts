@@ -1,12 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Profile } from "@/modules/feed/domain/entities/Profile";
-import { User } from "@/modules/identity/domain/entities/User";
 import { Logger } from "@nestjs/common";
 import {
   ProfileRepository,
   ProfileFollowRepository,
 } from "@/modules/feed/domain/interfaces/repositories/profile-repository";
+import { BadRequestException } from "@nestjs/common";
 
 @Injectable()
 export class PrismaProfileRepository implements ProfileRepository {
@@ -30,6 +30,7 @@ export class PrismaProfileRepository implements ProfileRepository {
       data: {
         userId: profile.userId,
         bio: profile.bio,
+        displayName: profile.displayName,
         profileImage: profile.profileImage,
         latitude: profile.latitude,
         longitude: profile.longitude,
@@ -44,6 +45,17 @@ export class PrismaProfileRepository implements ProfileRepository {
     await this.prisma.profile.update({
       where: { userId },
       data: { postCounts: { increment: 1 } },
+    });
+  }
+
+  async refreshCommentCount(userId: number): Promise<void> {
+    const commentCount = await this.prisma.postComment.count({
+      where: { userId, deletedAt: null },
+    });
+
+    await this.prisma.profile.update({
+      where: { userId },
+      data: { commentCounts: commentCount },
     });
   }
 
@@ -72,6 +84,26 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async follow(followerId: number, followingId: number): Promise<void> {
+    if (followerId === followingId) {
+      throw new BadRequestException("You cannot follow yourself.");
+    }
+
+    const followerProfile = await this.prisma.profile.findUnique({
+      where: { id: followerId },
+    });
+    const followingProfile = await this.prisma.profile.findUnique({
+      where: { id: followingId },
+    });
+
+    if (!followerProfile || !followingProfile) {
+      throw new BadRequestException("Profile not found.");
+    }
+
+    const alreadyFollowing = await this.isFollowing(followerId, followingId);
+    if (alreadyFollowing) {
+      throw new BadRequestException("You are already following this user.");
+    }
+
     await this.prisma.profileFollow.create({
       data: { followerId, followingId },
     });
@@ -87,7 +119,28 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
     });
   }
 
+  async countFollowingByProfileId(profileId: number): Promise<number> {
+    return this.prisma.profileFollow.count({
+      where: { followerId: profileId },
+    });
+  }
+
+  async countFollowersByProfileId(profileId: number): Promise<number> {
+    return this.prisma.profileFollow.count({
+      where: { followingId: profileId },
+    });
+  }
+
   async unfollow(followerId: number, followingId: number): Promise<void> {
+    if (followerId === followingId) {
+      throw new BadRequestException("You cannot unfollow yourself.");
+    }
+
+    const alreadyFollowing = await this.isFollowing(followerId, followingId);
+    if (!alreadyFollowing) {
+      throw new BadRequestException("You are not following this user.");
+    }
+
     await this.prisma.profileFollow.delete({
       where: { followerId_followingId: { followerId, followingId } },
     });
@@ -114,6 +167,34 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
     return await this.prisma.profileFollow.count({
       where: { followingId: profileId },
     });
+  }
+
+  async getFollowers(
+    profileId: number,
+    limit?: number,
+    offset?: number
+  ): Promise<Profile[]> {
+    const followers = await this.prisma.profileFollow.findMany({
+      where: { followingId: profileId },
+      include: { Follower: true },
+      take: limit,
+      skip: offset,
+    });
+    return followers.map((follow) => new Profile(follow.Follower));
+  }
+
+  async getFollowing(
+    profileId: number,
+    limit?: number,
+    offset?: number
+  ): Promise<Profile[]> {
+    const following = await this.prisma.profileFollow.findMany({
+      where: { followerId: profileId },
+      include: { Following: true },
+      take: limit,
+      skip: offset,
+    });
+    return following.map((follow) => new Profile(follow.Following));
   }
 
   async getFollowingCount(profileId: number): Promise<number> {

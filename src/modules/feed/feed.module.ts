@@ -53,7 +53,7 @@ import { Profile } from "./domain/entities/Profile";
     }),
     SharedModule,
     IncidentsModule,
-    IdentityModule
+    IdentityModule,
   ],
   providers: [
     PostCommentsProcessor,

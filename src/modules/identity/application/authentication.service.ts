@@ -104,6 +104,7 @@ export class AuthenticationService {
       await this.profileRepository.create(
         new Profile({
           id: 0,
+          displayName: name,
           userId: userId!,
           bio: "",
           profileImage: null,

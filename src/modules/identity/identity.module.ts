@@ -91,7 +91,7 @@ import { ProfileService } from "./application/profile.service";
     DefaultJwtStrategy,
     PartnerApiKeysRepository,
     PartnerApiKeyGuard,
-    UsersRepository
+    UsersRepository,
   ],
 })
 export class IdentityModule {}

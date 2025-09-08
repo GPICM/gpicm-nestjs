@@ -4,6 +4,7 @@ import { User } from "@/modules/identity/domain/entities/User";
 export class Profile {
   id: number;
   userId: number;
+  displayName: string | null;
   bio: string | null;
   profileImage: string | null;
   latitude: number | null;
@@ -18,6 +19,7 @@ export class Profile {
   public static fromUser(user: User): Profile {
     return new Profile({
       id: user.id,
+      displayName: user.name,
       userId: user.id,
       bio: null,
       profileImage: user?.avatar?.getAvatarUrl() || null,
@@ -27,5 +29,9 @@ export class Profile {
       followingCount: 0,
       postCount: 0,
     });
+  }
+
+  public setAvatar(avatarUrl: string | null) {
+    this.profileImage = avatarUrl;
   }
 }

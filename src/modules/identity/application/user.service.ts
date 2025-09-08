@@ -9,6 +9,7 @@ import { User } from "../domain/entities/User";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { UserAvatar } from "../domain/value-objects/user-avatar";
 import { UserPublicData } from "../domain/value-objects/user-public-data";
+import { ProfileService } from "./profile.service";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -17,34 +18,37 @@ export class UserService {
     @Inject(UsersRepository)
     private readonly usersRepository: UsersRepository,
     @Inject(MediaService)
-    private readonly mediaService: MediaService
+    private readonly mediaService: MediaService,
+    @Inject(ProfileService)
+    private readonly profileService: ProfileService
   ) {}
 
-  public async getPublicUserDataByPublicId(publicId: string): Promise<UserPublicData>{
-  try{
-    this.logger.log(`Attempting to fetch public data for publicId: ${publicId}`);
+  public async getPublicUserDataByPublicId(
+    publicId: string
+  ): Promise<UserPublicData> {
+    try {
+      this.logger.log(
+        `Attempting to fetch public data for publicId: ${publicId}`
+      );
+      const user = await this.usersRepository.findByPublicId(publicId);
+      if (!user) {
+        throw new NotFoundException(
+          `User with public ID ${publicId} not found.`
+        );
+      }
 
-
-    const user = await this.usersRepository.findByPublicId(publicId);
-
-
-    if (!user) {
-      throw new NotFoundException(`User with public ID ${publicId} not found.`);
-    }
-
-
-    const userPublicData: UserPublicData = {
-      name: user.name,
-      bio: user.bio,
-      avatarUrl: user.avatar?.avatarUrl
-    };
-
-
-    this.logger.log(`Successfully fetched public data for publicId: ${publicId}`);
-    return userPublicData;
-    } catch(error){
-    this.logger.error("Failed to get public user data", { error });
-    throw error;
+      const userPublicData: UserPublicData = {
+        name: user.name,
+        bio: user.bio,
+        avatarUrl: user.avatar?.avatarUrl,
+      };
+      this.logger.log(
+        `Successfully fetched public data for publicId: ${publicId}`
+      );
+      return userPublicData;
+    } catch (error) {
+      this.logger.error("Failed to get public user data", { error });
+      throw error;
     }
   }
 
@@ -72,17 +76,23 @@ export class UserService {
   public async updateUserData(user: User, userData: UpdateUserDataDto) {
     try {
       this.logger.log("Updating user location", userData);
+      const profile = await this.profileService.getProfile(user.id);
 
       if (userData.name) {
         user.name = userData.name;
+        if (profile) {
+          profile.displayName = userData.name;
+        }
       }
-
       if (userData.gender) {
         user.gender = userData.gender;
       }
 
       if (userData.bio) {
         user.bio = userData.bio;
+        if (profile) {
+          profile.bio = userData.bio;
+        }
       }
 
       if (userData.birthDate) {
@@ -105,11 +115,16 @@ export class UserService {
   public async updateUserAvatar(user: User, userData: UpdateUserAvatarDto) {
     try {
       this.logger.log("Updating user location", userData);
+      const profile = await this.profileService.getProfile(user.id);
 
       const { avatarMediaId } = userData;
 
       if (!avatarMediaId) {
         user.setAvatar(null);
+        if (profile) {
+          profile.profileImage = null;
+        }
+        this.logger.log("Avatar removed from user");
       } else {
         this.logger.log("Looking for avatar mediaId", {
           avatarMediaId,
@@ -123,10 +138,17 @@ export class UserService {
           });
 
           user.setAvatar(new UserAvatar(media.sources));
+          if (profile) {
+            profile.setAvatar(user.getAvatar()?.getAvatarUrl() || null);
+          }
         }
       }
 
       await this.usersRepository.update(user);
+      await this.profileService.updateAvatar(
+        user.id,
+        profile?.profileImage || null
+      );
 
       this.logger.log("User data updated successfully");
     } catch (error: unknown) {

@@ -323,6 +323,7 @@ model Profile {
   userId          Int      @unique @map("user_id")
   bio             String?  @db.LongText
   profileImage    String?  @map("profile_image")
+  displayName     String?  @map("display_name")
   latitude        Float?
   longitude       Float?
   createdAt       DateTime @default(now()) @map("created_at")

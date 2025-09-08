@@ -11,13 +11,10 @@ import { AchievementService } from "../application/achievement.service";
 import { UserService } from "../application/user.service";
 import { User } from "../domain/entities/User";
 import { ProfileService } from "../application/profile.service";
-import { UserBasicData } from "../domain/value-objects/user-basic-data";
 import { UserGuard } from "./meta/guards/user.guard";
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { Logger } from "@nestjs/common";
-import { profile } from "console";
-import { Profile } from "@prisma/client";
 
 @Controller("social")
 @UseGuards(JwtAuthGuard)
@@ -38,6 +35,32 @@ export class SocialController {
   @Get("/achievements/:id")
   async getAchievement(@Param("id") id: number) {
     return this.achievementService.findById(id);
+  }
+
+  @Post("/follow/:userId")
+  async followUser(
+    @Param("userId") userId: number,
+    @CurrentUser() currentUser: User
+  ) {
+    return await this.profileService.followUser(currentUser.id, userId);
+  }
+
+  @Get("/followers/:id")
+  async getFollowers(@Param("id") id: number) {
+    return await this.profileService.getFollowers(id);
+  }
+
+  @Get("/following/:id")
+  async getFollowing(@Param("id") id: number) {
+    return await this.profileService.getFollowing(id);
+  }
+
+  @Post("/unfollow/:userId")
+  async unfollowUser(
+    @Param("userId") userId: number,
+    @CurrentUser() currentUser: User
+  ) {
+    return await this.profileService.unfollowUser(currentUser.id, userId);
   }
 
   @Get("/profile")
