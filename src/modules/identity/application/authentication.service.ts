@@ -16,6 +16,8 @@ import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
+import { ProfileRepository } from "@/modules/feed/domain/interfaces/repositories/profile-repository";
+import { Profile } from "@/modules/feed/domain/entities/Profile";
 /* import { EmailVerificationService } from "./email-verification.service";*/
 
 export class AuthenticationService {
@@ -28,7 +30,9 @@ export class AuthenticationService {
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
-    private readonly userVerificationService: UserVerificationService
+    private readonly userVerificationService: UserVerificationService,
+    @Inject(ProfileRepository)
+    private readonly profileRepository: ProfileRepository
   ) {}
 
   public async signUp(params: {
@@ -74,7 +78,6 @@ export class AuthenticationService {
       } else {
         newUser = User.Create(name, emailPasswordCredential);
       }
-
       let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
         if (newUser) {
@@ -97,6 +100,20 @@ export class AuthenticationService {
       const accessToken = this.encryptor.generateToken({
         sub: (guestUser?.publicId || newUser?.publicId)!,
       });
+
+      await this.profileRepository.create(
+        new Profile({
+          id: 0,
+          displayName: name,
+          userId: userId!,
+          bio: "",
+          profileImage: null,
+          latitude: newUser?.latitude || null,
+          longitude: newUser?.longitude || null,
+          followersCount: 0,
+          followingCount: 0,
+        })
+      );
 
       return { accessToken };
     } catch (error: unknown) {

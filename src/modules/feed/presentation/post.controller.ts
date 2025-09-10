@@ -49,6 +49,7 @@ export class PostController {
     private readonly postService: PostServices,
     private readonly postCommentService: PostCommentsService,
     private readonly postCommentRepository: PostCommentRepository
+    
   ) {}
 
   @PostMethod()
@@ -344,4 +345,5 @@ export class PostController {
     
     return new PaginatedResponse(records, total, limit, page, {});
   }
+
 }
