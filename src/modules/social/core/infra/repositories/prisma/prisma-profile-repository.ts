@@ -8,6 +8,7 @@ import {
   ProfileRepository,
   ProfileFollowRepository,
 } from "@/modules/social/core/interfaces/repositories/profile-repository";
+import { ProfileAssembler } from "./mappers/prisma-profile.assembler";
 
 @Injectable()
 export class PrismaProfileRepository implements ProfileRepository {
@@ -15,40 +16,44 @@ export class PrismaProfileRepository implements ProfileRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  async findByHandle(handle: string): Promise<Profile | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { handle },
+    });
+
+    if (!profile) return null;
+    return ProfileAssembler.fromPrisma(profile);
+  }
+
   async findById(id: number): Promise<Profile | null> {
     const data = await this.prisma.profile.findUnique({ where: { id } });
-    return data ? new Profile(data) : null;
+    if (!data) return null;
+    return ProfileAssembler.fromPrisma(data);
   }
 
   async findByUserId(userId: number): Promise<Profile | null> {
     const data = await this.prisma.profile.findUnique({ where: { userId } });
-    return data ? new Profile(data) : null;
+    if (!data) return null;
+    return ProfileAssembler.fromPrisma(data);
   }
 
   public async create(
     profile: Profile,
     options?: { txContext?: PrismaClient }
-  ): Promise<Profile> {
+  ): Promise<void> {
     const connection = options?.txContext ?? this.prisma.getConnection();
-    const data = await connection.profile.create({
-      data: {
-        userId: profile.userId,
-        bio: profile.bio,
-        displayName: profile.displayName,
-        profileImage: profile.profileImage,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
-        followersCount: profile.followersCount,
-        followingCount: profile.followingCount,
-      },
+    const created = await connection.profile.create({
+      data: ProfileAssembler.toPrismaCreateInput(profile),
     });
-    return new Profile(data);
+
+    profile.setId(created.id);
   }
 
+  // TODO: REFACTOR THIS TO COUNT TABLES
   async refreshPostCount(userId: number): Promise<void> {
     await this.prisma.profile.update({
       where: { userId },
-      data: { postCounts: { increment: 1 } },
+      data: { postsCount: { increment: 1 } },
     });
   }
 
@@ -59,23 +64,15 @@ export class PrismaProfileRepository implements ProfileRepository {
 
     await this.prisma.profile.update({
       where: { userId },
-      data: { commentCounts: commentCount },
+      data: { commentsCount: commentCount },
     });
   }
 
-  async update(profile: Profile): Promise<Profile> {
-    const data = await this.prisma.profile.update({
+  async update(profile: Profile): Promise<void> {
+    await this.prisma.profile.update({
       where: { id: profile.id },
-      data: {
-        bio: profile.bio,
-        profileImage: profile.profileImage,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
-        followersCount: profile.followersCount,
-        followingCount: profile.followingCount,
-      },
+      data: ProfileAssembler.toPrismaUpdateInput(profile),
     });
-    return new Profile(data);
   }
 
   async delete(id: number): Promise<void> {

@@ -4,32 +4,41 @@ import { User } from "@/modules/identity/domain/entities/User";
 export class Profile {
   id: number;
   userId: number;
-  displayName: string | null;
-  bio: string | null;
+  handle: string;
+  bio: string;
+  displayName: string;
   profileImage: string | null;
-  latitude: number | null;
-  longitude: number | null;
+
+  // metrics (TODO: IN THE FUTURE MOVE IT O MONGO COLLECTION OR SPECIALIZED METRICS TABLE)
   followersCount: number;
   followingCount: number;
-  postCount?: number;
-
+  postsCount: number;
+  commentsCount: number;
   constructor(args: NonFunctionProperties<Profile>) {
     Object.assign(this, args);
   }
 
-  public static fromUser(user: User): Profile {
+  public static fromUser(
+    user: User,
+    displayName: string,
+    handle: string
+  ): Profile {
     return new Profile({
       id: -1,
-      displayName: user.name,
+      handle,
+      bio: "",
+      displayName,
       userId: user.id,
-      bio: null,
       profileImage: null,
-      latitude: user.latitude ?? null,
-      longitude: user.longitude ?? null,
       followersCount: 0,
       followingCount: 0,
-      postCount: 0,
+      postsCount: 0,
+      commentsCount: 0,
     });
+  }
+
+  public setId(newId: number) {
+    this.id = newId;
   }
 
   public setAvatar(avatarUrl: string | null) {
