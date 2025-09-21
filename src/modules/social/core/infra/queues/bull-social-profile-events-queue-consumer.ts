@@ -12,6 +12,22 @@ import {
   SocialProfileEventsQueueDto,
 } from "../../domain/queues/social-profile-events-queue";
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
+import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
+
+type ProfileMetric = "followers" | "comments" | "posts";
+
+type ProfileUpdateState = {
+  metrics: Set<ProfileMetric>;
+  debouncedFn: () => void;
+};
+
+const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
+  follow: ["followers"],
+  unfollow: ["followers"],
+  comment: ["comments"],
+  uncomment: ["comments"],
+  post: ["posts"],
+};
 
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
   limiter: { max: 10, duration: 1000 },
@@ -20,52 +36,65 @@ export class BullSocialProfileConsumer extends BullQueueConsumer<
   SocialProfileEvent,
   SocialProfileEventsQueueDto
 > {
-  private followersToUpdate = new Set<number>();
-  private commentsToUpdate = new Set<number>();
-  private postsToUpdate = new Set<number>();
+  private profileUpdateState = new Map<number, ProfileUpdateState>();
 
-  constructor(private readonly profileRepository: ProfileRepository) {
+  constructor(
+    private readonly profileRepository: ProfileRepository,
+    private readonly redisLockService: RedisLockService
+  ) {
     super();
   }
 
-  private refreshFollowers = debounce(async () => {
-    const profileIds = Array.from(this.followersToUpdate);
-    this.followersToUpdate.clear();
+  private scheduleProfileUpdate(
+    profileId: number,
+    metrics: ("followers" | "comments" | "posts")[]
+  ) {
+    const existing = this.profileUpdateState.get(profileId);
 
-    for (const id of profileIds) {
-      try {
-        await this.profileRepository.refreshFollowersCounts(id);
-      } catch (err) {
-        console.error(`Failed updating followers for profile ${id}`, err);
-      }
+    if (existing) {
+      metrics.forEach((m) => existing.metrics.add(m));
+      return;
     }
-  }, 500);
 
-  private refreshComments = debounce(async () => {
-    const profileIds = Array.from(this.commentsToUpdate);
-    this.commentsToUpdate.clear();
+    const metricsSet = new Set(metrics);
+    const debouncedFn = debounce(async () => {
+      const state = this.profileUpdateState.get(profileId);
+      if (!state) return;
 
-    for (const id of profileIds) {
+      this.profileUpdateState.delete(profileId);
+      const metricsToUpdate = Array.from(state.metrics);
+
+      const lock = await this.redisLockService.acquireLock(
+        `profile:${profileId}`,
+        3000
+      );
+      if (!lock) return;
+
       try {
-        await this.profileRepository.refreshCommentCount(id);
+        if (metricsToUpdate.includes("followers")) {
+          await this.profileRepository.refreshFollowersCounts(profileId);
+        }
+        if (metricsToUpdate.includes("comments")) {
+          await this.profileRepository.refreshCommentCount(profileId);
+        }
+        if (metricsToUpdate.includes("posts")) {
+          await this.profileRepository.refreshPostCount(profileId);
+        }
       } catch (err) {
-        console.error(`Failed updating comments for profile ${id}`, err);
+        console.error(`Failed updating profile ${profileId}`, err);
+      } finally {
+        console.log(`Profile ${profileId} refreshed metrics:`, metricsToUpdate);
+        await lock.unlock();
       }
-    }
-  }, 500);
+    }, 500);
 
-  private refreshPosts = debounce(async () => {
-    const profileIds = Array.from(this.postsToUpdate);
-    this.postsToUpdate.clear();
+    this.profileUpdateState.set(profileId, {
+      metrics: metricsSet,
+      debouncedFn,
+    });
 
-    for (const id of profileIds) {
-      try {
-        await this.profileRepository.refreshPostCount(id);
-      } catch (err) {
-        console.error(`Failed updating posts for profile ${id}`, err);
-      }
-    }
-  }, 500);
+    debouncedFn();
+  }
 
   public handle({
     event,
@@ -74,18 +103,14 @@ export class BullSocialProfileConsumer extends BullQueueConsumer<
     SocialProfileEvent,
     SocialProfileEventsQueueDto
   >): Promise<void> {
-    if (event === "follow" || event === "unfollow") {
-      this.followersToUpdate.add(data.profileId);
-      if (data.targetProfileId)
-        this.followersToUpdate.add(data.targetProfileId);
+    const metricsToUpdate = eventMetricsMap[event] ?? [];
 
-      this.refreshFollowers();
-    } else if (event === "comment" || event === "uncomment") {
-      this.commentsToUpdate.add(data.profileId);
-      this.refreshComments();
-    } else if (event === "post") {
-      this.postsToUpdate.add(data.profileId);
-      this.refreshPosts();
+    if (metricsToUpdate.length > 0) {
+      this.scheduleProfileUpdate(data.profileId, metricsToUpdate);
+    }
+
+    if ((event === "follow" || event === "unfollow") && data.targetProfileId) {
+      this.scheduleProfileUpdate(data.targetProfileId, ["followers"]);
     }
 
     return Promise.resolve();

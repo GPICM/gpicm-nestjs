@@ -14,7 +14,8 @@ export type SocialProfileEvent =
   | "follow"
   | "unfollow"
   | "comment"
-  | "uncomment";
+  | "uncomment"
+  | "post";
 
 export abstract class SocialProfileEventsQueuePublisher extends AppQueuePublisher<
   SocialProfileEvent,
