@@ -27,10 +27,12 @@ import { IncidentsService } from "@/modules/incidents/application/incidents.serv
 import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
+import { SocialCoreModule } from "../core/social.module";
 
 @Module({
   controllers: [PostController],
   imports: [
+    SocialCoreModule,
     BullModule.forRoot({
       connection: {
         url: String(process.env.REDIS_URL),

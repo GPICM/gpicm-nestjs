@@ -5,12 +5,16 @@ import {
 
 export type SocialProfileEventsQueueDto = {
   profileId: number;
-  followingId: number;
+  resourceId: number;
 };
 
 export const SOCIAL_PROFILE_EVENTS_QUEUE_NAME = "social.profile.events";
 
-export type SocialProfileEvent = "follow" | "unfollow";
+export type SocialProfileEvent =
+  | "follow"
+  | "unfollow"
+  | "comment"
+  | "uncomment";
 
 export abstract class SocialProfileEventsQueuePublisher extends AppQueuePublisher<
   SocialProfileEvent,

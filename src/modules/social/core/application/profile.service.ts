@@ -40,10 +40,6 @@ export class ProfileService {
     await this.profileRepository.refreshPostCount(userId);
   }
 
-  async refreshCommentCount(userId: number): Promise<void> {
-    await this.profileRepository.refreshCommentCount(userId);
-  }
-
   async getProfile(userId: number): Promise<Profile | null> {
     return await this.profileRepository.findByUserId(userId);
   }
@@ -105,7 +101,7 @@ export class ProfileService {
 
     await this.eventsQueuePublisher.publish({
       event: "follow",
-      data: { profileId: userProfileId, followingId: followingProfile.id },
+      data: { profileId: userProfileId, resourceId: followingProfile.id },
     });
 
     return { success: true, message: "User followed successfully" };
@@ -133,7 +129,7 @@ export class ProfileService {
 
     await this.eventsQueuePublisher.publish({
       event: "unfollow",
-      data: { profileId: userProfileId, followingId: followingProfile.id },
+      data: { profileId: userProfileId, resourceId: followingProfile.id },
     });
 
     return { success: true, message: "User unfollowed successfully" };
