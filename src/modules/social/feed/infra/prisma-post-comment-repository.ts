@@ -28,7 +28,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
 
   public async update(comment: PostComment): Promise<void> {
     await this.prisma.postComment.update({
-      where: { id: comment.id! },
+      where: { id: comment.id },
       data: PostCommentAssembler.toPrismaUpdate(comment),
     });
   }

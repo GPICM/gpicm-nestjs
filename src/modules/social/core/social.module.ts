@@ -1,4 +1,4 @@
-import { Global, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { PrismaProfileRepository } from "@/modules/social/core/infra/repositories/prisma/prisma-profile-repository";
 import { ProfileService } from "@/modules/social/core/application/profile.service";
 import {
@@ -12,7 +12,6 @@ import { SocialController } from "./presentation/social.controller";
 import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
 import { SocialQueueModule } from "./social-queue.module";
 
-@Global()
 @Module({
   imports: [SocialQueueModule],
   controllers: [SocialController],
@@ -34,4 +33,4 @@ import { SocialQueueModule } from "./social-queue.module";
   ],
   exports: [ProfileService],
 })
-export class SocialModule {}
+export class SocialCoreModule {}
