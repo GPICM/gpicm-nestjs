@@ -25,3 +25,7 @@ ALTER TABLE `profile_achievements` ADD CONSTRAINT `profile_achievements_profileI
 
 -- AddForeignKey
 ALTER TABLE `profile_achievements` ADD CONSTRAINT `profile_achievements_achievementId_fkey` FOREIGN KEY (`achievementId`) REFERENCES `achievements`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AlterTable
+ALTER TABLE `profile_achievements` ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
+

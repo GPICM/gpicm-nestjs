@@ -2,6 +2,7 @@
 CREATE TABLE `profiles` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `user_id` INTEGER NOT NULL,
+    `display_name` VARCHAR(191) NULL,
     `bio` LONGTEXT NULL,
     `profile_image` VARCHAR(191) NULL,
     `latitude` DOUBLE NULL,
@@ -34,3 +35,9 @@ ALTER TABLE `profile_follows` ADD CONSTRAINT `profile_follows_followerId_fkey` F
 
 -- AddForeignKey
 ALTER TABLE `profile_follows` ADD CONSTRAINT `profile_follows_followingId_fkey` FOREIGN KEY (`followingId`) REFERENCES `profiles`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+-- AlterTable
+ALTER TABLE `profile_follows` ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
+
+
