@@ -25,6 +25,10 @@ export class RedisAdapter implements OnModuleDestroy {
     return this.redis.set(key, value, "EX", seconds);
   }
 
+  public getClient(): Redis {
+    return this.redis;
+  }
+
   async getKeysByPattern(pattern: string): Promise<string[]> {
     this.logger.log(`Getting keys with pattern: ${pattern}`);
     return this.redis.keys(pattern);

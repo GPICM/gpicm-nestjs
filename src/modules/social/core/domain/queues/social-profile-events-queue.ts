@@ -1,23 +1,28 @@
 import {
   AppQueuePublisher,
-  AppQueueConsumer,
+  AppQueueWorker,
 } from "@/modules/shared/domain/interfaces/application-queue";
 
 export type SocialProfileEventsQueueDto = {
   profileId: number;
-  followingId: number;
+  targetProfileId?: number;
 };
 
 export const SOCIAL_PROFILE_EVENTS_QUEUE_NAME = "social.profile.events";
 
-export type SocialProfileEvent = "follow" | "unfollow";
+export type SocialProfileEvent =
+  | "profile.followed"
+  | "profile.unfollowed"
+  | "post.created"
+  | "post.commented"
+  | "post.uncommented";
 
 export abstract class SocialProfileEventsQueuePublisher extends AppQueuePublisher<
   SocialProfileEvent,
   SocialProfileEventsQueueDto
 > {}
 
-export abstract class SocialProfileEventsQueueConsumer extends AppQueueConsumer<
+export abstract class SocialProfileEventsQueueConsumer extends AppQueueWorker<
   SocialProfileEvent,
   SocialProfileEventsQueueDto
 > {}

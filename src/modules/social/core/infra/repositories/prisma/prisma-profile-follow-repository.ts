@@ -51,21 +51,6 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
     });
   }
 
-  async refreshCounts(profileId: number): Promise<void> {
-    const [followersCount, followingCount] = await Promise.all([
-      this.countFollowersByProfileId(profileId),
-      this.countFollowingByProfileId(profileId),
-    ]);
-
-    await this.prisma.profile.update({
-      where: { id: profileId },
-      data: {
-        followersCount,
-        followingCount,
-      },
-    });
-  }
-
   async isFollowing(followerId: number, followingId: number): Promise<boolean> {
     const follow = await this.prisma.profileFollow.findUnique({
       where: { followerId_followingId: { followerId, followingId } },

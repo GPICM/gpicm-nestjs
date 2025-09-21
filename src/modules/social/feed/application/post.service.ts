@@ -16,7 +16,10 @@ import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
-import { ProfileService } from "@/modules/social/core/application/profile.service";
+import { EventPublisher } from "@/modules/shared/domain/interfaces/events/application-event-publisher";
+import { Profile } from "../../core/domain/entities/Profile";
+import { PostActionEvent } from "../../core/domain/interfaces/events";
+
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
   private readonly viewCooldownMs = 30 * 1000; // 30 secs
@@ -30,12 +33,12 @@ export class PostServices {
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
     private readonly redisAdapter: RedisAdapter,
-    private readonly profileService: ProfileService,
+    private readonly eventPublisher: EventPublisher,
     @Inject(VoteQueue)
     private voteQueue: VoteQueue
   ) {}
 
-  async create(user: User, dto: CreatePostDto) {
+  async create(user: User, dto: CreatePostDto, profile: Profile) {
     try {
       this.logger.log("Creating post", { dto });
 
@@ -86,7 +89,12 @@ export class PostServices {
           }
         }
       );
-      await this.profileService.refreshPostCount(user.id);
+
+      await this.eventPublisher.publish<PostActionEvent>({
+        event: "post.created",
+        data: { postId: post.id!, profileId: profile.id },
+      });
+
       this.logger.log("post created successfully", { post });
       return post;
     } catch (error: unknown) {

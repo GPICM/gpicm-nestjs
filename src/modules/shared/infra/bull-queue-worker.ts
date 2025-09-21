@@ -2,14 +2,14 @@ import { Job } from "bullmq";
 import { WorkerHost } from "@nestjs/bullmq";
 
 import {
-  AppQueueConsumer,
+  AppQueueWorker,
   AppQueueEvent,
 } from "@/modules/shared/domain/interfaces/application-queue";
 import { Logger } from "@nestjs/common";
 
-export abstract class BullQueueConsumer<E, T>
+export abstract class BullQueueWorker<E, T>
   extends WorkerHost
-  implements AppQueueConsumer<E, T>
+  implements AppQueueWorker<E, T>
 {
   protected logger = new Logger();
 

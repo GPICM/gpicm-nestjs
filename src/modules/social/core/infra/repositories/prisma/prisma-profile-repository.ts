@@ -46,11 +46,14 @@ export class PrismaProfileRepository implements ProfileRepository {
     profile.setId(created.id);
   }
 
-  // TODO: REFACTOR THIS TO COUNT TABLES
-  async refreshPostCount(userId: number): Promise<void> {
+  async refreshPostCount(profileId: number): Promise<void> {
+    const postsCount = await this.prisma.post.count({
+      where: { authorId: profileId, deletedAt: null },
+    });
+
     await this.prisma.profile.update({
-      where: { userId },
-      data: { postsCount: { increment: 1 } },
+      where: { id: profileId },
+      data: { postsCount },
     });
   }
 
@@ -62,6 +65,25 @@ export class PrismaProfileRepository implements ProfileRepository {
     await this.prisma.profile.update({
       where: { userId },
       data: { commentsCount: commentCount },
+    });
+  }
+
+  async refreshFollowersCounts(profileId: number): Promise<void> {
+    const [followersCount, followingCount] = await Promise.all([
+      this.prisma.profileFollow.count({
+        where: { followerId: profileId },
+      }),
+      this.prisma.profileFollow.count({
+        where: { followingId: profileId },
+      }),
+    ]);
+
+    await this.prisma.profile.update({
+      where: { id: profileId },
+      data: {
+        followersCount,
+        followingCount,
+      },
     });
   }
 
