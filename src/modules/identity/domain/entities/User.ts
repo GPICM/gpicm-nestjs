@@ -78,8 +78,8 @@ export class User {
         name,
         publicId,
         deviceKey,
-        role: credential ? UserRoles.USER : UserRoles.GUEST,
-        status: UserStatus.ACTIVE,
+        role: UserRoles.USER,
+        status: credential ? UserStatus.ACTIVE : UserStatus.GUEST,
         credentials: credential ? [credential] : [],
         avatar: null,
         ipAddress: null,
@@ -103,11 +103,15 @@ export class User {
   }
 
   public isGuest() {
-    return this.role === UserRoles.GUEST && !this.credentials.length;
+    return this.status === UserStatus.GUEST && !this.credentials.length;
   }
 
-  public isUser() {
-    return this.role === UserRoles.USER && !!this.credentials.length;
+  public isActive() {
+    return (
+      this.role === UserRoles.USER &&
+      this.status === UserStatus.ACTIVE &&
+      !!this.credentials.length
+    );
   }
 
   public setId(newUserId: number) {

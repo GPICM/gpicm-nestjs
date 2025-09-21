@@ -1,6 +1,7 @@
 import { AuthProviders } from "@prisma/client";
 import { User } from "../../entities/User";
 import { UserRoles } from "../../enums/user-roles";
+import { UserStatus } from "../../enums/user-status";
 
 export abstract class UsersRepository {
   abstract findById(id: number): Promise<User | null>;
@@ -12,7 +13,7 @@ export abstract class UsersRepository {
 
   abstract findUserByDeviceKey(
     deviceKey: string,
-    filters: { roles?: UserRoles[] }
+    filters: { roles?: UserRoles[]; status?: UserStatus[] }
   ): Promise<User | null>;
 
   abstract findByCredentials(

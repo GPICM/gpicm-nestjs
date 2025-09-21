@@ -1,4 +1,6 @@
 export enum UserStatus {
+  GUEST = "GUEST",
+  PENDING_PROFILE = "PENDING_PROFILE",
   ACTIVE = "ACTIVE",
   BANNED = "BANNED",
   SUSPENDED = "SUSPENDED",

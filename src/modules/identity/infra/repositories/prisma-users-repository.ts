@@ -4,7 +4,7 @@ import { User } from "../../domain/entities/User";
 import { UserRoles } from "../../domain/enums/user-roles";
 import { UserAssembler, userInclude } from "./mappers/prisma-user.assembler";
 import { Inject, Logger } from "@nestjs/common";
-import { AuthProviders, PrismaClient } from "@prisma/client";
+import { AuthProviders, PrismaClient, UserStatus } from "@prisma/client";
 
 export class PrismaUserRepository implements UsersRepository {
   private readonly logger: Logger = new Logger(PrismaUserRepository.name);
@@ -43,7 +43,7 @@ export class PrismaUserRepository implements UsersRepository {
 
   async findUserByDeviceKey(
     deviceKey: string,
-    filters: { roles?: UserRoles[] }
+    filters: { roles?: UserRoles[]; status?: UserStatus[] }
   ): Promise<User | null> {
     try {
       this.logger.log(`Finding user by device key: ${deviceKey}`);
@@ -52,6 +52,7 @@ export class PrismaUserRepository implements UsersRepository {
         where: {
           deviceKey,
           role: filters.roles ? { in: filters.roles } : undefined,
+          status: filters.status ? { in: filters.status } : undefined,
         },
         include: userInclude,
       });

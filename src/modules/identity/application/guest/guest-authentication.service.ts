@@ -3,9 +3,9 @@ import { HttpClient } from "../../../shared/domain/interfaces/http-client/http-c
 import { Encryptor } from "../../domain/interfaces/jwt-encryptor";
 import { UsersRepository } from "../../domain/interfaces/repositories/users-repository";
 import { User } from "../../domain/entities/User";
-import { UserRoles } from "../../domain/enums/user-roles";
 import { UserJWTpayload } from "../../domain/value-objects/user-jwt-payload";
 import { LogUserAction } from "@/modules/shared/application/log-user-action";
+import { UserStatus } from "../../domain/enums/user-status";
 
 export class GuestAuthenticationService {
   private readonly logger = new Logger(GuestAuthenticationService.name);
@@ -23,7 +23,7 @@ export class GuestAuthenticationService {
     bypassCaptcha = false
   ): Promise<{ accessToken: string; deviceKey: string }> {
     try {
-      const { name, captchaToken, deviceKey, ipAddress, deviceInfo } = params;
+      const { name, captchaToken, deviceKey } = params;
       this.logger.log("Started guest Sign in");
 
       if (!bypassCaptcha) {
@@ -37,7 +37,7 @@ export class GuestAuthenticationService {
       let guestUser: User | null = null;
       if (deviceKey) {
         guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
-          roles: [UserRoles.GUEST],
+          status: [UserStatus.GUEST],
         });
       }
 

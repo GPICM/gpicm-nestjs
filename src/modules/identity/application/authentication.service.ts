@@ -17,6 +17,7 @@ import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
 import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
+import { UserStatus } from "../domain/enums/user-status";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -48,7 +49,7 @@ export class AuthenticationService {
       if (deviceKey) {
         this.logger.log("Device key intercepted. searching for its guest");
         guestUser = await this.usersRepository.findUserByDeviceKey(deviceKey, {
-          roles: [UserRoles.GUEST],
+          status: [UserStatus.GUEST],
         });
 
         this.logger.log("Device key search result", { guestUser });
