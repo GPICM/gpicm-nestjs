@@ -1,6 +1,5 @@
 import { Global, Module } from "@nestjs/common";
 import { GuestAuthController } from "./presentation/guest.auth.controller";
-import { SharedModule } from "../shared/shared.module";
 import { JwtAdapter } from "./infra/lib/jwt-Adapter";
 import { GuestAuthenticationService } from "./application/guest/guest-authentication.service";
 import { Encryptor } from "./domain/interfaces/jwt-encryptor";
@@ -25,6 +24,7 @@ import { UserVerificationService } from "./authentication/application/user/user-
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
 import { ProfileRepository } from "../social/core/domain/interfaces/repositories/profile-repository";
 import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
+import { ExternalProfileModule } from "../social/core/external-profile.module";
 
 @Global()
 @Module({
@@ -65,7 +65,7 @@ import { PrismaProfileRepository } from "../social/core/infra/repositories/prism
       useClass: PrismaUserVerificationRepository,
     },
   ],
-  imports: [SharedModule, PoliciesModule, AssetsModule],
+  imports: [PoliciesModule, AssetsModule, ExternalProfileModule],
   exports: [
     Encryptor,
     DefaultJwtStrategy,
