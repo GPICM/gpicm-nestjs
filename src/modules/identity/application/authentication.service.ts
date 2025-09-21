@@ -85,6 +85,7 @@ export class AuthenticationService {
 
           emailPasswordCredential.setUserId(userId);
 
+          // TODO: PROFILE SHOULD BE CREATED ONLY WHEN DC ACCEPT THE REQUEST
           await this.profileService.createProfile(newUser, {
             txContext: tx,
           });
