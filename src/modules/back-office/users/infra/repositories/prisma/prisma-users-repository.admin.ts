@@ -31,7 +31,7 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
       const skip = filters.offset ?? 0;
       const take = filters.limit ?? 10;
       const sort = filters.sort ?? "createdAt";
-      const order = filters.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
+      const order = filters.order?.toUpperCase() === "ASC" ? "asc" : "desc";
 
       const where: Prisma.UserWhereInput = {};
 
