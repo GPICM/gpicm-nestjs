@@ -16,7 +16,6 @@ import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
-import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
 import { UserStatus } from "../domain/enums/user-status";
 
 export class AuthenticationService {

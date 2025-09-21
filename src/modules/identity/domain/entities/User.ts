@@ -147,6 +147,7 @@ export class User {
       name: this.name,
       gender: this.gender ?? null,
       role: this.role,
+      status: this.status,
       latitude: this.latitude,
       longitude: this.longitude,
       locationUpdatedAt: this.locationUpdatedAt,

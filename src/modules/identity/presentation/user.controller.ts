@@ -121,25 +121,26 @@ export class UserController {
       throw new BadRequestException();
     }
   }
-  
+
   @Get("/public-data/:publicId")
-  async getPublicData(@Param("publicId") publicId: string): Promise<UserPublicData> {
-    try{
+  async getPublicData(
+    @Param("publicId") publicId: string
+  ): Promise<UserPublicData> {
+    try {
       this.logger.log(`Fetching public data for current user: ${publicId}`);
 
       const user = await this.userService.getPublicUserDataByPublicId(publicId);
 
-      if(!user){
-        throw new NotFoundException(`User with public ID ${publicId} not found.`);
+      if (!user) {
+        throw new NotFoundException(
+          `User with public ID ${publicId} not found.`
+        );
       }
 
       return user;
-    } catch (error){
-    this.logger.error("Failed to get user public data", { error });
-    throw new BadRequestException();
+    } catch (error) {
+      this.logger.error("Failed to get user public data", { error });
+      throw new BadRequestException();
     }
   }
-
-  
-  
 }
