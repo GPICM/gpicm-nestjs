@@ -40,6 +40,7 @@ export class UserService {
         name: user.name,
         bio: user.bio,
         avatarUrl: user.avatar?.avatarUrl,
+        publicId: user.publicId,
       };
 
       this.logger.log(

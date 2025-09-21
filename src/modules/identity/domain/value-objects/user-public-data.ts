@@ -4,4 +4,6 @@ export interface UserPublicData {
   bio: string | null;
 
   avatarUrl?: string | null;
+
+  publicId: string;
 }
