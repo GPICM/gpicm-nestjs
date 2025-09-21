@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Achievement } from "../../../domain/entities/Achievement";
-import { AchievementsRepository } from "../../../interfaces/repositories/achievements-repository";
+import { AchievementsRepository } from "../../../domain/interfaces/repositories/achievements-repository";
 
 @Injectable()
 export class PrismaAchievementRepository implements AchievementsRepository {

@@ -3,7 +3,7 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
-import { ProfileFollowRepository } from "@/modules/social/core/interfaces/repositories/profile-repository";
+import { ProfileFollowRepository } from "@/modules/social/core/domain/interfaces/repositories/profile-repository";
 import {
   ProfileAssembler,
   profileInclude,

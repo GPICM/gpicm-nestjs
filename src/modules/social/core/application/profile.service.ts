@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import {
   ProfileFollowRepository,
   ProfileRepository,
-} from "../interfaces/repositories/profile-repository";
+} from "../domain/interfaces/repositories/profile-repository";
 import {
   generateBaseHandle,
   generateHandleCandidates,

@@ -23,7 +23,7 @@ import { UserVerificationRepository } from "./authentication/domain/interfaces/r
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
-import { ProfileRepository } from "../social/core/interfaces/repositories/profile-repository";
+import { ProfileRepository } from "../social/core/domain/interfaces/repositories/profile-repository";
 import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
 import { ProfileService } from "../social/core/application/profile.service";
 

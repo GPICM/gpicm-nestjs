@@ -4,7 +4,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
-import { ProfileRepository } from "@/modules/social/core/interfaces/repositories/profile-repository";
+import { ProfileRepository } from "@/modules/social/core/domain/interfaces/repositories/profile-repository";
 import { ProfileAssembler } from "./mappers/prisma-profile.assembler";
 
 @Injectable()

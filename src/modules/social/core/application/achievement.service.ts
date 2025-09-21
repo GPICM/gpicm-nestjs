@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { CreateAchievementDto } from "@/modules/social/core/presentation/dtos/achievement.dto";
 import { Achievement } from "@/modules/social/core/domain/entities/Achievement";
 import { JsonArray } from "@prisma/client/runtime/library";
-import { AchievementsRepository } from "../interfaces/repositories/achievements-repository";
+import { AchievementsRepository } from "../domain/interfaces/repositories/achievements-repository";
 
 @Injectable()
 export class AchievementService {
