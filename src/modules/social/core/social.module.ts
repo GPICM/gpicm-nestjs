@@ -18,10 +18,11 @@ import {
 import { PubSubToBullSubscriber } from "./infra/queues/pub-sub-to-bull-subscriber";
 import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
 import { getQueueToken } from "@nestjs/bullmq";
+import { SocialProfileController } from "./presentation/profile.controller";
 
 @Module({
   imports: [SocialQueueModule],
-  controllers: [SocialController],
+  controllers: [SocialController, SocialProfileController],
   providers: [
     ProfileService,
     AchievementService,
