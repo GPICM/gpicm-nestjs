@@ -13,7 +13,7 @@ export class AxiosHttpClient extends HttpClient {
   }
 
   public async request(
-    options: HttpClientRequestOptions,
+    options: HttpClientRequestOptions
   ): Promise<HttpClientResponse> {
     console.log("AxiosHttpClient: Executing http request", { options });
 
@@ -29,6 +29,8 @@ export class AxiosHttpClient extends HttpClient {
       method: options.method,
       params: options.params,
       data: options.body,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      httpsAgent: options?.httpsAgent,
       timeout: DEFAULT_TIMEOUT,
     };
 
@@ -38,7 +40,7 @@ export class AxiosHttpClient extends HttpClient {
       const response = new HttpClientResponse(
         Number(axiosResponse.status),
         axiosResponse.data ?? null,
-        axiosResponse.headers,
+        axiosResponse.headers
       );
 
       return response;

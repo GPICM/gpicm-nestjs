@@ -44,7 +44,7 @@ export class MongoDbInterpolatedMapsRepository implements InterpolatedMapsReposi
             },
           },
           {
-            $limit: 144,
+            $limit: 144 * 6,
           },
           { $sort: { timestamp: 1 } },
         ])

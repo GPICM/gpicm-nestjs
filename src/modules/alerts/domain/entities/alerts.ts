@@ -1,34 +1,38 @@
-  import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
-  export enum AlertStatus {
-    ACTIVE = "ACTIVE",
-    INACTIVE = "INACTIVE",
+export enum AlertStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
+export enum GravityLevel {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  VERY_HIGH = "VERY_HIGH",
+  EXTREME = "EXTREME",
+}
+
+export class CivilDefenseAlerts {
+  id: number;
+
+  title: string;
+
+  description: string;
+
+  gravityLevel: GravityLevel;
+
+  externalReference: string;
+
+  createdAt: Date;
+
+  publishAt: Date;
+
+  expiresAt: Date | null;
+
+  status: AlertStatus;
+
+  constructor(args: NonFunctionProperties<CivilDefenseAlerts>) {
+    Object.assign(this, args);
   }
-
-  export enum GravityLevel {
-    LOW = "LOW",
-    MEDIUM = "MEDIUM",
-    HIGH = "HIGH",
-    VERY_HIGH = "VERY_HIGH",
-    EXTREME = "EXTREME",
-  }
-
-
-  export class CivilDefenseAlerts {
-    id: number;
-
-    title: string;
-
-    description: string;
-
-    gravityLevel: GravityLevel;
-
-    createdAt: Date | null;
-
-    status: AlertStatus;
-
-    constructor(args: NonFunctionProperties<CivilDefenseAlerts>) {
-      Object.assign(this, args);
-    }
-
-  }
+}
