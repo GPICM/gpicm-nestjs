@@ -1,4 +1,4 @@
-export interface EventContract<T = any> {
-  event: string;
+export interface EventContract<E = string, T = any> {
+  event: E;
   data: T;
 }

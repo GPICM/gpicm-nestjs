@@ -5,7 +5,7 @@ import {
   EventSubscriber,
 } from "@/modules/shared/domain/interfaces/events";
 
-type EventHandler<T extends EventContract<any>> = (
+type EventHandler<T extends EventContract<string, any>> = (
   event: T
 ) => void | Promise<void>;
 
@@ -15,7 +15,7 @@ export class RedisEventSubscriber implements EventSubscriber {
 
   constructor(private readonly redisPubSubService: RedisPubSubService) {}
 
-  public async subscribe<T extends EventContract<any>>(
+  public async subscribe<T extends EventContract<string, any>>(
     eventName: string,
     handler: EventHandler<T>
   ) {

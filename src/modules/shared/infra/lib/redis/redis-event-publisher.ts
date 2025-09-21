@@ -9,7 +9,9 @@ import { Injectable } from "@nestjs/common";
 export class RedisEventPublisher implements EventPublisher {
   constructor(private readonly redisPubSubService: RedisPubSubService) {}
 
-  public async publish<T extends EventContract<any>>(event: T): Promise<void> {
+  public async publish<T extends EventContract<string, any>>(
+    event: T
+  ): Promise<void> {
     await this.redisPubSubService.publish(event.event, event);
   }
 }
