@@ -11,11 +11,11 @@ export type SocialProfileEventsQueueDto = {
 export const SOCIAL_PROFILE_EVENTS_QUEUE_NAME = "social.profile.events";
 
 export type SocialProfileEvent =
-  | "follow"
-  | "unfollow"
-  | "comment"
-  | "uncomment"
-  | "post";
+  | "profile.followed"
+  | "profile.unfollowed"
+  | "post.created"
+  | "post.commented"
+  | "post.uncommented";
 
 export abstract class SocialProfileEventsQueuePublisher extends AppQueuePublisher<
   SocialProfileEvent,

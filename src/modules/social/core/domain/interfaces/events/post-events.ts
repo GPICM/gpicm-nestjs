@@ -1,8 +1,15 @@
 import { EventContract } from "@/modules/shared/domain/interfaces/events";
 
-export const POST_CREATED_EVENT_NAME = "post.created";
+/* Event to be triggered when post is modified */
+export type PostActionEventName =
+  | "post.created"
+  | "post.commented"
+  | "post.uncommented";
 
-export type PostCreatedEvent = EventContract<{
-  postId: number;
-  profileId: number;
-}>;
+export type PostActionEvent = EventContract<
+  PostActionEventName,
+  {
+    postId: number;
+    profileId: number;
+  }
+>;

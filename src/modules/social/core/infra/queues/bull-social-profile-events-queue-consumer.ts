@@ -22,11 +22,11 @@ type ProfileUpdateState = {
 };
 
 const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
-  follow: ["followers"],
-  unfollow: ["followers"],
-  comment: ["comments"],
-  uncomment: ["comments"],
-  post: ["posts"],
+  "profile.followed": ["followers"],
+  "profile.unfollowed": ["followers"],
+  "post.commented": ["comments"],
+  "post.uncommented": ["comments"],
+  "post.created": ["posts"],
 };
 
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
@@ -109,7 +109,10 @@ export class BullSocialProfileConsumer extends BullQueueConsumer<
       this.scheduleProfileUpdate(data.profileId, metricsToUpdate);
     }
 
-    if ((event === "follow" || event === "unfollow") && data.targetProfileId) {
+    if (
+      (event === "profile.followed" || event === "profile.unfollowed") &&
+      data.targetProfileId
+    ) {
       this.scheduleProfileUpdate(data.targetProfileId, ["followers"]);
     }
 

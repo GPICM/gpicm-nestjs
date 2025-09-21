@@ -1,7 +1,10 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { SocialProfileEventsQueuePublisher } from "../../domain/queues/social-profile-events-queue";
 import { EventSubscriber } from "@/modules/shared/domain/interfaces/events";
-import { PostCreatedEvent } from "../../domain/interfaces/events";
+import {
+  PostActionEvent,
+  ProfileFollowingEvent,
+} from "../../domain/interfaces/events";
 
 @Injectable()
 export class PubSubToBullSubscriber {
@@ -16,21 +19,30 @@ export class PubSubToBullSubscriber {
   }
 
   private async subscribeToEvents() {
-    const events = ["post.created"];
+    // Create a single handler function
+    const postHandler = (event: PostActionEvent) => {
+      void this.profileQueue.publish({
+        event: event.event,
+        data: { profileId: event.data.profileId },
+      });
+    };
 
-    await this.eventSubscriber.subscribe<PostCreatedEvent>(
-      events[0],
-      (event: PostCreatedEvent) => {
-        this.logger.log(`Received event, pushing to BullMQ`, { event });
-        try {
-          void this.profileQueue.publish({
-            event: "post",
-            data: { profileId: event.data.profileId },
-          });
-        } catch (error: unknown) {
-          this.logger.error(`Failed to enqueue job for`, { error });
-        }
-      }
-    );
+    const profileHandler = (event: ProfileFollowingEvent) => {
+      void this.profileQueue.publish({
+        event: event.event,
+        data: {
+          profileId: event.data.profileId,
+          targetProfileId: event.data.targetProfileId,
+        },
+      });
+    };
+
+    await this.eventSubscriber.subscribeMany({
+      "post.created": postHandler,
+      "post.commented": postHandler,
+      "post.uncommented": postHandler,
+      "profile.followed": profileHandler,
+      "profile.unfollowed": profileHandler,
+    });
   }
 }

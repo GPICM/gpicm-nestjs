@@ -17,11 +17,8 @@ import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events/application-event-publisher";
-import {
-  POST_CREATED_EVENT_NAME,
-  PostCreatedEvent,
-} from "../../core/domain/interfaces/events/post-events";
 import { Profile } from "../../core/domain/entities/Profile";
+import { PostActionEvent } from "../../core/domain/interfaces/events";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -93,8 +90,8 @@ export class PostServices {
         }
       );
 
-      await this.eventPublisher.publish<PostCreatedEvent>({
-        event: POST_CREATED_EVENT_NAME,
+      await this.eventPublisher.publish<PostActionEvent>({
+        event: "post.created",
         data: { postId: post.id!, profileId: profile.id },
       });
 

@@ -9,8 +9,9 @@ import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
 import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
-import { SocialProfileEventsQueuePublisher } from "../../core/domain/queues/social-profile-events-queue";
 import { Profile } from "../../core/domain/entities/Profile";
+import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
+import { PostActionEvent } from "../../core/domain/interfaces/events";
 
 @Injectable()
 export class PostCommentsService {
@@ -18,8 +19,8 @@ export class PostCommentsService {
     private readonly postCommentRepository: PostCommentRepository,
     private readonly postRepository: PostRepository,
     private readonly commentsQueue: CommentsQueue,
-    @Inject(SocialProfileEventsQueuePublisher)
-    private readonly eventsQueuePublisher: SocialProfileEventsQueuePublisher
+    @Inject(EventPublisher)
+    private readonly eventPublisher: EventPublisher
   ) {}
 
   async addComment(
@@ -49,12 +50,12 @@ export class PostCommentsService {
 
     await this.postCommentRepository.add(comment);
 
-    // TODO ADD A PUB AND SUB BEFORE
-    await this.eventsQueuePublisher.publish({
-      event: "comment",
-      data: { profileId: profile.id },
+    await this.eventPublisher.publish<PostActionEvent>({
+      event: "post.commented",
+      data: { postId: post.id, profileId: profile.id },
     });
 
+    // TODO remove this
     await this.commentsQueue.addCommentJob({
       postId: post.id,
       commentParentId: body.parentCommentId,
@@ -105,9 +106,9 @@ export class PostCommentsService {
       commentParentId: comment.parentCommentId || undefined,
     });
 
-    await this.eventsQueuePublisher.publish({
-      event: "uncomment",
-      data: { profileId: profile.id },
+    await this.eventPublisher.publish<PostActionEvent>({
+      event: "post.uncommented",
+      data: { profileId: profile.id, postId: comment.postId },
     });
   }
 }

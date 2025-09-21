@@ -9,7 +9,8 @@ import {
   generateHandleCandidates,
 } from "@/modules/shared/utils/handle-generator";
 import { User } from "@/modules/identity/domain/entities/User";
-import { SocialProfileEventsQueuePublisher } from "../domain/queues/social-profile-events-queue";
+import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
+import { ProfileFollowingEvent } from "../domain/interfaces/events";
 
 @Injectable()
 export class ProfileService {
@@ -18,8 +19,8 @@ export class ProfileService {
     private readonly profileRepository: ProfileRepository,
     @Inject(ProfileFollowRepository)
     private readonly profileFollowRepository: ProfileFollowRepository,
-    @Inject(SocialProfileEventsQueuePublisher)
-    private readonly eventsQueuePublisher: SocialProfileEventsQueuePublisher
+    @Inject(EventPublisher)
+    private readonly eventsPublisher: EventPublisher
   ) {}
 
   async countFollowersByProfileId(profileId: number): Promise<number> {
@@ -99,8 +100,8 @@ export class ProfileService {
       followingProfile.id
     );
 
-    await this.eventsQueuePublisher.publish({
-      event: "follow",
+    await this.eventsPublisher.publish<ProfileFollowingEvent>({
+      event: "profile.followed",
       data: { profileId: userProfileId, targetProfileId: followingProfile.id },
     });
 
@@ -127,8 +128,8 @@ export class ProfileService {
       followingProfile.id
     );
 
-    await this.eventsQueuePublisher.publish({
-      event: "unfollow",
+    await this.eventsPublisher.publish<ProfileFollowingEvent>({
+      event: "profile.unfollowed",
       data: { profileId: userProfileId, targetProfileId: followingProfile.id },
     });
 
