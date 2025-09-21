@@ -1,0 +1,60 @@
+import { Prisma } from "@prisma/client";
+import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
+import { UserStatus } from "@/modules/identity/domain/enums/user-status";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { UserAvatar } from "@/modules/identity/domain/value-objects/user-avatar";
+import {
+  ProfileSummary,
+  User,
+} from "@/modules/back-office/users/domain/entites/User";
+
+export const userAdminInclude = Prisma.validator<Prisma.UserInclude>()({
+  Credentials: true,
+  Profile: true,
+});
+
+type UserAdminJoinModel = Prisma.UserGetPayload<{
+  include: typeof userAdminInclude;
+}>;
+
+export class UserAdminAssembler {
+  public static fromPrisma(
+    prismaData?: UserAdminJoinModel | null
+  ): User | null {
+    if (!prismaData) return null;
+
+    let avatar: UserAvatar | null = null;
+    if (prismaData.avatarImageSources) {
+      const avatarImageSource = MediaSource.fromJSON(
+        prismaData.avatarImageSources as Record<string, unknown> | null
+      );
+
+      if (avatarImageSource) {
+        avatar = new UserAvatar(avatarImageSource);
+      }
+    }
+
+    let activeProfile: ProfileSummary | null = null;
+    if (prismaData.Profile) {
+      activeProfile = {
+        id: prismaData.Profile.id,
+        handle: prismaData.Profile.handle,
+        displayName: prismaData.Profile.displayName,
+      };
+    }
+
+    return new User({
+      id: prismaData.id,
+      publicId: prismaData.publicId,
+      name: prismaData.name ?? null,
+      role: prismaData.role as UserRoles,
+      gender: prismaData.gender,
+      isVerified: prismaData.isVerified,
+      status: prismaData.status as UserStatus,
+      activeProfile,
+      createdAt: prismaData.createdAt,
+      updateAt: prismaData.updatedAt,
+      avatar,
+    });
+  }
+}
