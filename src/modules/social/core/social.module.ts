@@ -13,6 +13,7 @@ import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prism
 import { SocialQueueModule } from "./social-queue.module";
 import { SocialProfileEventsQueuePublisher } from "./domain/queues/social-profile-events-queue";
 import { BullSocialProfileQueuePublisher } from "./infra/queues/bull-social-profile-events-queue-publisher";
+import { PubSubToBullSubscriber } from "./infra/queues/pub-sub-to-bull-subscriber";
 
 @Module({
   imports: [SocialQueueModule],
@@ -36,6 +37,7 @@ import { BullSocialProfileQueuePublisher } from "./infra/queues/bull-social-prof
       provide: SocialProfileEventsQueuePublisher,
       useClass: BullSocialProfileQueuePublisher,
     },
+    PubSubToBullSubscriber,
   ],
   exports: [
     ProfileService,

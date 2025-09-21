@@ -55,12 +55,16 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseGuards(UserGuard)
-  async create(@Body() body: CreatePostDto, @CurrentUser() user: User) {
+  @UseGuards(UserGuard, SocialProfileGuard)
+  async create(
+    @Body() body: CreatePostDto,
+    @CurrentUser() user: User,
+    @CurrentUser() profile: Profile
+  ) {
     try {
       this.logger.log("Starting post creation", { body });
 
-      const post = await this.postService.create(user, body);
+      const post = await this.postService.create(user, body, profile);
 
       this.logger.log("Post successfully created", { post });
       return;
@@ -271,7 +275,7 @@ export class PostController {
     return this.postCommentService.updateComment(
       profile,
       Number(commentId),
-      body.content,
+      body.content
     );
   }
 
@@ -282,10 +286,7 @@ export class PostController {
     @CurrentUser() user: User,
     @CurrentProfile() profile: Profile
   ) {
-    await this.postCommentService.deleteComment(
-      profile,
-      Number(commentId),
-    );
+    await this.postCommentService.deleteComment(profile, Number(commentId));
     return { message: "Comentário excluído com sucesso" };
   }
 
