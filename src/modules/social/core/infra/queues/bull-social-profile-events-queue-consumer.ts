@@ -84,7 +84,7 @@ export class BullSocialProfileConsumer extends BullQueueConsumer<
         console.error(`Failed updating profile ${profileId}`, err);
       } finally {
         console.log(`Profile ${profileId} refreshed metrics:`, metricsToUpdate);
-        await lock.unlock();
+        await this.redisLockService.releaseLock(lock);
       }
     }, 500);
 
