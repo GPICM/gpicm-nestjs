@@ -49,9 +49,10 @@ export class PostCommentsService {
 
     await this.postCommentRepository.add(comment);
 
+    // TODO ADD A PUB AND SUB BEFORE
     await this.eventsQueuePublisher.publish({
       event: "comment",
-      data: { profileId: profile.id, resourceId: post.id },
+      data: { profileId: profile.id },
     });
 
     await this.commentsQueue.addCommentJob({
@@ -106,7 +107,7 @@ export class PostCommentsService {
 
     await this.eventsQueuePublisher.publish({
       event: "uncomment",
-      data: { profileId: profile.id, resourceId: comment.id },
+      data: { profileId: profile.id },
     });
   }
 }

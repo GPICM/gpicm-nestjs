@@ -5,7 +5,7 @@ import {
 
 export type SocialProfileEventsQueueDto = {
   profileId: number;
-  resourceId: number;
+  targetProfileId?: number;
 };
 
 export const SOCIAL_PROFILE_EVENTS_QUEUE_NAME = "social.profile.events";

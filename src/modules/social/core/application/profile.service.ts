@@ -101,7 +101,7 @@ export class ProfileService {
 
     await this.eventsQueuePublisher.publish({
       event: "follow",
-      data: { profileId: userProfileId, resourceId: followingProfile.id },
+      data: { profileId: userProfileId, targetProfileId: followingProfile.id },
     });
 
     return { success: true, message: "User followed successfully" };
@@ -129,7 +129,7 @@ export class ProfileService {
 
     await this.eventsQueuePublisher.publish({
       event: "unfollow",
-      data: { profileId: userProfileId, resourceId: followingProfile.id },
+      data: { profileId: userProfileId, targetProfileId: followingProfile.id },
     });
 
     return { success: true, message: "User unfollowed successfully" };
