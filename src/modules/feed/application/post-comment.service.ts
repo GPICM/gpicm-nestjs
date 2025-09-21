@@ -9,7 +9,7 @@ import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
 import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
-import { ProfileService } from "@/modules/identity/application/profile.service";
+import { ProfileService } from "@/modules/social/core/application/profile.service";
 
 @Injectable()
 export class PostCommentsService {

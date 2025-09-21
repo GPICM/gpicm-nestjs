@@ -16,13 +16,14 @@ export class Profile {
   constructor(args: NonFunctionProperties<Profile>) {
     Object.assign(this, args);
   }
+
   public static fromUser(user: User): Profile {
     return new Profile({
-      id: user.id,
+      id: -1,
       displayName: user.name,
       userId: user.id,
       bio: null,
-      profileImage: user?.avatar?.getAvatarUrl() || null,
+      profileImage: null,
       latitude: user.latitude ?? null,
       longitude: user.longitude ?? null,
       followersCount: 0,

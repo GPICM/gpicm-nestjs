@@ -1,15 +1,17 @@
-import { Profile } from "@/modules/feed/domain/entities/Profile";
-import { Injectable } from "@nestjs/common";
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
+import { Inject, Injectable } from "@nestjs/common";
 import {
-  PrismaProfileFollowRepository,
-  PrismaProfileRepository,
-} from "@/modules/feed/infra/prisma-profile-repository";
+  ProfileFollowRepository,
+  ProfileRepository,
+} from "../interfaces/repositories/profile-repository";
 
 @Injectable()
 export class ProfileService {
   constructor(
-    private readonly profileRepository: PrismaProfileRepository,
-    private readonly profileFollowRepository: PrismaProfileFollowRepository
+    @Inject(ProfileRepository)
+    private readonly profileRepository: ProfileRepository,
+    @Inject(ProfileFollowRepository)
+    private readonly profileFollowRepository: ProfileFollowRepository
   ) {}
 
   async countFollowersByProfileId(profileId: number): Promise<number> {
@@ -38,8 +40,11 @@ export class ProfileService {
     return await this.profileRepository.findByUserId(userId);
   }
 
-  async createProfile(profile: Profile): Promise<Profile> {
-    return await this.profileRepository.create(profile);
+  async createProfile(
+    profile: Profile,
+    options?: { txContext?: unknown }
+  ): Promise<Profile> {
+    return await this.profileRepository.create(profile, options);
   }
 
   async updateProfile(profile: Profile): Promise<Profile> {

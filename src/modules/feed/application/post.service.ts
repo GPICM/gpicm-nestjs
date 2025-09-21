@@ -16,7 +16,7 @@ import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
-import { ProfileService } from "@/modules/identity/application/profile.service";
+import { ProfileService } from "@/modules/social/core/application/profile.service";
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
   private readonly viewCooldownMs = 30 * 1000; // 30 secs

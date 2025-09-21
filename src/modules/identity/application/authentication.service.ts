@@ -16,9 +16,9 @@ import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
-import { ProfileRepository } from "@/modules/feed/domain/interfaces/repositories/profile-repository";
-import { Profile } from "@/modules/feed/domain/entities/Profile";
-/* import { EmailVerificationService } from "./email-verification.service";*/
+import { ProfileRepository } from "@/modules/social/core/interfaces/repositories/profile-repository";
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
+import { ProfileService } from "@/modules/social/core/application/profile.service";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -31,8 +31,8 @@ export class AuthenticationService {
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
     private readonly userVerificationService: UserVerificationService,
-    @Inject(ProfileRepository)
-    private readonly profileRepository: ProfileRepository
+    @Inject(ProfileService)
+    private readonly profileService: ProfileService
   ) {}
 
   public async signUp(params: {
@@ -78,17 +78,26 @@ export class AuthenticationService {
       } else {
         newUser = User.Create(name, emailPasswordCredential);
       }
+
       let userId: number;
       await this.prismaService.openTransaction(async (tx) => {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
+
           emailPasswordCredential.setUserId(userId);
+
+          await this.profileService.createProfile(Profile.fromUser(newUser), {
+            txContext: tx,
+          });
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
-        }
 
+          await this.profileService.createProfile(Profile.fromUser(guestUser), {
+            txContext: tx,
+          });
+        }
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
       });
 
@@ -101,19 +110,6 @@ export class AuthenticationService {
         sub: (guestUser?.publicId || newUser?.publicId)!,
       });
 
-      await this.profileRepository.create(
-        new Profile({
-          id: 0,
-          displayName: name,
-          userId: userId!,
-          bio: "",
-          profileImage: null,
-          latitude: newUser?.latitude || null,
-          longitude: newUser?.longitude || null,
-          followersCount: 0,
-          followingCount: 0,
-        })
-      );
 
       return { accessToken };
     } catch (error: unknown) {

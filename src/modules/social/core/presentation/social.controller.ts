@@ -1,20 +1,23 @@
 import {
-  Controller,
   Get,
   Param,
   Post,
   Body,
+  Logger,
   UseGuards,
+  Controller,
   BadRequestException,
 } from "@nestjs/common";
+
+import {
+  CurrentUser,
+  JwtAuthGuard,
+} from "@/modules/identity/presentation/meta";
+import { User } from "@/modules/identity/domain/entities/User";
+import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+
 import { AchievementService } from "../application/achievement.service";
-import { UserService } from "../application/user.service";
-import { User } from "../domain/entities/User";
 import { ProfileService } from "../application/profile.service";
-import { UserGuard } from "./meta/guards/user.guard";
-import { CurrentUser } from "./meta/decorators/user.decorator";
-import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
-import { Logger } from "@nestjs/common";
 
 @Controller("social")
 @UseGuards(JwtAuthGuard)
@@ -23,7 +26,6 @@ export class SocialController {
 
   constructor(
     private readonly achievementService: AchievementService,
-    private readonly userService: UserService,
     private readonly profileService: ProfileService
   ) {}
 

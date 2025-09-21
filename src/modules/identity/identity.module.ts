@@ -23,15 +23,12 @@ import { UserVerificationRepository } from "./authentication/domain/interfaces/r
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
-import { ProfileRepository } from "../feed/domain/interfaces/repositories/profile-repository";
-import { ProfileFollowRepository } from "../feed/domain/interfaces/repositories/profile-repository";
-import { PrismaProfileFollowRepository } from "../feed/infra/prisma-profile-repository";
-import { PrismaProfileRepository } from "../feed/infra/prisma-profile-repository";
-import { PrismaAchievementRepository } from "../feed/infra/prisma-achievement-repository";
-import { AchievementsRepository } from "../feed/domain/interfaces/repositories/achievements-repository";
-import { AchievementService } from "./application/achievement.service";
-import { SocialController } from "./presentation/social.controller";
-import { ProfileService } from "./application/profile.service";
+import { ProfileRepository } from "../social/core/interfaces/repositories/profile-repository";
+import { ProfileFollowRepository } from "../social/core/interfaces/repositories/profile-repository";
+import { PrismaProfileFollowRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
+import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
+import { AchievementsRepository } from "../social/core/interfaces/repositories/achievements-repository";
+import { ProfileService } from "../social/core/application/profile.service";
 
 @Global()
 @Module({
@@ -40,7 +37,6 @@ import { ProfileService } from "./application/profile.service";
     GuestAuthController,
     CommonAuthController,
     UserVerificationController,
-    SocialController,
   ],
   providers: [
     UserVerificationService,
@@ -50,8 +46,6 @@ import { ProfileService } from "./application/profile.service";
     AuthorizationService,
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
-    AchievementService,
-    PrismaAchievementRepository,
     PrismaProfileFollowRepository,
     PrismaProfileRepository,
     ProfileService,
@@ -75,10 +69,6 @@ import { ProfileService } from "./application/profile.service";
     {
       provide: UserVerificationRepository,
       useClass: PrismaUserVerificationRepository,
-    },
-    {
-      provide: AchievementsRepository,
-      useClass: PrismaAchievementRepository,
     },
     {
       provide: ProfileFollowRepository,

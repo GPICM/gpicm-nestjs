@@ -1,4 +1,4 @@
-import { Achievement } from "@/modules/feed/domain/entities/Achievement";
+import { Achievement } from "@/modules/social/core/domain/entities/Achievement";
 
 export abstract class AchievementsRepository {
   abstract add(achievement: Achievement): Promise<void>;

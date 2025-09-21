@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaClient } from "@prisma/client";
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-import { Profile } from "@/modules/feed/domain/entities/Profile";
-import { Logger } from "@nestjs/common";
+
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
 import {
   ProfileRepository,
   ProfileFollowRepository,
-} from "@/modules/feed/domain/interfaces/repositories/profile-repository";
-import { BadRequestException } from "@nestjs/common";
+} from "@/modules/social/core/interfaces/repositories/profile-repository";
 
 @Injectable()
 export class PrismaProfileRepository implements ProfileRepository {
@@ -20,13 +21,16 @@ export class PrismaProfileRepository implements ProfileRepository {
   }
 
   async findByUserId(userId: number): Promise<Profile | null> {
-    this.logger.log(`PRISMA: WORKED: ${userId}`);
     const data = await this.prisma.profile.findUnique({ where: { userId } });
     return data ? new Profile(data) : null;
   }
 
-  async create(profile: Profile): Promise<Profile> {
-    const data = await this.prisma.profile.create({
+  public async create(
+    profile: Profile,
+    options?: { txContext?: PrismaClient }
+  ): Promise<Profile> {
+    const connection = options?.txContext ?? this.prisma.getConnection();
+    const data = await connection.profile.create({
       data: {
         userId: profile.userId,
         bio: profile.bio,

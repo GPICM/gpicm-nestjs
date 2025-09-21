@@ -1,12 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaAchievementRepository } from "@/modules/feed/infra/prisma-achievement-repository";
-import { CreateAchievementDto } from "@/modules/feed/infra/dto/achievement.dto";
-import { Achievement } from "@/modules/feed/domain/entities/Achievement";
+import { Inject, Injectable } from "@nestjs/common";
+import { CreateAchievementDto } from "@/modules/social/core/presentation/dtos/achievement.dto";
+import { Achievement } from "@/modules/social/core/domain/entities/Achievement";
 import { JsonArray } from "@prisma/client/runtime/library";
+import { AchievementsRepository } from "../interfaces/repositories/achievements-repository";
 
 @Injectable()
 export class AchievementService {
-  constructor(private readonly achievementRepo: PrismaAchievementRepository) {}
+  constructor(
+    @Inject(AchievementsRepository)
+    private readonly achievementRepo: AchievementsRepository
+  ) {}
 
   async create(dto: CreateAchievementDto): Promise<void> {
     const achievement = new Achievement({

@@ -1,9 +1,12 @@
-import { Profile } from "@/modules/feed/domain/entities/Profile";
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
 
 export abstract class ProfileRepository {
   abstract findById(id: number): Promise<Profile | null>;
   abstract findByUserId(userId: number): Promise<Profile | null>;
-  abstract create(profile: Profile): Promise<Profile>;
+  abstract create(
+    profile: Profile,
+    options?: { txContext?: unknown }
+  ): Promise<Profile>;
   abstract update(profile: Profile): Promise<Profile>;
   abstract delete(id: number): Promise<void>;
   abstract refreshPostCount(userId: number): Promise<void>;
