@@ -27,10 +27,12 @@ import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
 import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
 import { PostCommentsProcessor } from "./application/ post-comments.processor";
 import { IdentityModule } from "../identity/identity.module";
+import { SocialModule } from "../social/core/social.module";
 
 @Module({
   controllers: [PostController],
   imports: [
+    SocialModule,
     BullModule.forRoot({
       connection: {
         url: String(process.env.REDIS_URL),
@@ -44,7 +46,7 @@ import { IdentityModule } from "../identity/identity.module";
     }),
     SharedModule,
     IncidentsModule,
-    IdentityModule
+    IdentityModule,
   ],
   providers: [
     PostCommentsProcessor,
@@ -64,7 +66,6 @@ import { IdentityModule } from "../identity/identity.module";
       provide: PostCommentRepository,
       useClass: PrismaPostCommentRepository,
     },
-
     {
       provide: PostMediasRepository,
       useClass: PrismaPostMediasRepository,

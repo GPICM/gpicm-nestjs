@@ -11,6 +11,7 @@ import { AssetsModule } from "./assets/assets.module";
 import { FeedModule } from "./feed/feed.module";
 import { AlertsModule } from "./alerts/Alerts.module";
 import { TelemetryModule } from "./telemetry/telemetry.module";
+import { SocialModule } from "./social/core/social.module";
 
 @Module({
   controllers: [AppController],
@@ -38,6 +39,7 @@ import { TelemetryModule } from "./telemetry/telemetry.module";
     IdentityModule,
     IncidentsModule,
     AssetsModule,
+    SocialModule,
     FeedModule,
     AlertsModule,
   ],

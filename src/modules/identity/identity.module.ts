@@ -23,6 +23,8 @@ import { UserVerificationRepository } from "./authentication/domain/interfaces/r
 import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-user-verification-repository";
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
+import { ProfileRepository } from "../social/core/domain/interfaces/repositories/profile-repository";
+import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
 
 @Global()
 @Module({
@@ -40,6 +42,7 @@ import { UserVerificationController } from "./authentication/presentation/user-v
     AuthorizationService,
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
+    PrismaProfileRepository,
     {
       provide: Encryptor,
       useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
@@ -54,6 +57,10 @@ import { UserVerificationController } from "./authentication/presentation/user-v
       useClass: PrismaUserCredentialsRepository,
     },
     {
+      provide: ProfileRepository,
+      useClass: PrismaProfileRepository,
+    },
+    {
       provide: UserVerificationRepository,
       useClass: PrismaUserVerificationRepository,
     },
@@ -64,7 +71,7 @@ import { UserVerificationController } from "./authentication/presentation/user-v
     DefaultJwtStrategy,
     PartnerApiKeysRepository,
     PartnerApiKeyGuard,
-    UsersRepository
+    UsersRepository,
   ],
 })
 export class IdentityModule {}

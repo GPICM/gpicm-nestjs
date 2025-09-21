@@ -9,13 +9,15 @@ import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
 import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
+import { ProfileService } from "@/modules/social/core/application/profile.service";
 
 @Injectable()
 export class PostCommentsService {
   constructor(
     private readonly postCommentRepository: PostCommentRepository,
     private readonly postRepository: PostRepository,
-    private readonly commentsQueue: CommentsQueue
+    private readonly commentsQueue: CommentsQueue,
+    private readonly profileService: ProfileService
   ) {}
 
   async addComment(
@@ -40,6 +42,7 @@ export class PostCommentsService {
     });
 
     await this.postCommentRepository.add(comment);
+    await this.profileService.refreshCommentCount(user.id);
 
     await this.commentsQueue.addCommentJob({
       postId: post.id,
@@ -90,5 +93,6 @@ export class PostCommentsService {
       postId: comment.postId,
       commentParentId: comment.parentCommentId || undefined,
     });
+    await this.profileService.refreshCommentCount(user.id);
   }
 }
