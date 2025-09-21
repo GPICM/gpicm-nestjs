@@ -12,6 +12,7 @@ export abstract class ProfileRepository {
   abstract delete(id: number): Promise<void>;
   abstract refreshPostCount(userId: number): Promise<void>;
   abstract refreshCommentCount(userId: number): Promise<void>;
+  abstract refreshFollowersCounts(profileId: number): Promise<void>;
 }
 
 export abstract class ProfileFollowRepository {
@@ -28,8 +29,6 @@ export abstract class ProfileFollowRepository {
 
   abstract countFollowersByProfileId(profileId: number): Promise<number>;
   abstract countFollowingByProfileId(profileId: number): Promise<number>;
-
-  abstract refreshCounts(profileId: number): Promise<void>;
 
   abstract getFollowers(
     profileId: number,

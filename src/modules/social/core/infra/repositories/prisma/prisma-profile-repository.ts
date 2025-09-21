@@ -54,6 +54,25 @@ export class PrismaProfileRepository implements ProfileRepository {
     });
   }
 
+  async refreshFollowersCounts(profileId: number): Promise<void> {
+    const [followersCount, followingCount] = await Promise.all([
+      this.prisma.profileFollow.count({
+        where: { followerId: profileId },
+      }),
+      this.prisma.profileFollow.count({
+        where: { followingId: profileId },
+      }),
+    ]);
+
+    await this.prisma.profile.update({
+      where: { id: profileId },
+      data: {
+        followersCount,
+        followingCount,
+      },
+    });
+  }
+
   async refreshCommentCount(userId: number): Promise<void> {
     const commentCount = await this.prisma.postComment.count({
       where: { userId, deletedAt: null },
