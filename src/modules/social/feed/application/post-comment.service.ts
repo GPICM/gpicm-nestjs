@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, Inject } from "@nestjs/common";
 
 import { User } from "@/modules/identity/domain/entities/User";
 
@@ -9,7 +9,8 @@ import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
 import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
-import { ProfileService } from "@/modules/social/core/application/profile.service";
+import { SocialProfileEventsQueuePublisher } from "../../core/domain/queues/social-profile-events-queue";
+import { Profile } from "../../core/domain/entities/Profile";
 
 @Injectable()
 export class PostCommentsService {
@@ -17,12 +18,16 @@ export class PostCommentsService {
     private readonly postCommentRepository: PostCommentRepository,
     private readonly postRepository: PostRepository,
     private readonly commentsQueue: CommentsQueue,
-    private readonly profileService: ProfileService
+    @Inject(SocialProfileEventsQueuePublisher)
+    private readonly eventsQueuePublisher: SocialProfileEventsQueuePublisher
   ) {}
 
   async addComment(
+    profile: Profile,
     postUuid: string,
     body: CreatePostCommentDto,
+
+    // TODO: REMOVE LATTER
     user: User
   ): Promise<void> {
     if (CurseWordsFilterService.containsCurseWords(body.content)) {
@@ -37,12 +42,17 @@ export class PostCommentsService {
     const comment = new PostComment({
       postId: post.id,
       content: body.content,
+      // TODO: USER PROFILE IN THE FUTURE
       user: UserShallow.fromUser(user),
       parentCommentId: body.parentCommentId ?? null,
     });
 
     await this.postCommentRepository.add(comment);
-    await this.profileService.refreshCommentCount(user.id);
+
+    await this.eventsQueuePublisher.publish({
+      event: "comment",
+      data: { profileId: profile.id, resourceId: post.id },
+    });
 
     await this.commentsQueue.addCommentJob({
       postId: post.id,
@@ -51,16 +61,16 @@ export class PostCommentsService {
   }
 
   async updateComment(
+    profile: Profile,
     commentId: number,
-    content: string,
-    user: User
+    content: string
   ): Promise<void> {
     const comment = await this.postCommentRepository.findById(commentId);
     if (!comment) {
       throw new BadRequestException("Comentário não encontrado");
     }
 
-    if (comment.user.id !== user.id) {
+    if (comment.user.id !== profile.userId) {
       throw new BadRequestException(
         "Você não tem permissão para editar este comentário"
       );
@@ -75,13 +85,13 @@ export class PostCommentsService {
     return this.postCommentRepository.update(comment);
   }
 
-  async deleteComment(commentId: number, user: User): Promise<void> {
+  async deleteComment(profile: Profile, commentId: number): Promise<void> {
     const comment = await this.postCommentRepository.findById(commentId);
     if (!comment) {
       throw new BadRequestException("Comentário não encontrado");
     }
 
-    if (comment.user.id !== user.id) {
+    if (comment.user.id !== profile.userId) {
       throw new BadRequestException(
         "Você não tem permissão para excluir este comentário"
       );
@@ -93,6 +103,10 @@ export class PostCommentsService {
       postId: comment.postId,
       commentParentId: comment.parentCommentId || undefined,
     });
-    await this.profileService.refreshCommentCount(user.id);
+
+    await this.eventsQueuePublisher.publish({
+      event: "uncomment",
+      data: { profileId: profile.id, resourceId: comment.id },
+    });
   }
 }
