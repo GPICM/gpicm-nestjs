@@ -18,9 +18,12 @@ import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guar
 
 import { AchievementService } from "../application/achievement.service";
 import { ProfileService } from "../application/profile.service";
+import { SocialProfileGuard } from "../infra/guards/SocialProfileGuard";
+import { Profile } from "../domain/entities/Profile";
+import { CurrentProfile } from "../infra/decorators/profile.decorator";
 
 @Controller("social")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SocialProfileGuard)
 export class SocialController {
   private readonly logger = new Logger(SocialController.name);
 
@@ -42,9 +45,9 @@ export class SocialController {
   @Post("/follow/:handle")
   async followUser(
     @Param("handle") handle: string,
-    @CurrentUser() currentUser: User
+    @CurrentProfile() profile: Profile
   ) {
-    return await this.profileService.followUser(currentUser.id, handle);
+    return await this.profileService.followUser(profile.id, handle);
   }
 
   @Get("/followers/:id")
@@ -60,9 +63,9 @@ export class SocialController {
   @Post("/unfollow/:handle")
   async unfollowUser(
     @Param("handle") handle: string,
-    @CurrentUser() currentUser: User
+    @CurrentProfile() profile: Profile
   ) {
-    return await this.profileService.unfollowUser(currentUser.id, handle);
+    return await this.profileService.unfollowUser(profile.id, handle);
   }
 
   @Get("/profile")

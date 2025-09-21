@@ -25,7 +25,6 @@ import { UserVerificationService } from "./authentication/application/user/user-
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
 import { ProfileRepository } from "../social/core/domain/interfaces/repositories/profile-repository";
 import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
-import { ProfileService } from "../social/core/application/profile.service";
 
 @Global()
 @Module({
@@ -44,7 +43,6 @@ import { ProfileService } from "../social/core/application/profile.service";
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
     PrismaProfileRepository,
-    ProfileService,
     {
       provide: Encryptor,
       useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
