@@ -1,20 +1,22 @@
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 
-import { Inject, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import {
-  BaseRepositoryFindManyResult,
-  UserFindManyFilters,
-  UsersRepository,
-} from "../../../domain/interfaces/users-repository";
+
 import { User } from "../../../domain/entites/User";
 import {
   UserAdminAssembler,
   userAdminInclude,
 } from "./mappers/prisma-user.assembler.admin";
+import {
+  BaseRepositoryFindManyResult,
+  UserFindManyFilters,
+  UsersAdminRepository,
+} from "../../../domain/interfaces/users-repository";
 
-export class PrismaUserRepository implements UsersRepository {
-  private readonly logger: Logger = new Logger(PrismaUserRepository.name);
+@Injectable()
+export class PrismaUserAdminRepository implements UsersAdminRepository {
+  private readonly logger: Logger = new Logger(PrismaUserAdminRepository.name);
 
   constructor(
     @Inject(PrismaService)

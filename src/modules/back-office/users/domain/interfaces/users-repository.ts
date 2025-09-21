@@ -6,8 +6,10 @@ import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
 } from "./dto/base-repository-filters";
+import { Injectable } from "@nestjs/common";
 
-export abstract class UsersRepository {
+@Injectable()
+export abstract class UsersAdminRepository {
   abstract listAll(
     filters: UserFindManyFilters
   ): Promise<BaseRepositoryFindManyResult<User>>;

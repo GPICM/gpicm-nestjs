@@ -1,9 +1,16 @@
-import { Get, Logger, UseGuards, Controller, Query } from "@nestjs/common";
+import {
+  Get,
+  Logger,
+  UseGuards,
+  Controller,
+  Query,
+  Inject,
+} from "@nestjs/common";
 
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 
 import { AdminGuard } from "@/modules/identity/presentation/meta/guards/admin.guard";
-import { UsersRepository } from "../domain/interfaces/users-repository";
+import { UsersAdminRepository } from "../domain/interfaces/users-repository";
 import { ListUsersAdminQueryDto } from "./dtos/list-users.admin.dto";
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
 
@@ -12,7 +19,10 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 export class AdminUsersController {
   private readonly logger = new Logger(AdminUsersController.name);
 
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    @Inject(UsersAdminRepository)
+    private readonly usersRepository: UsersAdminRepository
+  ) {}
 
   @Get()
   async listUsers(@Query() query: ListUsersAdminQueryDto) {
