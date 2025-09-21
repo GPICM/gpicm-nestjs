@@ -18,7 +18,7 @@ model User {
   lastLoginAt        DateTime?             @map("last_login_at")
   bio                String?
   status             UserStatus            @default(ACTIVE)
-  role               UserRoles             @default(GUEST)
+  role               UserRoles             @default(USER)
   deviceKey          String                @unique @map("device_key")
   ipAddress          String?               @map("ip_address")
   deviceInfo         Json?                 @map("device_info")
@@ -42,6 +42,19 @@ model User {
 
   @@unique([publicId])
   @@map("users")
+}
+
+enum UserStatus {
+  GUEST
+  PENDING_PROFILE
+  ACTIVE
+  BANNED
+  SUSPENDED
+}
+
+enum UserRoles {
+  USER
+  ADMIN
 }
 
 model UserCredential {
@@ -433,12 +446,6 @@ enum PostStatus {
   ARCHIVED
 }
 
-enum UserStatus {
-  ACTIVE
-  BANNED
-  SUSPENDED
-}
-
 enum PolicyType {
   TERMS_OF_SERVICE
   PRIVACY_POLICY
@@ -448,12 +455,6 @@ enum PolicyType {
 enum AuthProviders {
   EMAIL_PASSWORD
   GOOGLE
-}
-
-enum UserRoles {
-  USER
-  GUEST
-  ADMIN
 }
 
 enum AlertStatus {
