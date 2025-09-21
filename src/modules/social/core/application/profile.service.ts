@@ -83,17 +83,17 @@ export class ProfileService {
 
   async followUser(
     followerId: number,
-    followingId: number
+    followingHandle: string
   ): Promise<{ success: boolean; message: string }> {
-    await this.profileFollowRepository.follow(followerId, followingId);
+    await this.profileFollowRepository.follow(followerId, followingHandle);
     return { success: true, message: "User followed successfully" };
   }
 
   async unfollowUser(
     followerId: number,
-    followingId: number
+    followingHandle: string
   ): Promise<{ success: boolean; message: string }> {
-    await this.profileFollowRepository.unfollow(followerId, followingId);
+    await this.profileFollowRepository.unfollow(followerId, followingHandle);
     return { success: true, message: "User unfollowed successfully" };
   }
 

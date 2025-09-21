@@ -16,8 +16,6 @@ import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
-import { ProfileRepository } from "@/modules/social/core/interfaces/repositories/profile-repository";
-import { Profile } from "@/modules/social/core/domain/entities/Profile";
 import { ProfileService } from "@/modules/social/core/application/profile.service";
 
 export class AuthenticationService {
@@ -109,7 +107,6 @@ export class AuthenticationService {
       const accessToken = this.encryptor.generateToken({
         sub: (guestUser?.publicId || newUser?.publicId)!,
       });
-
 
       return { accessToken };
     } catch (error: unknown) {

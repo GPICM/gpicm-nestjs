@@ -24,10 +24,7 @@ import { PrismaUserVerificationRepository } from "./authentication/infra/prisma-
 import { UserVerificationService } from "./authentication/application/user/user-verification.service";
 import { UserVerificationController } from "./authentication/presentation/user-verification.controller";
 import { ProfileRepository } from "../social/core/interfaces/repositories/profile-repository";
-import { ProfileFollowRepository } from "../social/core/interfaces/repositories/profile-repository";
-import { PrismaProfileFollowRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
 import { PrismaProfileRepository } from "../social/core/infra/repositories/prisma/prisma-profile-repository";
-import { AchievementsRepository } from "../social/core/interfaces/repositories/achievements-repository";
 import { ProfileService } from "../social/core/application/profile.service";
 
 @Global()
@@ -46,7 +43,6 @@ import { ProfileService } from "../social/core/application/profile.service";
     AuthorizationService,
     DefaultJwtStrategy,
     PartnerApiKeyGuard,
-    PrismaProfileFollowRepository,
     PrismaProfileRepository,
     ProfileService,
     {
@@ -69,10 +65,6 @@ import { ProfileService } from "../social/core/application/profile.service";
     {
       provide: UserVerificationRepository,
       useClass: PrismaUserVerificationRepository,
-    },
-    {
-      provide: ProfileFollowRepository,
-      useClass: PrismaProfileFollowRepository,
     },
   ],
   imports: [SharedModule, PoliciesModule, AssetsModule],

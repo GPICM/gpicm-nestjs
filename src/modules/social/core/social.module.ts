@@ -1,8 +1,5 @@
 import { Global, Module } from "@nestjs/common";
-import {
-  PrismaProfileFollowRepository,
-  PrismaProfileRepository,
-} from "@/modules/social/core/infra/repositories/prisma/prisma-profile-repository";
+import { PrismaProfileRepository } from "@/modules/social/core/infra/repositories/prisma/prisma-profile-repository";
 import { ProfileService } from "@/modules/social/core/application/profile.service";
 import {
   ProfileFollowRepository,
@@ -12,6 +9,7 @@ import { AchievementsRepository } from "@/modules/social/core/interfaces/reposit
 import { PrismaAchievementRepository } from "@/modules/social/core/infra/repositories/prisma/prisma-achievement-repository";
 import { AchievementService } from "./application/achievement.service";
 import { SocialController } from "./presentation/social.controller";
+import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
 
 @Global()
 @Module({

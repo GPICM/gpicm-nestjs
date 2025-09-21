@@ -15,12 +15,14 @@ export abstract class ProfileRepository {
 }
 
 export abstract class ProfileFollowRepository {
-  abstract follow(followerId: number, followingId: number): Promise<void>;
-  abstract unfollow(followerId: number, followingId: number): Promise<void>;
+  abstract follow(followerId: number, followingHandle: string): Promise<void>;
+  abstract unfollow(followerId: number, followingHandle: string): Promise<void>;
+
   abstract isFollowing(
     followerId: number,
     followingId: number
   ): Promise<boolean>;
+
   abstract getFollowersCount(profileId: number): Promise<number>;
   abstract getFollowingCount(profileId: number): Promise<number>;
   abstract countFollowersByProfileId(profileId: number): Promise<number>;

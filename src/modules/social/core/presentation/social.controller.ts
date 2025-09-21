@@ -39,12 +39,12 @@ export class SocialController {
     return this.achievementService.findById(id);
   }
 
-  @Post("/follow/:userId")
+  @Post("/follow/:handle")
   async followUser(
-    @Param("userId") userId: number,
+    @Param("handle") handle: string,
     @CurrentUser() currentUser: User
   ) {
-    return await this.profileService.followUser(currentUser.id, userId);
+    return await this.profileService.followUser(currentUser.id, handle);
   }
 
   @Get("/followers/:id")
@@ -57,17 +57,17 @@ export class SocialController {
     return await this.profileService.getFollowing(id);
   }
 
-  @Post("/unfollow/:userId")
+  @Post("/unfollow/:handle")
   async unfollowUser(
-    @Param("userId") userId: number,
+    @Param("handle") handle: string,
     @CurrentUser() currentUser: User
   ) {
-    return await this.profileService.unfollowUser(currentUser.id, userId);
+    return await this.profileService.unfollowUser(currentUser.id, handle);
   }
 
   @Get("/profile")
   @UseGuards(UserGuard)
-  async getMyBasicData(@CurrentUser() user: User) {
+  async getMyProfileData(@CurrentUser() user: User) {
     try {
       this.logger.log(`Fetching basic data for current user: ${user.id}`);
       const profile = await this.profileService.getProfile(user.id);
