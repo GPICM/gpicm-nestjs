@@ -7,8 +7,8 @@ export abstract class ProfileRepository {
   abstract create(
     profile: Profile,
     options?: { txContext?: unknown }
-  ): Promise<Profile>;
-  abstract update(profile: Profile): Promise<Profile>;
+  ): Promise<void>;
+  abstract update(profile: Profile): Promise<void>;
   abstract delete(id: number): Promise<void>;
   abstract refreshPostCount(userId: number): Promise<void>;
   abstract refreshCommentCount(userId: number): Promise<void>;

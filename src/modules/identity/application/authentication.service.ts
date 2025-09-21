@@ -87,14 +87,14 @@ export class AuthenticationService {
 
           emailPasswordCredential.setUserId(userId);
 
-          await this.profileService.createProfile(Profile.fromUser(newUser), {
+          await this.profileService.createProfile(newUser, {
             txContext: tx,
           });
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
 
-          await this.profileService.createProfile(Profile.fromUser(guestUser), {
+          await this.profileService.createProfile(guestUser, {
             txContext: tx,
           });
         }

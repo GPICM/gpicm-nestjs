@@ -4,6 +4,11 @@ import {
   ProfileFollowRepository,
   ProfileRepository,
 } from "../interfaces/repositories/profile-repository";
+import {
+  generateBaseHandle,
+  generateHandleCandidates,
+} from "@/modules/shared/utils/handle-generator";
+import { User } from "@/modules/identity/domain/entities/User";
 
 @Injectable()
 export class ProfileService {
@@ -41,14 +46,35 @@ export class ProfileService {
   }
 
   async createProfile(
-    profile: Profile,
+    user: User,
     options?: { txContext?: unknown }
   ): Promise<Profile> {
-    return await this.profileRepository.create(profile, options);
+    const baseHandle = generateBaseHandle(user.name || "Usuario");
+    const candidates = generateHandleCandidates(baseHandle, 10);
+
+    let handle: string | null = null;
+
+    for (const candidate of candidates) {
+      const exists = await this.profileRepository.findByHandle(candidate);
+      if (!exists) {
+        handle = candidate;
+        break;
+      }
+    }
+
+    if (!handle) {
+      handle = `${baseHandle}${Math.floor(Math.random() * 10000)}`;
+    }
+
+    const profile = Profile.fromUser(user, user.name || "Usuario", handle);
+    await this.profileRepository.create(profile, options);
+
+    return profile;
   }
 
   async updateProfile(profile: Profile): Promise<Profile> {
-    return await this.profileRepository.update(profile);
+    await this.profileRepository.update(profile);
+    return profile;
   }
 
   async deleteProfile(id: number): Promise<void> {
