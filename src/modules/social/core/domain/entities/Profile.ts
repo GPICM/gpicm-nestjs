@@ -14,8 +14,27 @@ export class Profile {
   followingCount: number;
   postsCount: number;
   commentsCount: number;
-  constructor(args: NonFunctionProperties<Profile>) {
+
+  // Virtual
+  private readonly phoneNumber: string | null = null;
+  private readonly gender: string | null = null;
+  private readonly birthDate: Date | null = null;
+  private readonly avatarUrl: string | null = null;
+
+  constructor(
+    args: NonFunctionProperties<Profile>,
+    virtual?: {
+      gender: string | null;
+      birthDate: Date | null;
+      avatarUrl?: string | null;
+      phoneNumber?: string | null;
+    }
+  ) {
     Object.assign(this, args);
+    this.avatarUrl = virtual?.avatarUrl ?? null;
+    this.gender = virtual?.gender ?? null;
+    this.birthDate = virtual?.birthDate ?? null;
+    this.phoneNumber = virtual?.phoneNumber ?? null;
   }
 
   public static fromUser(

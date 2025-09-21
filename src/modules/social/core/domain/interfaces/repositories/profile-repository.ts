@@ -3,6 +3,7 @@ import { Profile } from "@/modules/social/core/domain/entities/Profile";
 export abstract class ProfileRepository {
   abstract findById(id: number): Promise<Profile | null>;
   abstract findByUserId(userId: number): Promise<Profile | null>;
+  abstract findByUserPublicId(userId: string): Promise<Profile | null>;
   abstract findByHandle(handle: string): Promise<Profile | null>;
   abstract create(
     profile: Profile,

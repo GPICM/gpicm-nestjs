@@ -5,7 +5,10 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
 import { ProfileRepository } from "@/modules/social/core/domain/interfaces/repositories/profile-repository";
-import { ProfileAssembler } from "./mappers/prisma-profile.assembler";
+import {
+  ProfileAssembler,
+  profileInclude,
+} from "./mappers/prisma-profile.assembler";
 
 @Injectable()
 export class PrismaProfileRepository implements ProfileRepository {
@@ -16,6 +19,7 @@ export class PrismaProfileRepository implements ProfileRepository {
   async findByHandle(handle: string): Promise<Profile | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { handle },
+      include: profileInclude,
     });
 
     if (!profile) return null;
@@ -23,14 +27,30 @@ export class PrismaProfileRepository implements ProfileRepository {
   }
 
   async findById(id: number): Promise<Profile | null> {
-    const data = await this.prisma.profile.findUnique({ where: { id } });
+    const data = await this.prisma.profile.findUnique({
+      where: { id },
+      include: profileInclude,
+    });
     if (!data) return null;
     return ProfileAssembler.fromPrisma(data);
   }
 
   async findByUserId(userId: number): Promise<Profile | null> {
-    const data = await this.prisma.profile.findUnique({ where: { userId } });
+    const data = await this.prisma.profile.findUnique({
+      where: { userId },
+      include: profileInclude,
+    });
     if (!data) return null;
+    return ProfileAssembler.fromPrisma(data);
+  }
+
+  async findByUserPublicId(publicId: string): Promise<Profile | null> {
+    const data = await this.prisma.profile.findFirst({
+      where: { User: { publicId } },
+      include: profileInclude,
+    });
+    if (!data) return null;
+
     return ProfileAssembler.fromPrisma(data);
   }
 

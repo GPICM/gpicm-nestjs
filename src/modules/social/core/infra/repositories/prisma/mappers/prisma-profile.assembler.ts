@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
 
 export const profileInclude = Prisma.validator<Prisma.ProfileInclude>()({
-  User: false, // set as true when needed
+  User: true,
 });
 
 type ProfileJoinModel = Prisma.ProfileGetPayload<{
@@ -15,18 +15,26 @@ export class ProfileAssembler {
   ): Profile | null {
     if (!prismaData) return null;
 
-    return new Profile({
-      id: prismaData.id,
-      bio: prismaData.bio || "",
-      displayName: prismaData.displayName,
-      followersCount: prismaData.followingCount,
-      followingCount: prismaData.followersCount,
-      handle: prismaData.handle,
-      profileImage: prismaData.profileImage,
-      postsCount: prismaData.postsCount ?? 0,
-      commentsCount: prismaData.commentsCount ?? 0,
-      userId: prismaData.userId,
-    });
+    return new Profile(
+      {
+        id: prismaData.id,
+        bio: prismaData.bio || "",
+        displayName: prismaData.displayName,
+        followersCount: prismaData.followingCount,
+        followingCount: prismaData.followersCount,
+        handle: prismaData.handle,
+        profileImage: prismaData.profileImage,
+        postsCount: prismaData.postsCount ?? 0,
+        commentsCount: prismaData.commentsCount ?? 0,
+        userId: prismaData.userId,
+      },
+      {
+        birthDate: prismaData.User.birthDate,
+        gender: prismaData.User.gender,
+        avatarUrl: prismaData.User.avatarUrl,
+        phoneNumber: prismaData.User.phoneNumber,
+      }
+    );
   }
 
   public static toPrismaCreateInput(
