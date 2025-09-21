@@ -10,3 +10,17 @@ ALTER TABLE `profiles` ADD COLUMN `handle` VARCHAR(191) NOT NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `profiles_handle_key` ON `profiles`(`handle`);
+
+
+/*
+  Warnings:
+
+  - You are about to drop the column `latitude` on the `profiles` table. All the data in the column will be lost.
+  - You are about to drop the column `longitude` on the `profiles` table. All the data in the column will be lost.
+  - Made the column `display_name` on table `profiles` required. This step will fail if there are existing NULL values in that column.
+
+*/
+-- AlterTable
+ALTER TABLE `profiles` DROP COLUMN `latitude`,
+    DROP COLUMN `longitude`,
+    MODIFY `display_name` VARCHAR(191) NOT NULL;

@@ -321,13 +321,10 @@ model Media {
 model Profile {
   id             Int      @id @default(autoincrement())
   userId         Int      @unique @map("user_id")
+  displayName    String   @map("display_name")
+  handle         String   @unique @map("handle") // New field for public unique identifier
   bio            String?  @db.LongText
   profileImage   String?  @map("profile_image")
-  displayName    String?  @map("display_name")
-  handle         String   @unique @map("handle") // New field for public unique identifier
-  latitude       Float?
-  longitude      Float?
-  // metrics
   postCounts     Int      @default(0) @map("post_counts")
   commentCounts  Int      @default(0) @map("comment_counts")
   followersCount Int      @default(0) @map("followers_count")
