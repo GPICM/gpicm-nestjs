@@ -32,7 +32,6 @@ export class SocialProfileController {
     try {
       this.logger.log(`Fetching basic data for current user: ${user.id}`);
       const profile = await this.profileService.getProfile(user.id);
-      this.logger.log(`Profile data retrieved: ${JSON.stringify(profile)}`);
       return profile;
     } catch (error: unknown) {
       this.logger.error("Failed to get user basic data", { error });
@@ -42,11 +41,21 @@ export class SocialProfileController {
 
   // TODO: CHANGE TO PROFILE HANDLE LATER
   @Get("/user/:userPublicId")
-  @UseGuards(UserGuard)
-  async getProfile(userPublicId: string) {
+  async getProfileByUserPublicId(@Param("userPublicId") userPublicId: string) {
     try {
       const profile =
         await this.profileService.getProfileByUserPublicId(userPublicId);
+      return profile;
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user basic data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Get("/:handle")
+  async getProfile(@Param("handle") handle: string) {
+    try {
+      const profile = await this.profileService.getProfileByHandle(handle);
       return profile;
     } catch (error: unknown) {
       this.logger.error("Failed to get user basic data", { error });

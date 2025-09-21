@@ -44,6 +44,10 @@ export class ProfileService {
     return await this.profileRepository.findByUserPublicId(userId);
   }
 
+  async getProfileByHandle(handle: string): Promise<Profile | null> {
+    return await this.profileRepository.findByHandle(handle);
+  }
+
   async updateProfile(profile: Profile): Promise<Profile> {
     await this.profileRepository.update(profile);
     return profile;
