@@ -1,6 +1,7 @@
 export type AppQueueEvent<E, T> = {
-  event: E;
   data: T;
+  event: E;
+  deduplicationId: string;
 };
 
 export abstract class AppQueuePublisher<E = string, T = unknown> {

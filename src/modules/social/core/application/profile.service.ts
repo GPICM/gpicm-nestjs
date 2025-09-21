@@ -1,5 +1,5 @@
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import {
   ProfileFollowRepository,
   ProfileRepository,
@@ -9,6 +9,7 @@ import {
   generateHandleCandidates,
 } from "@/modules/shared/utils/handle-generator";
 import { User } from "@/modules/identity/domain/entities/User";
+import { SocialProfileEventsQueuePublisher } from "../domain/queues/social-profile-events-queue";
 
 @Injectable()
 export class ProfileService {
@@ -16,7 +17,9 @@ export class ProfileService {
     @Inject(ProfileRepository)
     private readonly profileRepository: ProfileRepository,
     @Inject(ProfileFollowRepository)
-    private readonly profileFollowRepository: ProfileFollowRepository
+    private readonly profileFollowRepository: ProfileFollowRepository,
+    @Inject(SocialProfileEventsQueuePublisher)
+    private readonly eventsQueuePublisher: SocialProfileEventsQueuePublisher
   ) {}
 
   async countFollowersByProfileId(profileId: number): Promise<number> {
@@ -82,18 +85,59 @@ export class ProfileService {
   }
 
   async followUser(
-    followerId: number,
-    followingHandle: string
+    userProfileId: number,
+    targetProfileHandle: string
   ): Promise<{ success: boolean; message: string }> {
-    await this.profileFollowRepository.follow(followerId, followingHandle);
+    const followingProfile =
+      await this.profileRepository.findByHandle(targetProfileHandle);
+
+    if (!followingProfile) {
+      throw new BadRequestException("Profile not found.");
+    }
+
+    if (userProfileId === followingProfile.id) {
+      throw new BadRequestException("You cannot follow yourself.");
+    }
+
+    await this.profileFollowRepository.follow(
+      userProfileId,
+      followingProfile.id
+    );
+
+    await this.eventsQueuePublisher.publish({
+      event: "follow",
+      data: { profileId: userProfileId, followingId: followingProfile.id },
+      deduplicationId: `f_${userProfileId}:${followingProfile.id}`,
+    });
     return { success: true, message: "User followed successfully" };
   }
 
   async unfollowUser(
-    followerId: number,
-    followingHandle: string
+    userProfileId: number,
+    targetProfileHandle: string
   ): Promise<{ success: boolean; message: string }> {
-    await this.profileFollowRepository.unfollow(followerId, followingHandle);
+    const followingProfile =
+      await this.profileRepository.findByHandle(targetProfileHandle);
+
+    if (!followingProfile) {
+      throw new BadRequestException("Profile not found.");
+    }
+
+    if (userProfileId === followingProfile.id) {
+      throw new BadRequestException("You cannot follow yourself.");
+    }
+
+    await this.profileFollowRepository.unfollow(
+      userProfileId,
+      followingProfile.id
+    );
+
+    await this.eventsQueuePublisher.publish({
+      event: "unfollow",
+      data: { profileId: userProfileId, followingId: followingProfile.id },
+      deduplicationId: `uf_${userProfileId}:${followingProfile.id}`,
+    });
+
     return { success: true, message: "User unfollowed successfully" };
   }
 

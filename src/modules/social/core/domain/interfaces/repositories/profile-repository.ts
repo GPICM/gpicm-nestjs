@@ -15,8 +15,8 @@ export abstract class ProfileRepository {
 }
 
 export abstract class ProfileFollowRepository {
-  abstract follow(followerId: number, followingHandle: string): Promise<void>;
-  abstract unfollow(followerId: number, followingHandle: string): Promise<void>;
+  abstract follow(followerId: number, followingId: number): Promise<void>;
+  abstract unfollow(followerId: number, followingId: number): Promise<void>;
 
   abstract isFollowing(
     followerId: number,
@@ -25,8 +25,12 @@ export abstract class ProfileFollowRepository {
 
   abstract getFollowersCount(profileId: number): Promise<number>;
   abstract getFollowingCount(profileId: number): Promise<number>;
+
   abstract countFollowersByProfileId(profileId: number): Promise<number>;
   abstract countFollowingByProfileId(profileId: number): Promise<number>;
+
+  abstract refreshCounts(profileId: number): Promise<void>;
+
   abstract getFollowers(
     profileId: number,
     limit?: number,

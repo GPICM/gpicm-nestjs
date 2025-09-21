@@ -8,54 +8,20 @@ import {
   ProfileAssembler,
   profileInclude,
 } from "./mappers/prisma-profile.assembler";
-import { PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaProfileFollowRepository implements ProfileFollowRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async follow(followerId: number, followingHandle: string): Promise<void> {
-    const followerProfile = await this.prisma.profile.findUnique({
-      where: { id: followerId },
-    });
-
-    const followingProfile = await this.prisma.profile.findUnique({
-      where: { handle: followingHandle },
-    });
-
-    if (!followerProfile || !followingProfile) {
-      throw new BadRequestException("Profile not found.");
-    }
-
-    if (!followerProfile.id == !followingProfile.id) {
-      throw new BadRequestException("You cannot follow yourself.");
-    }
-
-    const followingId = followingProfile.id;
-
-    const alreadyFollowing = await this.isFollowing(
-      followerId,
-      followingProfile.id
-    );
+  async follow(followerId: number, followingId: number): Promise<void> {
+    const alreadyFollowing = await this.isFollowing(followerId, followingId);
 
     if (alreadyFollowing) {
       throw new BadRequestException("You are already following this user.");
     }
 
-    await this.prisma.openTransaction(async (connection: PrismaClient) => {
-      await connection.profileFollow.create({
-        data: { followerId, followingId },
-      });
-
-      await connection.profile.update({
-        where: { id: followerId },
-        data: { followingCount: { increment: 1 } },
-      });
-
-      await connection.profile.update({
-        where: { id: followingId },
-        data: { followersCount: { increment: 1 } },
-      });
+    await this.prisma.profileFollow.create({
+      data: { followerId, followingId },
     });
   }
 
@@ -71,42 +37,32 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
     });
   }
 
-  async unfollow(followerId: number, followingHandle: string): Promise<void> {
-    const followingProfile = await this.prisma.profile.findUnique({
-      where: { handle: followingHandle },
-    });
-
-    if (!followingProfile) {
-      throw new BadRequestException("Profile not found.");
-    }
-
-    const alreadyFollowing = await this.isFollowing(
-      followerId,
-      followingProfile.id
-    );
+  async unfollow(followerId: number, followingId: number): Promise<void> {
+    const alreadyFollowing = await this.isFollowing(followerId, followingId);
 
     if (!alreadyFollowing) {
       throw new BadRequestException("You are not following this user.");
     }
 
-    const followingId = followingProfile.id;
+    await this.prisma.profileFollow.delete({
+      where: {
+        followerId_followingId: { followerId, followingId },
+      },
+    });
+  }
 
-    await this.prisma.openTransaction(async (connection: PrismaClient) => {
-      await connection.profileFollow.delete({
-        where: {
-          followerId_followingId: { followerId, followingId },
-        },
-      });
+  async refreshCounts(profileId: number): Promise<void> {
+    const [followersCount, followingCount] = await Promise.all([
+      this.countFollowersByProfileId(profileId),
+      this.countFollowingByProfileId(profileId),
+    ]);
 
-      await connection.profile.update({
-        where: { id: followerId },
-        data: { followingCount: { decrement: 1 } },
-      });
-
-      await connection.profile.update({
-        where: { id: followingId },
-        data: { followersCount: { decrement: 1 } },
-      });
+    await this.prisma.profile.update({
+      where: { id: profileId },
+      data: {
+        followersCount,
+        followingCount,
+      },
     });
   }
 
