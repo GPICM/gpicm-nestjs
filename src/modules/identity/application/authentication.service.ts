@@ -30,8 +30,8 @@ export class AuthenticationService {
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
     private readonly userVerificationService: UserVerificationService,
-    @Inject(CreateProfileUseCase)
-    private readonly createProfile: CreateProfileUseCase
+/*     @Inject(CreateProfileUseCase)
+    private readonly createProfile: CreateProfileUseCase */
   ) {}
 
   public async signUp(params: {
@@ -73,9 +73,11 @@ export class AuthenticationService {
       if (guestUser) {
         guestUser.setName(name);
         guestUser.setRole(UserRoles.USER);
+        guestUser.setStatus(UserStatus.PENDING_PROFILE);
         guestUser.addCredentials(emailPasswordCredential);
       } else {
         newUser = User.Create(name, emailPasswordCredential);
+        newUser.setStatus(UserStatus.PENDING_PROFILE);
       }
 
       let userId: number;
@@ -87,16 +89,16 @@ export class AuthenticationService {
           emailPasswordCredential.setUserId(userId);
 
           // TODO: PROFILE SHOULD BE CREATED ONLY WHEN DC ACCEPT THE REQUEST
-          await this.createProfile.execute(newUser, {
+          /* await this.createProfile.execute(newUser, {
             txContext: tx,
-          });
+          }); */
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
 
-          await this.createProfile.execute(guestUser, {
+          /* await this.createProfile.execute(guestUser, {
             txContext: tx,
-          });
+          }); */
         }
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
       });

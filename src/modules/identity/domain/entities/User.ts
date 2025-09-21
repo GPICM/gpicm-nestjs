@@ -131,6 +131,10 @@ export class User {
     this.role = r;
   }
 
+  public setStatus(s: UserStatus) {
+    this.status = s;
+  }
+
   public addCredentials(credential: UserCredential) {
     credential.userId = this.id;
     this.credentials.push(credential);
