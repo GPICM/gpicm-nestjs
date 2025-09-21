@@ -1,7 +1,7 @@
 import {
-  EventContract,
   EventPublisher,
-} from "@/modules/shared/domain/interfaces/application-event-publisher";
+  EventContract,
+} from "@/modules/shared/domain/interfaces/events";
 import { RedisPubSubService } from "./redis-pub-sub-service";
 import { Injectable } from "@nestjs/common";
 

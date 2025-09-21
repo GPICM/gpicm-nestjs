@@ -14,7 +14,9 @@ import { RedisAdapter } from "./infra/lib/redis/redis-adapter";
 import { RedisLockService } from "./infra/lib/redis/redis-lock-service";
 import { RedisPubSubService } from "./infra/lib/redis/redis-pub-sub-service";
 import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
-import { EventPublisher } from "./domain/interfaces/application-event-publisher";
+import { EventPublisher } from "./domain/interfaces/events/application-event-publisher";
+import { EventSubscriber } from "./domain/interfaces/events";
+import { RedisEventSubscriber } from "./infra/lib/redis/redis-event-subscriber";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -61,6 +63,10 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: EventPublisher,
       useClass: RedisEventPublisher,
     },
+    {
+      provide: EventSubscriber,
+      useClass: RedisEventSubscriber,
+    },
     LogUserAction,
     RedisAdapter,
     RedisLockService,
@@ -76,6 +82,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     RedisLockService,
     RedisAdapter,
     EventPublisher,
+    EventSubscriber,
   ],
 })
 export class SharedModule {}
