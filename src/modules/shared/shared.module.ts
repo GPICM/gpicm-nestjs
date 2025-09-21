@@ -65,6 +65,8 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     HttpClient,
     PrismaService,
     EmailService,
+    RedisLockService,
+    RedisAdapter,
   ],
 })
 export class SharedModule {}
