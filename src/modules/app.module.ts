@@ -8,9 +8,9 @@ import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
 import { IncidentsModule } from "./incidents/incidents.module";
 import { AssetsModule } from "./assets/assets.module";
-import { FeedModule } from "./feed/feed.module";
 import { AlertsModule } from "./alerts/Alerts.module";
 import { TelemetryModule } from "./telemetry/telemetry.module";
+import { SocialModule } from "./social/social.module";
 
 @Module({
   controllers: [AppController],
@@ -38,7 +38,7 @@ import { TelemetryModule } from "./telemetry/telemetry.module";
     IdentityModule,
     IncidentsModule,
     AssetsModule,
-    FeedModule,
+    SocialModule,
     AlertsModule,
   ],
 })

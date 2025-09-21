@@ -35,6 +35,9 @@ import { PostCommentRepository } from "../domain/interfaces/repositories/post-co
 import { PostCommentsService } from "../application/post-comment.service";
 import { PostSortBy } from "../domain/enum/OrderBy";
 import { UsersRepository } from "@/modules/identity/domain/interfaces/repositories/users-repository";
+import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
+import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
+import { Profile } from "../../core/domain/entities/Profile";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -52,12 +55,16 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseGuards(UserGuard)
-  async create(@Body() body: CreatePostDto, @CurrentUser() user: User) {
+  @UseGuards(UserGuard, SocialProfileGuard)
+  async create(
+    @Body() body: CreatePostDto,
+    @CurrentUser() user: User,
+    @CurrentUser() profile: Profile
+  ) {
     try {
       this.logger.log("Starting post creation", { body });
 
-      const post = await this.postService.create(user, body);
+      const post = await this.postService.create(user, body, profile);
 
       this.logger.log("Post successfully created", { post });
       return;
@@ -244,37 +251,42 @@ export class PostController {
     return await this.postMedias.listMediasByPostUuid(user, uuid);
   }
 
-  @UseGuards(UserGuard)
+  // TODO: MOVE PROFILE ONLY AUTHORIZED ROUES TO ANOTHER CONTROLLER
+
+  @UseGuards(UserGuard, SocialProfileGuard)
   @Post(":postUuid/comments")
   async createComment(
     @Param("postUuid") postUuid: string,
     @Body() body: CreatePostCommentDto,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
   ) {
-    return this.postCommentService.addComment(postUuid, body, user);
+    return this.postCommentService.addComment(profile, postUuid, body, user);
   }
 
-  @UseGuards(UserGuard)
+  @UseGuards(UserGuard, SocialProfileGuard)
   @Patch("comments/:commentId")
   async updateComment(
     @Param("commentId") commentId: string,
     @Body() body: UpdateCommentDto,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
   ) {
     return this.postCommentService.updateComment(
+      profile,
       Number(commentId),
-      body.content,
-      user
+      body.content
     );
   }
 
-  @UseGuards(UserGuard)
+  @UseGuards(UserGuard, SocialProfileGuard)
   @Delete("comments/:commentId")
   async deleteComment(
     @Param("commentId") commentId: string,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
   ) {
-    await this.postCommentService.deleteComment(Number(commentId), user);
+    await this.postCommentService.deleteComment(profile, Number(commentId));
     return { message: "Comentário excluído com sucesso" };
   }
 
@@ -305,11 +317,10 @@ export class PostController {
   }
 
   @Get("comments/author/:authorPublicId")
-   async listCommentsByAuthor(
+  async listCommentsByAuthor(
     @Param("authorPublicId") authorPublicId: string,
-    @Query() query: ListPostCommentsDto,
+    @Query() query: ListPostCommentsDto
   ) {
-
     const author = await this.userRepository.findByPublicId(authorPublicId);
     if (!author) throw new NotFoundException("Autor nao encontradok");
 
@@ -322,10 +333,9 @@ export class PostController {
         limit,
         offset,
       });
-    
+
     return new PaginatedResponse(records, total, limit, page, {});
   }
-
 
   @Get("comments/user")
   async listUserComments(
@@ -341,7 +351,7 @@ export class PostController {
         limit,
         offset,
       });
-    
+
     return new PaginatedResponse(records, total, limit, page, {});
   }
 }

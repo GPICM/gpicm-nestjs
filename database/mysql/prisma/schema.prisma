@@ -38,6 +38,7 @@ model User {
   PostVotes          PostVote[]
   Comments           PostComment[]
   Medias             Media[]
+  Profile            Profile?
 
   @@unique([publicId])
   @@map("users")
@@ -315,6 +316,67 @@ model Media {
 
   @@index([ownerId])
   @@map("medias")
+}
+
+model Profile {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique @map("user_id")
+  displayName    String   @map("display_name")
+  handle         String   @unique @map("handle") // New field for public unique identifier
+  bio            String?  @db.LongText
+  profileImage   String?  @map("profile_image")
+  postsCount     Int      @default(0) @map("posts_count")
+  commentsCount  Int      @default(0) @map("comments_count")
+  followersCount Int      @default(0) @map("followers_count")
+  followingCount Int      @default(0) @map("following_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  Follows      ProfileFollow[]      @relation("FollowerRelation")
+  Followed     ProfileFollow[]      @relation("FollowingRelation")
+  Achievements ProfileAchievement[] @relation("ProfileAchievements")
+  User         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("profiles")
+}
+
+model Achievement {
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  description        String               @db.LongText
+  image              String?
+  criteria           Json?
+  isActive           Boolean              @default(true) @map("is_active")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  ProfileAchievement ProfileAchievement[] @relation("ProfileAchievements")
+
+  @@map("achievements")
+}
+
+model ProfileAchievement {
+  profileId     Int
+  achievementId Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  Profile     Profile     @relation("ProfileAchievements", fields: [profileId], references: [id], onDelete: Cascade)
+  Achievement Achievement @relation("ProfileAchievements", fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, achievementId])
+  @@map("profile_achievements")
+}
+
+model ProfileFollow {
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  Follower  Profile @relation("FollowerRelation", fields: [followerId], references: [id])
+  Following Profile @relation("FollowingRelation", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+  @@map("profile_follows")
 }
 
 model PostComment {

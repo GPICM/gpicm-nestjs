@@ -16,7 +16,7 @@ import { AuthProviders } from "../domain/enums/auth-provider";
 import { ClientError } from "@/modules/shared/domain/protocols/client-error";
 import { UserCredential } from "../authentication/domain/entities/UserCredential";
 import { UserVerificationService } from "../authentication/application/user/user-verification.service";
-/* import { EmailVerificationService } from "./email-verification.service";*/
+import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -28,7 +28,9 @@ export class AuthenticationService {
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
-    private readonly userVerificationService: UserVerificationService
+    private readonly userVerificationService: UserVerificationService,
+    @Inject(CreateProfileUseCase)
+    private readonly createProfile: CreateProfileUseCase
   ) {}
 
   public async signUp(params: {
@@ -80,12 +82,21 @@ export class AuthenticationService {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
+
           emailPasswordCredential.setUserId(userId);
+
+          // TODO: PROFILE SHOULD BE CREATED ONLY WHEN DC ACCEPT THE REQUEST
+          await this.createProfile.execute(newUser, {
+            txContext: tx,
+          });
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
-        }
 
+          await this.createProfile.execute(guestUser, {
+            txContext: tx,
+          });
+        }
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
       });
 

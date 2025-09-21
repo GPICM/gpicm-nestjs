@@ -1,17 +1,10 @@
 import { Module } from "@nestjs/common";
-import { SharedModule } from "../shared/shared.module";
 import { PrismaPostRepository } from "./infra/prisma-post-repository";
 import { PrismaPostVotesRepository } from "./infra/prisma-post-votes-repository";
 import { PostController } from "./presentation/post.controller";
 import { PostRepository } from "./domain/interfaces/repositories/post-repository";
 import { PostServices } from "./application/post.service";
 import { PostVotesRepository } from "./domain/interfaces/repositories/post-votes-repository";
-import { UploadService } from "../assets/application/upload.service";
-import { IncidentsService } from "../incidents/application/incidents.service";
-import { IncidentsRepository } from "../incidents/domain/interfaces/repositories/incidents-repository";
-import { PrismaIncidentsRepository } from "../incidents/infra/prisma-incidents-repository";
-import { IncidentsModule } from "../incidents/incidents.module";
-import { RedisAdapter } from "../shared/infra/lib/redis/redis-adapter";
 import { BullModule } from "@nestjs/bullmq";
 import { PostScoreProcessor } from "./application/ post-score.processor";
 import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
@@ -26,11 +19,19 @@ import { PostCommentsService } from "./application/post-comment.service";
 import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
 import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
 import { PostCommentsProcessor } from "./application/ post-comments.processor";
-import { IdentityModule } from "../identity/identity.module";
+import { SharedModule } from "@/modules/shared/shared.module";
+import { IdentityModule } from "@/modules/identity/identity.module";
+import { IncidentsModule } from "@/modules/incidents/incidents.module";
+import { UploadService } from "@/modules/assets/application/upload.service";
+import { IncidentsService } from "@/modules/incidents/application/incidents.service";
+import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repositories/incidents-repository";
+import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
+import { SocialCoreModule } from "../core/social.module";
 
 @Module({
   controllers: [PostController],
   imports: [
+    SocialCoreModule,
     BullModule.forRoot({
       connection: {
         url: String(process.env.REDIS_URL),
@@ -44,7 +45,7 @@ import { IdentityModule } from "../identity/identity.module";
     }),
     SharedModule,
     IncidentsModule,
-    IdentityModule
+    IdentityModule,
   ],
   providers: [
     PostCommentsProcessor,
@@ -64,7 +65,6 @@ import { IdentityModule } from "../identity/identity.module";
       provide: PostCommentRepository,
       useClass: PrismaPostCommentRepository,
     },
-
     {
       provide: PostMediasRepository,
       useClass: PrismaPostMediasRepository,
@@ -77,7 +77,6 @@ import { IdentityModule } from "../identity/identity.module";
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
     },
-    RedisAdapter,
     CurseWordsFilterService,
   ],
 

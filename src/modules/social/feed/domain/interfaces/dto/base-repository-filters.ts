@@ -6,7 +6,6 @@ export interface BaseRepositoryFindManyFilters {
   order?: "asc" | "desc";
 }
 
-
 export interface BaseRepositoryFindManyResult<Model> {
   count: number;
   records: Model[];
