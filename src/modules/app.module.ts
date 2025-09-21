@@ -11,6 +11,7 @@ import { AssetsModule } from "./assets/assets.module";
 import { AlertsModule } from "./alerts/Alerts.module";
 import { TelemetryModule } from "./telemetry/telemetry.module";
 import { SocialModule } from "./social/social.module";
+import { BackOfficeModule } from "./back-office/social-back-office.module";
 
 @Module({
   controllers: [AppController],
@@ -40,6 +41,7 @@ import { SocialModule } from "./social/social.module";
     AssetsModule,
     SocialModule,
     AlertsModule,
+    BackOfficeModule,
   ],
 })
 export class AppModule {}

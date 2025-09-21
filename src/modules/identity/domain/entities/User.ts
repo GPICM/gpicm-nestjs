@@ -114,6 +114,14 @@ export class User {
     );
   }
 
+  public isAdmin() {
+    return (
+      this.role === UserRoles.ADMIN &&
+      this.status === UserStatus.ACTIVE &&
+      !!this.credentials.length
+    );
+  }
+
   public setId(newUserId: number) {
     this.id = newUserId;
     if (this.credentials.length) {
