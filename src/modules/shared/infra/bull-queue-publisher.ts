@@ -12,7 +12,7 @@ export abstract class BullQueuePublisher<E, T>
 
   constructor(protected readonly queue: Queue) {}
 
-  async publish(event: AppQueueEvent<E, T>): Promise<void> {
+  async add(event: AppQueueEvent<E, T>): Promise<void> {
     try {
       const jobId =
         event.deduplicationId ??

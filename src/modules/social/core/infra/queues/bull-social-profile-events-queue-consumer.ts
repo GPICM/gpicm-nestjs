@@ -3,7 +3,7 @@
 import { Processor } from "@nestjs/bullmq";
 import { debounce } from "lodash";
 
-import { BullQueueConsumer } from "@/modules/shared/infra/bull-queue-consumer";
+import { BullQueueWorker } from "@/modules/shared/infra/bull-queue-worker";
 
 import { ProfileRepository } from "../../domain/interfaces/repositories/profile-repository";
 import {
@@ -32,7 +32,7 @@ const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
   limiter: { max: 10, duration: 1000 },
 })
-export class BullSocialProfileConsumer extends BullQueueConsumer<
+export class BullSocialProfileConsumer extends BullQueueWorker<
   SocialProfileEvent,
   SocialProfileEventsQueueDto
 > {

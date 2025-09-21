@@ -5,9 +5,9 @@ export type AppQueueEvent<E, T> = {
 };
 
 export abstract class AppQueuePublisher<E = string, T = unknown> {
-  abstract publish(event: AppQueueEvent<E, T>): Promise<void>;
+  abstract add(event: AppQueueEvent<E, T>): Promise<void>;
 }
 
-export abstract class AppQueueConsumer<E = string, T = unknown> {
+export abstract class AppQueueWorker<E = string, T = unknown> {
   abstract handle(event: AppQueueEvent<E, T>): Promise<void>;
 }

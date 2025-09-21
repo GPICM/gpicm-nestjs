@@ -21,14 +21,14 @@ export class PubSubToBullSubscriber {
   private async subscribeToEvents() {
     // Create a single handler function
     const postHandler = (event: PostActionEvent) => {
-      void this.profileQueue.publish({
+      void this.profileQueue.add({
         event: event.event,
         data: { profileId: event.data.profileId },
       });
     };
 
     const profileHandler = (event: ProfileFollowingEvent) => {
-      void this.profileQueue.publish({
+      void this.profileQueue.add({
         event: event.event,
         data: {
           profileId: event.data.profileId,
