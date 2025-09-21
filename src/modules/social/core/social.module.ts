@@ -11,9 +11,13 @@ import { AchievementService } from "./application/achievement.service";
 import { SocialController } from "./presentation/social.controller";
 import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
 import { SocialQueueModule } from "./social-queue.module";
-import { SocialProfileEventsQueuePublisher } from "./domain/queues/social-profile-events-queue";
-import { BullSocialProfileQueuePublisher } from "./infra/queues/bull-social-profile-events-queue-publisher";
+import {
+  SOCIAL_PROFILE_EVENTS_QUEUE_NAME,
+  SocialProfileEventsQueuePublisher,
+} from "./domain/queues/social-profile-events-queue";
 import { PubSubToBullSubscriber } from "./infra/queues/pub-sub-to-bull-subscriber";
+import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
+import { getQueueToken } from "@nestjs/bullmq";
 
 @Module({
   imports: [SocialQueueModule],
@@ -35,7 +39,10 @@ import { PubSubToBullSubscriber } from "./infra/queues/pub-sub-to-bull-subscribe
     },
     {
       provide: SocialProfileEventsQueuePublisher,
-      useClass: BullSocialProfileQueuePublisher,
+      useFactory: (queue) => {
+        return new BullQueuePublisher(queue);
+      },
+      inject: [getQueueToken(SOCIAL_PROFILE_EVENTS_QUEUE_NAME)],
     },
     PubSubToBullSubscriber,
   ],

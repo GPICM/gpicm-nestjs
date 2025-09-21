@@ -5,12 +5,10 @@ import {
   AppQueuePublisher,
 } from "@/modules/shared/domain/interfaces/application-queue";
 
-export abstract class BullQueuePublisher<E, T>
-  implements AppQueuePublisher<E, T>
-{
+export class BullQueuePublisher<E, T> implements AppQueuePublisher<E, T> {
   private readonly logger = new Logger(BullQueuePublisher.name);
 
-  constructor(protected readonly queue: Queue) {}
+  constructor(private queue: Queue) {}
 
   async add(event: AppQueueEvent<E, T>): Promise<void> {
     try {
