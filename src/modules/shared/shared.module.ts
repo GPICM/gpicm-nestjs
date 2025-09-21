@@ -12,6 +12,9 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { NodemailerEmailService } from "./infra/lib/nodemailer/nodemailer-email-service";
 import { RedisAdapter } from "./infra/lib/redis/redis-adapter";
 import { RedisLockService } from "./infra/lib/redis/redis-lock-service";
+import { RedisPubSubService } from "./infra/lib/redis/redis-pub-sub-service";
+import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
+import { EventPublisher } from "./domain/interfaces/application-event-publisher";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -54,9 +57,14 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: UserLogsRepository,
       useClass: PrismaUserLogsRepository,
     },
+    {
+      provide: EventPublisher,
+      useClass: RedisEventPublisher,
+    },
     LogUserAction,
     RedisAdapter,
     RedisLockService,
+    RedisPubSubService,
   ],
   exports: [
     UserLogsRepository,
@@ -67,6 +75,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     EmailService,
     RedisLockService,
     RedisAdapter,
+    EventPublisher,
   ],
 })
 export class SharedModule {}
