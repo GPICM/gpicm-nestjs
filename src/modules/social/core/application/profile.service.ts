@@ -98,7 +98,6 @@ export class ProfileService {
     if (userProfileId === followingProfile.id) {
       throw new BadRequestException("You cannot follow yourself.");
     }
-
     await this.profileFollowRepository.follow(
       userProfileId,
       followingProfile.id
@@ -107,8 +106,8 @@ export class ProfileService {
     await this.eventsQueuePublisher.publish({
       event: "follow",
       data: { profileId: userProfileId, followingId: followingProfile.id },
-      deduplicationId: `f_${userProfileId}:${followingProfile.id}`,
     });
+
     return { success: true, message: "User followed successfully" };
   }
 
@@ -135,7 +134,6 @@ export class ProfileService {
     await this.eventsQueuePublisher.publish({
       event: "unfollow",
       data: { profileId: userProfileId, followingId: followingProfile.id },
-      deduplicationId: `uf_${userProfileId}:${followingProfile.id}`,
     });
 
     return { success: true, message: "User unfollowed successfully" };

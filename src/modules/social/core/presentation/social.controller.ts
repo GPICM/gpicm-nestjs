@@ -50,16 +50,6 @@ export class SocialController {
     return await this.profileService.followUser(profile.id, handle);
   }
 
-  @Get("/followers/:id")
-  async getFollowers(@Param("id") id: number) {
-    return await this.profileService.getFollowers(id);
-  }
-
-  @Get("/following/:id")
-  async getFollowing(@Param("id") id: number) {
-    return await this.profileService.getFollowing(id);
-  }
-
   @Post("/unfollow/:handle")
   async unfollowUser(
     @Param("handle") handle: string,
@@ -68,6 +58,7 @@ export class SocialController {
     return await this.profileService.unfollowUser(profile.id, handle);
   }
 
+  /* Getters */
   @Get("/profile")
   @UseGuards(UserGuard)
   async getMyProfileData(@CurrentUser() user: User) {
@@ -80,5 +71,15 @@ export class SocialController {
       this.logger.error("Failed to get user basic data", { error });
       throw new BadRequestException();
     }
+  }
+
+  @Get("/followers/:id")
+  async getFollowers(@Param("id") id: number) {
+    return await this.profileService.getFollowers(id);
+  }
+
+  @Get("/following/:id")
+  async getFollowing(@Param("id") id: number) {
+    return await this.profileService.getFollowing(id);
   }
 }

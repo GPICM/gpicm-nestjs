@@ -14,10 +14,7 @@ import {
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
 
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
-  limiter: {
-    max: 10,
-    duration: 1000,
-  },
+  limiter: { max: 10, duration: 1000 },
 })
 export class BullSocialProfileConsumer extends BullQueueConsumer<
   SocialProfileEvent,

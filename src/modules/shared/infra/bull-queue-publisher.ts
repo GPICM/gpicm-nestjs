@@ -14,8 +14,14 @@ export abstract class BullQueuePublisher<E, T>
 
   async publish(event: AppQueueEvent<E, T>): Promise<void> {
     try {
-      await this.queue.add(event.event as string, event.data, {
-        jobId: event.deduplicationId,
+      const jobId =
+        event.deduplicationId ??
+        `${event.event as string} | ${JSON.stringify(event.data)}`;
+
+      await this.queue.add(event.event as string, event, {
+        jobId,
+        removeOnComplete: true,
+        removeOnFail: true,
       });
     } catch (error: unknown) {
       this.logger.error("Failed to add queue job", { error });
