@@ -10,6 +10,8 @@ import { LogUserAction } from "./application/log-user-action";
 import { EmailService } from "./domain/interfaces/services/email-service";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { NodemailerEmailService } from "./infra/lib/nodemailer/nodemailer-email-service";
+import { RedisAdapter } from "./infra/lib/redis/redis-adapter";
+import { RedisLockService } from "./infra/lib/redis/redis-lock-service";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -53,6 +55,8 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       useClass: PrismaUserLogsRepository,
     },
     LogUserAction,
+    RedisAdapter,
+    RedisLockService,
   ],
   exports: [
     UserLogsRepository,

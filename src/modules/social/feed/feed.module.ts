@@ -26,7 +26,6 @@ import { UploadService } from "@/modules/assets/application/upload.service";
 import { IncidentsService } from "@/modules/incidents/application/incidents.service";
 import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
-import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 import { SocialCoreModule } from "../core/social.module";
 
 @Module({
@@ -78,7 +77,6 @@ import { SocialCoreModule } from "../core/social.module";
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
     },
-    RedisAdapter,
     CurseWordsFilterService,
   ],
 
