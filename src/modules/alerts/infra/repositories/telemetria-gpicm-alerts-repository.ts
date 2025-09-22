@@ -13,6 +13,8 @@ import {
 import { CivilDefenseAlertsRepository } from "../../domain/interfaces/alerts-repository";
 import { CivilDefenseAlertDtoSchema } from "./utils/telemetria-gpicm-utils";
 
+const UFRJ_TELEMETRIA_API_URL =
+  "https://telemetria.macae.ufrj.br/Api/obterAlertasDefesaCivil";
 @Injectable()
 export class TelemetriaGpicmAlertsRepository
   implements Pick<CivilDefenseAlertsRepository, "listAll">
@@ -28,7 +30,7 @@ export class TelemetriaGpicmAlertsRepository
       this.logger.log("Fetching civil defense alerts");
 
       const response = await this.httpClient.request({
-        url: "https://projetos.macae.ufrj.br:8090/Api/obterAlertasDefesaCivil",
+        url: UFRJ_TELEMETRIA_API_URL,
         method: "GET",
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
@@ -57,7 +59,7 @@ export class TelemetriaGpicmAlertsRepository
             ? AlertStatus.ACTIVE
             : AlertStatus.INACTIVE;
 
-        const plainDescription = alert.description.replace(/<[^>]+>/g, '');
+        const plainDescription = alert.description.replace(/<[^>]+>/g, "");
 
         return new CivilDefenseAlerts({
           id: -1,
