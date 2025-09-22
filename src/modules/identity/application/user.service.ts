@@ -20,6 +20,18 @@ export class UserService {
     private readonly mediaService: MediaService
   ) {}
 
+  public async findById(userId: number): Promise<User | null> {
+    try {
+      this.logger.log("Finding user", { userId });
+
+      const user = await this.usersRepository.findById(userId);
+      return user;
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user location", { error });
+      throw error;
+    }
+  }
+
   public async getPublicUserDataByPublicId(
     publicId: string
   ): Promise<UserPublicData> {
