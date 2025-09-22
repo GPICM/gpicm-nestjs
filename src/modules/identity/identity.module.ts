@@ -72,6 +72,7 @@ import { ExternalProfileModule } from "../social/core/external-profile.module";
     PartnerApiKeysRepository,
     PartnerApiKeyGuard,
     UsersRepository,
+    UserService,
   ],
 })
 export class IdentityModule {}

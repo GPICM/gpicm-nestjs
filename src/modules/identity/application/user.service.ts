@@ -32,6 +32,15 @@ export class UserService {
     }
   }
 
+  public async updateStatus(user: User): Promise<void> {
+    try {
+      await this.usersRepository.update(user);
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user location", { error });
+      throw error;
+    }
+  }
+
   public async getPublicUserDataByPublicId(
     publicId: string
   ): Promise<UserPublicData> {
