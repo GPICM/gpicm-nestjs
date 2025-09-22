@@ -19,8 +19,12 @@ export class UserGuard implements CanActivate {
       throw new ForbiddenException("User is required");
     }
 
-    if (!user.isActive()) {
+    if (user.isGuest()) {
       throw new ForbiddenException("Verified User role is required");
+    }
+
+    if (!user.isActive()) {
+      throw new ForbiddenException("active user is required");
     }
 
     return true;

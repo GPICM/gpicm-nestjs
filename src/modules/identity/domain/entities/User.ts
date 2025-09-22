@@ -107,11 +107,7 @@ export class User {
   }
 
   public isActive() {
-    return (
-      this.role === UserRoles.USER &&
-      this.status === UserStatus.ACTIVE &&
-      !!this.credentials.length
-    );
+    return this.status === UserStatus.ACTIVE && !!this.credentials.length;
   }
 
   public isAdmin() {
