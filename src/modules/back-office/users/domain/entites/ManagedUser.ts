@@ -9,7 +9,7 @@ export type ProfileSummary = {
   displayName: string;
 };
 
-export class User {
+export class ManagedUser {
   public id: number;
 
   public publicId: string;
@@ -32,7 +32,7 @@ export class User {
 
   public activeProfile: ProfileSummary | null;
 
-  constructor(args: NonFunctionProperties<User>) {
+  constructor(args: NonFunctionProperties<ManagedUser>) {
     Object.assign(this, args);
   }
 }

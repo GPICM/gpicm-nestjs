@@ -5,8 +5,8 @@ import { MediaSource } from "@/modules/assets/domain/object-values/media-source"
 import { UserAvatar } from "@/modules/identity/domain/value-objects/user-avatar";
 import {
   ProfileSummary,
-  User,
-} from "@/modules/back-office/users/domain/entites/User";
+  ManagedUser,
+} from "@/modules/back-office/users/domain/entites/ManagedUser";
 
 export const userAdminInclude = Prisma.validator<Prisma.UserInclude>()({
   Credentials: true,
@@ -20,7 +20,7 @@ type UserAdminJoinModel = Prisma.UserGetPayload<{
 export class UserAdminAssembler {
   public static fromPrisma(
     prismaData?: UserAdminJoinModel | null
-  ): User | null {
+  ): ManagedUser | null {
     if (!prismaData) return null;
 
     let avatar: UserAvatar | null = null;
@@ -43,7 +43,7 @@ export class UserAdminAssembler {
       };
     }
 
-    return new User({
+    return new ManagedUser({
       id: prismaData.id,
       publicId: prismaData.publicId,
       name: prismaData.name ?? null,

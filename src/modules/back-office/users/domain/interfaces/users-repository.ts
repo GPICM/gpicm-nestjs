@@ -1,18 +1,18 @@
 import { UserStatus } from "@prisma/client";
 
-import { User } from "../entites/User";
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
 } from "./dto/base-repository-filters";
 import { Injectable } from "@nestjs/common";
+import { ManagedUser } from "../entites/ManagedUser";
 
 @Injectable()
 export abstract class UsersAdminRepository {
   abstract listAll(
     filters: UserFindManyFilters
-  ): Promise<BaseRepositoryFindManyResult<User>>;
+  ): Promise<BaseRepositoryFindManyResult<ManagedUser>>;
 }
 
 export interface UserFindManyFilters extends BaseRepositoryFindManyFilters {

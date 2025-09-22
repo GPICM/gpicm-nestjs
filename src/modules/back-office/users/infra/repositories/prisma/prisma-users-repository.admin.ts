@@ -3,7 +3,6 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
-import { User } from "../../../domain/entites/User";
 import {
   UserAdminAssembler,
   userAdminInclude,
@@ -13,6 +12,7 @@ import {
   UserFindManyFilters,
   UsersAdminRepository,
 } from "../../../domain/interfaces/users-repository";
+import { ManagedUser } from "../../../domain/entites/ManagedUser";
 
 @Injectable()
 export class PrismaUserAdminRepository implements UsersAdminRepository {
@@ -25,7 +25,7 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
 
   public async listAll(
     filters: UserFindManyFilters
-  ): Promise<BaseRepositoryFindManyResult<User>> {
+  ): Promise<BaseRepositoryFindManyResult<ManagedUser>> {
     try {
       this.logger.log("Staging to list posts", { filters });
       const skip = filters.offset ?? 0;
