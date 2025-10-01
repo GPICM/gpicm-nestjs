@@ -7,12 +7,15 @@ import {
 } from "./dto/base-repository-filters";
 import { Injectable } from "@nestjs/common";
 import { ManagedUser } from "../entites/ManagedUser";
+import { UserCountSummary } from "../views/UserCountSummary";
 
 @Injectable()
 export abstract class UsersAdminRepository {
   abstract listAll(
     filters: UserFindManyFilters
   ): Promise<BaseRepositoryFindManyResult<ManagedUser>>;
+
+  abstract getCountSummary(): Promise<UserCountSummary>;
 }
 
 export interface UserFindManyFilters extends BaseRepositoryFindManyFilters {

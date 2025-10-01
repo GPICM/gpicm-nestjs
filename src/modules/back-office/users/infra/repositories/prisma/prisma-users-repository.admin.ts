@@ -13,6 +13,7 @@ import {
   UsersAdminRepository,
 } from "../../../domain/interfaces/users-repository";
 import { ManagedUser } from "../../../domain/entites/ManagedUser";
+import { UserCountSummary } from "../../../domain/views/UserCountSummary";
 
 @Injectable()
 export class PrismaUserAdminRepository implements UsersAdminRepository {
@@ -63,6 +64,30 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
       console.log(error);
       this.logger.error("Failed to list posts", { error });
       throw new Error("Failed to list posts");
+    }
+  }
+
+  public async getCountSummary(): Promise<UserCountSummary> {
+    try {
+      const [total, pendingProfileCount, guestCount, activeCount, adminCount] =
+        await Promise.all([
+          this.prisma.user.count({}),
+          this.prisma.user.count({ where: { status: "PENDING_PROFILE" } }),
+          this.prisma.user.count({ where: { status: "GUEST" } }),
+          this.prisma.user.count({ where: { status: "ACTIVE" } }),
+          this.prisma.user.count({ where: { role: "ADMIN" } }),
+        ]);
+
+      return new UserCountSummary({
+        total,
+        activeCount,
+        adminCount,
+        guestCount,
+        pendingProfileCount,
+      });
+    } catch (error: unknown) {
+      this.logger.error("Faield to load count summary");
+      throw error;
     }
   }
 }

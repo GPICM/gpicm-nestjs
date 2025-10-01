@@ -52,6 +52,12 @@ export class AdminUsersController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
+  @Get("summaries/count")
+  async getUsersCountSummary() {
+    this.logger.log("Fetching users count summary");
+    return this.usersRepository.getCountSummary();
+  }
+
   @Post("/:userId/profile")
   async createUserProfile(@Param("userId") userId: number) {
     this.logger.log("Creating new pofile", { userId });
