@@ -9,7 +9,7 @@ import {
 import { User } from "@/modules/identity/domain/entities/User";
 
 @Injectable()
-export class UserGuard implements CanActivate {
+export class ActiveUserGuard implements CanActivate {
   constructor() {}
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();

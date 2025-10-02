@@ -21,7 +21,7 @@ import {
 } from "./dtos/user-request.dtos";
 import { UserService } from "../application/user.service";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
-import { UserGuard } from "./meta/guards/user.guard";
+import { ActiveUserGuard } from "./meta/guards/active-user.guard";
 import { UserBasicData } from "../domain/value-objects/user-basic-data";
 import { UserPublicData } from "../domain/value-objects/user-public-data";
 
@@ -61,7 +61,7 @@ export class UserController {
   }
 
   @Put("/profile")
-  @UseGuards(UserGuard)
+  @UseGuards(ActiveUserGuard)
   async updateUserData(
     @CurrentUser() user: User,
     @Body() body: UpdateUserDataDto
@@ -90,7 +90,7 @@ export class UserController {
   }
 
   @Patch("/profile/avatar")
-  @UseGuards(UserGuard)
+  @UseGuards(ActiveUserGuard)
   async updateUserAvatar(
     @CurrentUser() user: User,
     @Body() body: UpdateUserAvatarDto
@@ -111,7 +111,7 @@ export class UserController {
   }
 
   @Get("/profile")
-  @UseGuards(UserGuard)
+  @UseGuards(ActiveUserGuard)
   getMyBasicData(@CurrentUser() user: User): UserBasicData {
     try {
       this.logger.log(`Fetching basic data for current user: ${user.publicId}`);

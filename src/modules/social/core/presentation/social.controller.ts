@@ -6,15 +6,9 @@ import {
   Logger,
   UseGuards,
   Controller,
-  BadRequestException,
 } from "@nestjs/common";
 
-import {
-  CurrentUser,
-  JwtAuthGuard,
-} from "@/modules/identity/presentation/meta";
-import { User } from "@/modules/identity/domain/entities/User";
-import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
 
 import { AchievementService } from "../application/achievement.service";
 import { ProfileService } from "../application/profile.service";

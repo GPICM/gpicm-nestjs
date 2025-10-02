@@ -1,8 +1,6 @@
 import {
   Get,
   Param,
-  Post,
-  Body,
   Logger,
   UseGuards,
   Controller,
@@ -14,7 +12,7 @@ import {
   JwtAuthGuard,
 } from "@/modules/identity/presentation/meta";
 import { User } from "@/modules/identity/domain/entities/User";
-import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+import { ActiveUserGuard } from "@/modules/identity/presentation/meta/guards/active-user.guard";
 
 import { ProfileService } from "../application/profile.service";
 import { SocialProfileGuard } from "../infra/guards/SocialProfileGuard";
@@ -27,7 +25,7 @@ export class SocialProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Get("/")
-  @UseGuards(UserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard)
   async getMyProfileData(@CurrentUser() user: User) {
     try {
       this.logger.log(`Fetching basic data for current user: ${user.id}`);

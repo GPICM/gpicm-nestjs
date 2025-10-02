@@ -26,7 +26,7 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
-import { UserGuard } from "@/modules/identity/presentation/meta/guards/user.guard";
+import { ActiveUserGuard } from "@/modules/identity/presentation/meta/guards/active-user.guard";
 import { PostMediaService } from "../application/post-media.service";
 import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
 import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
@@ -55,7 +55,7 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseGuards(UserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard)
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
@@ -104,7 +104,7 @@ export class PostController {
   }
 
   @Delete(":postUuid")
-  @UseGuards(UserGuard)
+  @UseGuards(ActiveUserGuard)
   async delete(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
     this.logger.log("Deleting post", { postUuid });
     const post = await this.postRepository.findByUuid(postUuid, user.id);
@@ -210,7 +210,7 @@ export class PostController {
   }
 
   @Get(":uuid/votes")
-  @UseGuards(UserGuard)
+  @UseGuards(ActiveUserGuard)
   async listPostVotes(
     @Param("uuid") uuid: string,
     @Query() query: ListPostQueryDto,
@@ -253,7 +253,7 @@ export class PostController {
 
   // TODO: MOVE PROFILE ONLY AUTHORIZED ROUES TO ANOTHER CONTROLLER
 
-  @UseGuards(UserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard)
   @Post(":postUuid/comments")
   async createComment(
     @Param("postUuid") postUuid: string,
@@ -264,7 +264,7 @@ export class PostController {
     return this.postCommentService.addComment(profile, postUuid, body, user);
   }
 
-  @UseGuards(UserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard)
   @Patch("comments/:commentId")
   async updateComment(
     @Param("commentId") commentId: string,
@@ -279,7 +279,7 @@ export class PostController {
     );
   }
 
-  @UseGuards(UserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard)
   @Delete("comments/:commentId")
   async deleteComment(
     @Param("commentId") commentId: string,
