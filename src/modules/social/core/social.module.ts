@@ -20,6 +20,7 @@ import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher"
 import { getQueueToken } from "@nestjs/bullmq";
 import { SocialProfileController } from "./presentation/profile.controller";
 import { CreateProfileUseCase } from "./application/create-profile.usecase";
+import { FindProfileByUserUseCase } from "./application/find-profile-by-user.usecase";
 
 @Module({
   imports: [SocialQueueModule],
@@ -28,6 +29,7 @@ import { CreateProfileUseCase } from "./application/create-profile.usecase";
     ProfileService,
     AchievementService,
     CreateProfileUseCase,
+    FindProfileByUserUseCase,
     {
       provide: ProfileRepository,
       useClass: PrismaProfileRepository,
@@ -54,6 +56,7 @@ import { CreateProfileUseCase } from "./application/create-profile.usecase";
     ProfileRepository,
     CreateProfileUseCase,
     SocialProfileEventsQueuePublisher,
+    FindProfileByUserUseCase,
   ],
 })
 export class SocialCoreModule {}

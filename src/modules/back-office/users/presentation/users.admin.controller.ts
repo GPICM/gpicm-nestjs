@@ -21,6 +21,7 @@ import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-
 import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
 import { UserService } from "@/modules/identity/application/user.service";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
+import { FindProfileByUserUseCase } from "@/modules/social/core/application/find-profile-by-user.usecase";
 
 @Controller("back-office/users")
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -31,6 +32,7 @@ export class AdminUsersController {
     @Inject(UsersAdminRepository)
     private readonly usersRepository: UsersAdminRepository,
     private readonly createProfile: CreateProfileUseCase,
+    private readonly findProfile: FindProfileByUserUseCase,
     private readonly userService: UserService
   ) {}
 
@@ -95,6 +97,26 @@ export class AdminUsersController {
     if (!user) throw new NotFoundException();
 
     user.setStatus(UserStatus.SUSPENDED);
+    await this.userService.updateStatus(user);
+
+    return { message: "success." };
+  }
+
+  @Put("/:userId/activate")
+  async activate(@Param("userId") userId: number) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException();
+
+    const profile = await this.findProfile.execute(user);
+    if (!profile) {
+      throw new ForbiddenException("Cannot active a user without a profile");
+    }
+
+    if (user.status === UserStatus.ACTIVE) {
+      throw new ForbiddenException("User is already active");
+    }
+
+    user.setStatus(UserStatus.ACTIVE);
     await this.userService.updateStatus(user);
 
     return { message: "success." };
