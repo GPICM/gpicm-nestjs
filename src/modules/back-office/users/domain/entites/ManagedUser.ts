@@ -28,6 +28,8 @@ export class ManagedUser {
 
   public updateAt: Date | null;
 
+  public email: string;
+
   public avatar: UserAvatar | null;
 
   public activeProfile: ProfileSummary | null;

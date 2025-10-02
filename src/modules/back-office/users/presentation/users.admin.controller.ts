@@ -9,6 +9,7 @@ import {
   Param,
   NotFoundException,
   ForbiddenException,
+  Put,
 } from "@nestjs/common";
 
 import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
@@ -77,27 +78,23 @@ export class AdminUsersController {
     return { message: "success." };
   }
 
-  @Post("/:userId/profile/ban")
+  @Put("/:userId/ban")
   async banUser(@Param("userId") userId: number) {
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException();
 
-    await this.createProfile.execute(user);
     user.setStatus(UserStatus.BANNED);
-
     await this.userService.updateStatus(user);
 
     return { message: "success." };
   }
 
-  @Post("/:userId/profile/suspend")
+  @Put("/:userId/suspend")
   async suspend(@Param("userId") userId: number) {
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException();
 
-    await this.createProfile.execute(user);
     user.setStatus(UserStatus.SUSPENDED);
-
     await this.userService.updateStatus(user);
 
     return { message: "success." };

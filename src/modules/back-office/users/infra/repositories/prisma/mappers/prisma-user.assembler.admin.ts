@@ -9,7 +9,7 @@ import {
 } from "@/modules/back-office/users/domain/entites/ManagedUser";
 
 export const userAdminInclude = Prisma.validator<Prisma.UserInclude>()({
-  Credentials: true,
+  Credentials: { where: { isPrimary: true } },
   Profile: true,
 });
 
@@ -43,8 +43,14 @@ export class UserAdminAssembler {
       };
     }
 
+    let email = "";
+    if (prismaData.Credentials?.length) {
+      email = prismaData.Credentials[0].email;
+    }
+
     return new ManagedUser({
       id: prismaData.id,
+      email,
       publicId: prismaData.publicId,
       name: prismaData.name ?? null,
       role: prismaData.role as UserRoles,
