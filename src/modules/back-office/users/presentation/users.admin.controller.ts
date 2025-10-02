@@ -76,4 +76,30 @@ export class AdminUsersController {
 
     return { message: "success." };
   }
+
+  @Post("/:userId/profile/ban")
+  async banUser(@Param("userId") userId: number) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException();
+
+    await this.createProfile.execute(user);
+    user.setStatus(UserStatus.BANNED);
+
+    await this.userService.updateStatus(user);
+
+    return { message: "success." };
+  }
+
+  @Post("/:userId/profile/suspend")
+  async suspend(@Param("userId") userId: number) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException();
+
+    await this.createProfile.execute(user);
+    user.setStatus(UserStatus.SUSPENDED);
+
+    await this.userService.updateStatus(user);
+
+    return { message: "success." };
+  }
 }
