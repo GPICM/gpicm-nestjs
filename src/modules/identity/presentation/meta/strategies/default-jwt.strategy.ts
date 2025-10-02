@@ -9,6 +9,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-custom";
 import { Request } from "express";
 import { AuthorizationService } from "@/modules/identity/application/authorization.service";
+import { UserStatus } from "@/modules/identity/domain/enums/user-status";
 
 export const defaultJwtStrategyName = "identity-jwt";
 
@@ -33,6 +34,10 @@ export class DefaultJwtStrategy extends PassportStrategy(
       const user = await this.authorizationService.execute(accessToken);
       if (!user) {
         throw new UnauthorizedException("User not found.");
+      }
+
+      if ([UserStatus.BANNED, UserStatus.SUSPENDED].includes(user.status)) {
+        throw new UnauthorizedException("User is banned or suspended");
       }
 
       request.user = user;

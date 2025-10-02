@@ -136,9 +136,12 @@ export class AuthenticationService {
       }
 
       const credential = user.getCredential(AuthProviders.EMAIL_PASSWORD);
-
       if (!credential || !credential.verifyPassword(password)) {
         throw new UnauthorizedException("Invalid credentials");
+      }
+
+      if ([UserStatus.BANNED, UserStatus.SUSPENDED].includes(user.status)) {
+        throw new UnauthorizedException("User is banned or suspended");
       }
 
       const accessToken = this.encryptor.generateToken({
