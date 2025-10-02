@@ -69,14 +69,23 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
 
   public async getCountSummary(): Promise<UserCountSummary> {
     try {
-      const [total, pendingProfileCount, guestCount, activeCount, adminCount] =
-        await Promise.all([
-          this.prisma.user.count({}),
-          this.prisma.user.count({ where: { status: "PENDING_PROFILE" } }),
-          this.prisma.user.count({ where: { status: "GUEST" } }),
-          this.prisma.user.count({ where: { status: "ACTIVE" } }),
-          this.prisma.user.count({ where: { role: "ADMIN" } }),
-        ]);
+      const [
+        total,
+        pendingProfileCount,
+        guestCount,
+        activeCount,
+        adminCount,
+        bannedCount,
+        suspendedCount,
+      ] = await Promise.all([
+        this.prisma.user.count({}),
+        this.prisma.user.count({ where: { status: "PENDING_PROFILE" } }),
+        this.prisma.user.count({ where: { status: "GUEST" } }),
+        this.prisma.user.count({ where: { status: "ACTIVE" } }),
+        this.prisma.user.count({ where: { role: "ADMIN" } }),
+        this.prisma.user.count({ where: { status: "BANNED" } }),
+        this.prisma.user.count({ where: { status: "SUSPENDED" } }),
+      ]);
 
       return new UserCountSummary({
         total,
@@ -84,6 +93,8 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
         adminCount,
         guestCount,
         pendingProfileCount,
+        bannedCount,
+        suspendedCount,
       });
     } catch (error: unknown) {
       this.logger.error("Faield to load count summary");

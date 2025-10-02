@@ -6,6 +6,8 @@ export class UserCountSummary {
   public guestCount: number;
   public activeCount: number;
   public adminCount: number;
+  public bannedCount: number;
+  public suspendedCount: number;
 
   constructor(args: NonFunctionProperties<UserCountSummary>) {
     Object.assign(this, args);
