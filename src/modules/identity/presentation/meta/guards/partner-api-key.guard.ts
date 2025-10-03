@@ -17,7 +17,7 @@ export class PartnerApiKeyGuard implements CanActivate {
 
     const apiKey =
       (request.headers["x-api-key"] as string) ||
-      (request.query.api_key as string); // Fallback to query param
+      (request.query.api_key as string);
 
     if (!apiKey || typeof apiKey !== "string") {
       throw new UnauthorizedException("API key missing");
