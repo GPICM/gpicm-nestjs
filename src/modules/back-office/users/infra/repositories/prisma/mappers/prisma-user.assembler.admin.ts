@@ -60,6 +60,7 @@ export class UserAdminAssembler {
       activeProfile,
       createdAt: prismaData.createdAt,
       updateAt: prismaData.updatedAt,
+      lastLoginAt: prismaData.lastLoginAt,
       avatar,
     });
   }

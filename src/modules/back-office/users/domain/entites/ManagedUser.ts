@@ -34,6 +34,8 @@ export class ManagedUser {
 
   public activeProfile: ProfileSummary | null;
 
+  public lastLoginAt: Date | null;
+
   constructor(args: NonFunctionProperties<ManagedUser>) {
     Object.assign(this, args);
   }

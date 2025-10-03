@@ -28,9 +28,7 @@ export class AuthenticationService {
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
-    private readonly userVerificationService: UserVerificationService,
-/*     @Inject(CreateProfileUseCase)
-    private readonly createProfile: CreateProfileUseCase */
+    private readonly userVerificationService: UserVerificationService
   ) {}
 
   public async signUp(params: {
@@ -84,20 +82,10 @@ export class AuthenticationService {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
-
           emailPasswordCredential.setUserId(userId);
-
-          // TODO: PROFILE SHOULD BE CREATED ONLY WHEN DC ACCEPT THE REQUEST
-          /* await this.createProfile.execute(newUser, {
-            txContext: tx,
-          }); */
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
-
-          /* await this.createProfile.execute(guestUser, {
-            txContext: tx,
-          }); */
         }
         await this.userCredentialsRepository.add(emailPasswordCredential, tx);
       });
@@ -143,6 +131,9 @@ export class AuthenticationService {
       if ([UserStatus.BANNED, UserStatus.SUSPENDED].includes(user.status)) {
         throw new UnauthorizedException("User is banned or suspended");
       }
+
+      user.lastLoginAt = new Date();
+      await this.usersRepository.update(user);
 
       const accessToken = this.encryptor.generateToken({
         sub: user.publicId,
