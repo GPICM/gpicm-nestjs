@@ -8,10 +8,9 @@ import { IdentityModule } from "./identity/identity.module";
 import { AppController } from "./app.controller";
 import { IncidentsModule } from "./incidents/incidents.module";
 import { AssetsModule } from "./assets/assets.module";
-import { AlertsModule } from "./alerts/Alerts.module";
 import { TelemetryModule } from "./telemetry/telemetry.module";
 import { SocialModule } from "./social/social.module";
-import { BackOfficeModule } from "./back-office/social-back-office.module";
+import { BackOfficeModule } from "./back-office/back-office.module";
 
 @Module({
   controllers: [AppController],
@@ -40,7 +39,6 @@ import { BackOfficeModule } from "./back-office/social-back-office.module";
     IncidentsModule,
     AssetsModule,
     SocialModule,
-    AlertsModule,
     BackOfficeModule,
   ],
 })

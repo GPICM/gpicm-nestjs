@@ -4,9 +4,10 @@ import { UsersAdminRepository } from "./users/domain/interfaces/users-repository
 import { PrismaUserAdminRepository } from "./users/infra/repositories/prisma/prisma-users-repository.admin";
 import { IdentityModule } from "../identity/identity.module";
 import { SocialCoreModule } from "../social/core/social.module";
+import { AlertsModule } from "./alerts/Alerts.module";
 
 @Module({
-  imports: [IdentityModule, SocialCoreModule],
+  imports: [IdentityModule, SocialCoreModule, AlertsModule],
   controllers: [AdminUsersController],
   providers: [
     {
