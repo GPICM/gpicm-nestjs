@@ -1,5 +1,5 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 export class Profile {
   id: number;

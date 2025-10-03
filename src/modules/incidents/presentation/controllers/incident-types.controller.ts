@@ -14,7 +14,7 @@ import {
 import { IncidentTypeRepository } from "../../domain/interfaces/repositories/incidentType-repository";
 import { IncidentType } from "../../domain/entities/IncidentType";
 import { CreateIncidentTypeDto } from "./dtos/create-incidentType.dto";
-import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
+import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 import { UpdateIncidentTypeDto } from "./dtos/update-incidentType.dto";
 
 @Controller("incident-types")

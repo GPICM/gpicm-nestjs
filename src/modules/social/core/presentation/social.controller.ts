@@ -8,7 +8,7 @@ import {
   Controller,
 } from "@nestjs/common";
 
-import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
+import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 
 import { AchievementService } from "../application/achievement.service";
 import { ProfileService } from "../application/profile.service";

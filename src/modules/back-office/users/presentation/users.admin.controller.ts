@@ -12,16 +12,16 @@ import {
   Put,
 } from "@nestjs/common";
 
-import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
+import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 
-import { AdminGuard } from "@/modules/identity/presentation/meta/guards/admin.guard";
+import { AdminGuard } from "@/modules/identity/auth/presentation/meta/guards/admin.guard";
 import { UsersAdminRepository } from "../domain/interfaces/users-repository";
 import { ListUsersAdminQueryDto } from "./dtos/list-users.admin.dto";
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
 import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
-import { UserService } from "@/modules/identity/application/user.service";
-import { UserStatus } from "@/modules/identity/domain/enums/user-status";
+import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
 import { FindProfileByUserUseCase } from "@/modules/social/core/application/find-profile-by-user.usecase";
+import { UserService } from "@/modules/identity/auth/application/user/user.service";
 
 @Controller("back-office/users")
 @UseGuards(JwtAuthGuard, AdminGuard)

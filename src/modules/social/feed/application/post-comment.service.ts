@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Inject } from "@nestjs/common";
 
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";

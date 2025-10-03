@@ -5,7 +5,7 @@ import {
   generateBaseHandle,
   generateHandleCandidates,
 } from "@/modules/shared/utils/handle-generator";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 @Injectable()
 export class CreateProfileUseCase {

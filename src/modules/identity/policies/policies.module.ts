@@ -21,4 +21,4 @@ import { PrismaUserPolicyAgreementsRepository } from "./infra/repositories/prism
   ],
   imports: [],
 })
-export class PoliciesModule {}
+export class IdentityPoliciesModule {}

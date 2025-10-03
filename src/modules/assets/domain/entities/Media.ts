@@ -3,7 +3,7 @@ import { createHash, randomBytes } from "crypto";
 
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 import { MediaSource } from "../object-values/media-source";
 

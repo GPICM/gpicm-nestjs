@@ -19,8 +19,8 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import {
   CurrentUser,
   JwtAuthGuard,
-} from "@/modules/identity/presentation/meta";
-import { User } from "@/modules/identity/domain/entities/User";
+} from "@/modules/identity/auth/presentation/meta";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import { MediaService } from "../../application/media.service";
 import { MediaTypeEnum } from "../../domain/entities/Media";
 import { UploadMediaDto } from "../dtos/create-media.dto";

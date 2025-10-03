@@ -1,4 +1,4 @@
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import { Inject, Logger } from "@nestjs/common";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";

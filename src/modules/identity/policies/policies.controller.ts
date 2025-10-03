@@ -11,8 +11,8 @@ import {
 
 import { PoliciesRepository } from "./domain/interfaces/policies-repository";
 import { Policy } from "./domain/entities/Policy";
-import { CurrentUser, JwtAuthGuard } from "../presentation/meta";
-import { User } from "../domain/entities/User";
+import { CurrentUser, JwtAuthGuard } from "../auth/presentation/meta";
+import { User } from "../core/domain/entities/User";
 import { IpAddress } from "@/modules/shared/decorators/IpAddress";
 import { UserAgent } from "@/modules/shared/decorators/UserAgent";
 import { UserPolicyAgreement } from "./domain/entities/UserPolicyAgreement";

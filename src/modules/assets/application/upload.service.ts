@@ -1,4 +1,4 @@
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import {
   BlobStorageRepository,
   BlobStorageRepositoryTypes,

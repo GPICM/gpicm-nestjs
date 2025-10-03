@@ -18,15 +18,15 @@ import {
 import {
   CurrentUser,
   JwtAuthGuard,
-} from "@/modules/identity/presentation/meta";
+} from "@/modules/identity/auth/presentation/meta";
 import { CreatePostDto } from "./dtos/create-post.dto";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
 import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
-import { ActiveUserGuard } from "@/modules/identity/presentation/meta/guards/active-user.guard";
+import { ActiveUserGuard } from "@/modules/identity/auth/presentation/meta/guards/active-user.guard";
 import { PostMediaService } from "../application/post-media.service";
 import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
 import { UpdateCommentDto } from "../presentation/dtos/update-post-comment.dto";
@@ -34,7 +34,7 @@ import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
 import { PostSortBy } from "../domain/enum/OrderBy";
-import { UsersRepository } from "@/modules/identity/domain/interfaces/repositories/users-repository";
+import { UsersRepository } from "@/modules/identity/core/domain/interfaces/repositories/users-repository";
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { Profile } from "../../core/domain/entities/Profile";

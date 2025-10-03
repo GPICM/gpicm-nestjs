@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { BadRequestException, Inject, Logger } from "@nestjs/common";
 
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 import { IncidentsRepository } from "../domain/interfaces/repositories/incidents-repository";
 import { IncidentTypeRepository } from "../domain/interfaces/repositories/incidentType-repository";

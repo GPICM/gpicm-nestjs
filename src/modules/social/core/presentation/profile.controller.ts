@@ -10,9 +10,9 @@ import {
 import {
   CurrentUser,
   JwtAuthGuard,
-} from "@/modules/identity/presentation/meta";
-import { User } from "@/modules/identity/domain/entities/User";
-import { ActiveUserGuard } from "@/modules/identity/presentation/meta/guards/active-user.guard";
+} from "@/modules/identity/auth/presentation/meta";
+import { User } from "@/modules/identity/core/domain/entities/User";
+import { ActiveUserGuard } from "@/modules/identity/auth/presentation/meta/guards/active-user.guard";
 
 import { ProfileService } from "../application/profile.service";
 import { SocialProfileGuard } from "../infra/guards/SocialProfileGuard";

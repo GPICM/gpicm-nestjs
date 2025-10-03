@@ -1,0 +1,146 @@
+import {
+  Controller,
+  Logger,
+  Body,
+  Inject,
+  Put,
+  UseGuards,
+  BadRequestException,
+  Get,
+  Patch,
+  Param,
+  NotFoundException,
+} from "@nestjs/common";
+
+import { CurrentUser } from "./meta/decorators/user.decorator";
+import { User } from "../../core/domain/entities/User";
+import {
+  UpdateLocationDto,
+  UpdateUserAvatarDto,
+  UpdateUserDataDto,
+} from "./dtos/user-request.dtos";
+import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
+import { ActiveUserGuard } from "./meta/guards/active-user.guard";
+import { UserBasicData } from "../../core/domain/value-objects/user-basic-data";
+import { UserPublicData } from "../../core/domain/value-objects/user-public-data";
+import { UserService } from "../application/user/user.service";
+
+@Controller("identity/users")
+@UseGuards(JwtAuthGuard)
+export class UserController {
+  private readonly logger = new Logger(UserController.name);
+
+  public constructor(
+    @Inject(UserService)
+    private readonly userService: UserService
+  ) {}
+
+  @Put("/location")
+  async updateLocation(
+    @CurrentUser() user: User,
+    @Body() body: UpdateLocationDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user location", {
+        userId: user.id,
+        latitude: body.latitude,
+        longitude: body.longitude,
+      });
+
+      await this.userService.updateUserLocation({
+        userId: user.id,
+        latitude: body.latitude,
+        longitude: body.longitude,
+      });
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update location", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Put("/profile")
+  @UseGuards(ActiveUserGuard)
+  async updateUserData(
+    @CurrentUser() user: User,
+    @Body() body: UpdateUserDataDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user data", {
+        userId: user.id,
+        fields: Object.keys(body),
+      });
+
+      const hasAtLeastOneField = Object.values(body).some(
+        (value) => value !== undefined
+      );
+
+      if (!hasAtLeastOneField) {
+        throw new BadRequestException("Nenhum dado fornecido para atualização");
+      }
+
+      await this.userService.updateUserData(user, body);
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Patch("/profile/avatar")
+  @UseGuards(ActiveUserGuard)
+  async updateUserAvatar(
+    @CurrentUser() user: User,
+    @Body() body: UpdateUserAvatarDto
+  ): Promise<any> {
+    try {
+      this.logger.log("Updating user avatar", {
+        userId: user.id,
+        fields: Object.keys(body),
+      });
+
+      await this.userService.updateUserAvatar(user, body);
+
+      return { success: true };
+    } catch (error: unknown) {
+      this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Get("/profile")
+  @UseGuards(ActiveUserGuard)
+  getMyBasicData(@CurrentUser() user: User): UserBasicData {
+    try {
+      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
+      return user.toUserBasicData();
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user basic data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Get("/public-data/:publicId")
+  async getPublicData(
+    @Param("publicId") publicId: string
+  ): Promise<UserPublicData> {
+    try {
+      this.logger.log(`Fetching public data for current user: ${publicId}`);
+
+      const user = await this.userService.getPublicUserDataByPublicId(publicId);
+
+      if (!user) {
+        throw new NotFoundException(
+          `User with public ID ${publicId} not found.`
+        );
+      }
+
+      return user;
+    } catch (error: unknown) {
+      this.logger.error("Failed to get user public data", { error });
+      throw new BadRequestException();
+    }
+  }
+}

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Media, MediaTypeEnum } from "@/modules/assets/domain/entities/Media";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import { randomUUID } from "crypto";
 import { PostAuthor } from "../entities/PostAuthor";
 import { Post, PostStatusEnum } from "../entities/Post";

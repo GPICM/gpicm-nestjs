@@ -10,7 +10,7 @@ import {
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { MongoDbWeatherRecordsRepository } from "../../infra/repositories/mongodb/mongodb-weather-records-repository";
 import { WeatherTimeSeriesMetricsRequestQuery } from "../dtos/weather-time-series-metrics-request";
-import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
+import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 
 @Controller("weather/time-series")
 @UseGuards(JwtAuthGuard)

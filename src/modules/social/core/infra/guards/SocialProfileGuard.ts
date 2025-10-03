@@ -10,7 +10,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ProfileRepository } from "@/modules/social/core/domain/interfaces/repositories/profile-repository";
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 @Injectable()
 export class SocialProfileGuard implements CanActivate {

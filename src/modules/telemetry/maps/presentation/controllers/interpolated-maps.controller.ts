@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Controller, Get, Logger, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
-import { JwtAuthGuard } from "@/modules/identity/presentation/meta";
+import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 import { InterpolatedMapsRepository } from "../../domain/interfaces/interpolated-maps-repository";
 import { FilterInterpolatedMapsRequestDto } from "../dtos/filter-interpolated-maps-request.dto";
 

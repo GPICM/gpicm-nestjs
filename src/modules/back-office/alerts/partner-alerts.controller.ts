@@ -2,7 +2,7 @@ import { Controller, Post, UseGuards } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { CivilDefenseAlertsRepository } from "./domain/interfaces/alerts-repository";
 import { TelemetriaGpicmAlertsRepository } from "./infra/repositories/telemetria-gpicm-alerts-repository";
-import { PartnerApiKeyGuard } from "@/modules/identity/presentation/meta/guards/partner-api-key.guard";
+import { PartnerApiKeyGuard } from "@/modules/identity/auth/presentation/meta/guards/partner-api-key.guard";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 
 @Controller("alerts/webhook")

@@ -1,6 +1,6 @@
 import { UserStatus } from "@prisma/client";
 
-import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
+import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,

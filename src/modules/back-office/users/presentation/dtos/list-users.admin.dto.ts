@@ -1,5 +1,5 @@
-import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
-import { UserStatus } from "@/modules/identity/domain/enums/user-status";
+import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
+import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
 import { Transform, Type } from "class-transformer";
 import {
   ArrayNotEmpty,

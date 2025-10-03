@@ -1,4 +1,4 @@
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
 export class UserShallow {

@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
-import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
-import { UserStatus } from "@/modules/identity/domain/enums/user-status";
+import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
+import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
 import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
-import { UserAvatar } from "@/modules/identity/domain/value-objects/user-avatar";
+import { UserAvatar } from "@/modules/identity/core/domain/value-objects/user-avatar";
 import {
   ProfileSummary,
   ManagedUser,

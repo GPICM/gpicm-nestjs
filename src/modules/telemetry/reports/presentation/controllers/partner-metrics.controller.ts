@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { CacheInterceptor } from "@nestjs/cache-manager";
 import { MongoDbStationDailyMetricsRepository } from "../../infra/repositories/mongodb/mongodb-stations-daily-metrics-repository";
-import { PartnerApiKeyGuard } from "../../../../identity/presentation/meta/guards/partner-api-key.guard";
+import { PartnerApiKeyGuard } from "../../../../identity/auth/presentation/meta/guards/partner-api-key.guard";
 import { Throttle } from "@nestjs/throttler";
 
 @Controller("partners/observations")

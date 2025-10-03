@@ -2,7 +2,7 @@ import { Profile } from "@/modules/social/core/domain/entities/Profile";
 import { Inject, Injectable } from "@nestjs/common";
 import { ProfileRepository } from "../domain/interfaces/repositories/profile-repository";
 
-import { User } from "@/modules/identity/domain/entities/User";
+import { User } from "@/modules/identity/core/domain/entities/User";
 
 @Injectable()
 export class FindProfileByUserUseCase {
