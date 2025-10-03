@@ -118,6 +118,7 @@ export class UserAssembler {
       isVerified: user.isVerified,
       status: user.status,
       ipAddress: user.ipAddress,
+      lastLoginAt: user.lastLoginAt,
       avatarUrl: user.avatar?.getAvatarUrl() || "",
       avatarImageSources: avatarImageSourceJSON as
         | Prisma.NullableJsonNullValueInput
