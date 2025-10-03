@@ -1,7 +1,15 @@
 import { UserRoles } from "@/modules/identity/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/domain/enums/user-status";
 import { Transform, Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, Min } from "class-validator";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class ListUsersAdminQueryDto {
   @IsInt()
@@ -21,10 +29,22 @@ export class ListUsersAdminQueryDto {
   readonly search: string = "";
 
   @IsOptional()
-  @IsEnum(UserStatus)
-  readonly status?: UserStatus;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(UserStatus, { each: true })
+  @Transform(({ value }: { value: any }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    typeof value === "string" ? value.split(",") : value
+  )
+  readonly statuses?: UserStatus[];
 
   @IsOptional()
-  @IsEnum(UserRoles)
-  readonly role?: UserRoles;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(UserRoles, { each: true })
+  @Transform(({ value }: { value: any }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    typeof value === "string" ? value.split(",") : value
+  )
+  readonly roles?: UserRoles[];
 }

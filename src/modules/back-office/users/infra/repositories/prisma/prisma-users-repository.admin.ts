@@ -36,12 +36,12 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
 
       const where: Prisma.UserWhereInput = {};
 
-      if (filters.status) {
-        where["status"] = { equals: filters.status };
+      if (filters.statusIn?.length) {
+        where["status"] = { in: filters.statusIn };
       }
 
-      if (filters.role) {
-        where["role"] = { equals: filters.role };
+      if (filters.roleIn?.length) {
+        where["role"] = { in: filters.roleIn };
       }
 
       const [prismaResult, count] = await Promise.all([

@@ -123,6 +123,8 @@ export class AuthenticationService {
         throw new UnauthorizedException("Invalid credentials");
       }
 
+      this.logger.log(`User: ${user?.id}`);
+
       const credential = user.getCredential(AuthProviders.EMAIL_PASSWORD);
       if (!credential || !credential.verifyPassword(password)) {
         throw new UnauthorizedException("Invalid credentials");

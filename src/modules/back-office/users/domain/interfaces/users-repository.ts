@@ -19,8 +19,8 @@ export abstract class UsersAdminRepository {
 }
 
 export interface UserFindManyFilters extends BaseRepositoryFindManyFilters {
-  status?: UserStatus;
-  role?: UserRoles;
+  statusIn?: UserStatus[];
+  roleIn?: UserRoles[];
 }
 
 export * from "./dto/base-repository-filters";

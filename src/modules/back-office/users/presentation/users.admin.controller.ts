@@ -48,8 +48,8 @@ export class AdminUsersController {
       limit,
       offset,
       search: query.search,
-      role: query.role,
-      status: query.status,
+      roleIn: query.roles,
+      statusIn: query.statuses,
     });
 
     return new PaginatedResponse(records, total, limit, page, {});
@@ -73,8 +73,8 @@ export class AdminUsersController {
     }
 
     await this.createProfile.execute(user);
-    user.setStatus(UserStatus.ACTIVE);
 
+    user.setStatus(UserStatus.ACTIVE);
     await this.userService.updateStatus(user);
 
     return { message: "success." };
@@ -107,16 +107,17 @@ export class AdminUsersController {
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException();
 
-    const profile = await this.findProfile.execute(user);
-    if (!profile) {
-      throw new ForbiddenException("Cannot active a user without a profile");
-    }
-
     if (user.status === UserStatus.ACTIVE) {
       throw new ForbiddenException("User is already active");
     }
 
-    user.setStatus(UserStatus.ACTIVE);
+    // todo: o correto deve ser: se ele em credentials e nao tiver perfil enta ele eh um guest, e se ele tiver credencials e nao tiver pefil, entao ele en PENDING_PROFILE
+    const profile = await this.findProfile.execute(user);
+    if (profile) {
+      user.setStatus(UserStatus.ACTIVE);
+    } else {
+      user.setStatus(UserStatus.GUEST);
+    }
     await this.userService.updateStatus(user);
 
     return { message: "success." };
