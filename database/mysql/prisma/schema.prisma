@@ -355,28 +355,35 @@ model Profile {
 }
 
 model Achievement {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  description        String               @db.LongText
-  image              String?
-  criteria           Json?
-  isActive           Boolean              @default(true) @map("is_active")
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  ProfileAchievement ProfileAchievement[] @relation("ProfileAchievements")
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  description         String               @db.LongText
+  imageSources        Json?                @map("image_sources")
+  imageThumbNailUrl   String?              @map("image_thumbnail_url")
+  imageBlurHash       String?              @map("image_blur_hash")
+  criteria            Json?
+  rewards             Json?
+  isActive            Boolean              @default(true) @map("is_active")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  ProfileAchievements ProfileAchievement[] @relation("ProfileAchievements")
 
   @@map("achievements")
 }
 
 model ProfileAchievement {
-  profileId     Int
-  achievementId Int
-  createdAt     DateTime @default(now()) @map("created_at")
+  id               Int      @id @default(autoincrement())
+  handle           String   @unique @map("handle")
+  profileId        Int      @map("profile_id")
+  achievementId    Int      @map("achievement_id")
+  criteriaSnapshot Json     @map("criteria_snapshot")
+  rewardsSnapshot  Json     @map("rewards_snapshot")
+  createdAt        DateTime @default(now()) @map("created_at")
 
   Profile     Profile     @relation("ProfileAchievements", fields: [profileId], references: [id], onDelete: Cascade)
   Achievement Achievement @relation("ProfileAchievements", fields: [achievementId], references: [id], onDelete: Cascade)
 
-  @@id([profileId, achievementId])
+  @@unique([profileId, achievementId])
   @@map("profile_achievements")
 }
 
