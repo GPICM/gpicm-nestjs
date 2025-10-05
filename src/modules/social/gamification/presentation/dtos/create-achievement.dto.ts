@@ -8,6 +8,7 @@ import {
   IsString,
   IsNotEmpty,
   ValidateNested,
+  ArrayMinSize,
 } from "class-validator";
 import {
   CreateAchievementCriterionDto,
@@ -21,8 +22,6 @@ import {
 export class CreateAchievementCriterionBodyDto
   implements CreateAchievementCriterionDto
 {
-  type: AchievementCriterionType;
-
   @IsNumber()
   @IsInt()
   @Type(() => Number)
@@ -32,6 +31,11 @@ export class CreateAchievementCriterionBodyDto
   @IsNotEmpty()
   @IsEnum(AchievementOperator)
   operator: AchievementOperator;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(AchievementCriterionType)
+  type: AchievementCriterionType;
 }
 
 export class CreateAchievementBodyDto implements CreateAchievementUseCaseDto {
@@ -48,6 +52,7 @@ export class CreateAchievementBodyDto implements CreateAchievementUseCaseDto {
   reputationReward: number;
 
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateAchievementCriterionBodyDto)
   criteria: CreateAchievementCriterionBodyDto[];
