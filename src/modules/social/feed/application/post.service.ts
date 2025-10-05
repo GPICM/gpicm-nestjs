@@ -9,7 +9,6 @@ import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostVote, VoteValue } from "../domain/entities/PostVote";
 import { UserShallow } from "../domain/entities/UserShallow";
-import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
@@ -33,9 +32,7 @@ export class PostServices {
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
     private readonly redisAdapter: RedisAdapter,
-    private readonly eventPublisher: EventPublisher,
-    @Inject(VoteQueue)
-    private voteQueue: VoteQueue
+    private readonly eventPublisher: EventPublisher
   ) {}
 
   async create(user: User, dto: CreatePostDto, profile: Profile) {
@@ -143,12 +140,22 @@ export class PostServices {
     }
   }
 
-  async vote(user: User, postUuid: string, voteValue: VoteValue) {
+  async vote(
+    user: User,
+    profile: Profile,
+    postUuid: string,
+    voteValue: VoteValue
+  ) {
     try {
       const userId = user.id;
-      this.logger.log("Creating post", { userId, postUuid, voteValue });
+      this.logger.log("Voting on post", {
+        userId,
+        profile,
+        postUuid,
+        voteValue,
+      });
 
-      const post = await this.postRepository.findByUuid(postUuid, user.id);
+      const post = await this.postRepository.findByUuid(postUuid, userId);
       if (!post) {
         throw new BadRequestException("Post not found");
       }
@@ -174,7 +181,10 @@ export class PostServices {
         );
       });
 
-      // await this.voteQueue.addVoteJob({ postId: postId });
+      await this.eventPublisher.publish<PostActionEvent>({
+        event: "post.voted",
+        data: { postId: post.id!, profileId: profile.id },
+      });
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`

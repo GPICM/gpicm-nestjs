@@ -21,26 +21,37 @@ import { ListPostQueryDto } from "./dtos/list-post.dtos";
 import { PostServices } from "../application/post.service";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { ActiveUserGuard } from "@/modules/identity/auth/presentation/meta/guards/active-user.guard";
+import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
+import { Profile } from "../../core/domain/entities/Profile";
+import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 
 @Controller("posts")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SocialProfileGuard)
 export class PostVotesController {
   private readonly logger: Logger = new Logger(PostVotesController.name);
 
   constructor(
     private readonly postRepository: PostRepository,
     private readonly postVotes: PostVotesRepository,
-    private readonly postService: PostServices,
+    private readonly postService: PostServices
   ) {}
 
   @Patch(":uuid/vote/up")
-  async upVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
-    return this.postService.vote(user, uuid, 1);
+  async upVote(
+    @Param("uuid") uuid: string,
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
+  ) {
+    return this.postService.vote(user, profile, uuid, 1);
   }
 
   @Patch(":uuid/vote/down")
-  async downVote(@Param("uuid") uuid: string, @CurrentUser() user: User) {
-    return this.postService.vote(user, uuid, -1);
+  async downVote(
+    @Param("uuid") uuid: string,
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
+  ) {
+    return this.postService.vote(user, profile, uuid, -1);
   }
 
   @Get(":uuid/votes")

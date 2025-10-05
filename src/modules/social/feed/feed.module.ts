@@ -28,9 +28,10 @@ import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repos
 import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
 import { SocialCoreModule } from "../core/social-core.module";
 import { PostVotesController } from "./presentation/post.votes.controller";
+import { PostAsyncController } from "./presentation/post-async.controller";
 
 @Module({
-  controllers: [PostController, PostVotesController],
+  controllers: [PostController, PostVotesController, PostAsyncController],
   imports: [
     SocialCoreModule,
     BullModule.registerQueue({

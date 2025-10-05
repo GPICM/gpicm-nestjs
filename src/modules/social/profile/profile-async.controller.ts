@@ -5,7 +5,11 @@ import {
   Payload,
   RedisContext,
 } from "@nestjs/microservices";
-import { SocialProfileEventsQueuePublisher } from "./domain/queues/social-profile-events-queue";
+
+import {
+  SocialProfileEvent,
+  SocialProfileEventsQueuePublisher,
+} from "./domain/queues/social-profile-events-queue";
 import {
   PostActionEvent,
   ProfileFollowingEvent,
@@ -41,7 +45,7 @@ export class SocialProfileAsyncController {
     this.logger.log(`Received post event: ${channel}`);
 
     void this.profileQueue.add({
-      event: event.event,
+      event: event.event as SocialProfileEvent,
       data: { profileId: event.data.profileId },
     });
   }
