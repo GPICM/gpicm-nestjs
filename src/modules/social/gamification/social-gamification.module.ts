@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 
-import { SocialCoreModule } from "../core/social.module";
+import { SocialCoreModule } from "../core/social-core.module";
 import { AchievementService } from "./application/achievement.service";
 import { CreateAchievementUseCase } from "./application/create-achievement-usecase";
 import { SocialGamificationAdminController } from "./presentation/social-gamification.admin.controller";

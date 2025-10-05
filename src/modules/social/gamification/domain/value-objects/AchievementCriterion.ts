@@ -8,6 +8,7 @@ export enum AchievementOperator {
 }
 
 export enum AchievementCriterionType {
+  PROFILE = "PROFILE",
   FOLLOWERS = "FOLLOWERS",
   POSTS_COUNT = "POSTS_COUNT",
   DAYS_ACTIVE = "DAYS_ACTIVE",

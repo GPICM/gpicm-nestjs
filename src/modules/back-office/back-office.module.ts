@@ -3,7 +3,7 @@ import { AdminUsersController } from "./users/presentation/users.admin.controlle
 import { UsersAdminRepository } from "./users/domain/interfaces/users-repository";
 import { PrismaUserAdminRepository } from "./users/infra/repositories/prisma/prisma-users-repository.admin";
 import { IdentityModule } from "../identity/identity.module";
-import { SocialCoreModule } from "../social/core/social.module";
+import { SocialCoreModule } from "../social/core/social-core.module";
 import { AlertsModule } from "./alerts/Alerts.module";
 
 @Module({

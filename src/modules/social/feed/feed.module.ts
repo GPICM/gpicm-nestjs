@@ -26,7 +26,7 @@ import { UploadService } from "@/modules/assets/application/upload.service";
 import { IncidentsService } from "@/modules/incidents/application/incidents.service";
 import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
-import { SocialCoreModule } from "../core/social.module";
+import { SocialCoreModule } from "../core/social-core.module";
 
 @Module({
   controllers: [PostController],
