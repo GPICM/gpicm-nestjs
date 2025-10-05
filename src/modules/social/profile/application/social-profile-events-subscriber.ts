@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { SocialProfileEventsQueuePublisher } from "../../core/domain/queues/social-profile-events-queue";
+import { SocialProfileEventsQueuePublisher } from "../domain/queues/social-profile-events-queue";
 import { EventSubscriber } from "@/modules/shared/domain/interfaces/events";
 import {
   PostActionEvent,
@@ -7,7 +7,7 @@ import {
 } from "../../core/domain/interfaces/events";
 
 @Injectable()
-export class PubSubToBullSubscriber {
+export class SocialProfileEventsSubscriber {
   constructor(
     private readonly eventSubscriber: EventSubscriber,
     @Inject(SocialProfileEventsQueuePublisher)

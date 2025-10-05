@@ -11,13 +11,6 @@ import { AchievementService } from "../gamification/application/achievement.serv
 import { SocialController } from "./presentation/social.controller";
 import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
 import { SocialProfileModule } from "../profile/social-profile.module";
-import {
-  SOCIAL_PROFILE_EVENTS_QUEUE_NAME,
-  SocialProfileEventsQueuePublisher,
-} from "./domain/queues/social-profile-events-queue";
-import { PubSubToBullSubscriber } from "../profile/application/pub-sub-to-bull-subscriber";
-import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
-import { getQueueToken } from "@nestjs/bullmq";
 import { SocialProfileController } from "./presentation/profile.controller";
 import { CreateProfileUseCase } from "./application/create-profile.usecase";
 import { FindProfileByUserUseCase } from "./application/find-profile-by-user.usecase";
@@ -42,20 +35,11 @@ import { FindProfileByUserUseCase } from "./application/find-profile-by-user.use
       provide: ProfileFollowRepository,
       useClass: PrismaProfileFollowRepository,
     },
-    {
-      provide: SocialProfileEventsQueuePublisher,
-      useFactory: (queue) => {
-        return new BullQueuePublisher(queue);
-      },
-      inject: [getQueueToken(SOCIAL_PROFILE_EVENTS_QUEUE_NAME)],
-    },
-    PubSubToBullSubscriber,
   ],
   exports: [
     ProfileService,
     ProfileRepository,
     CreateProfileUseCase,
-    SocialProfileEventsQueuePublisher,
     FindProfileByUserUseCase,
   ],
 })
