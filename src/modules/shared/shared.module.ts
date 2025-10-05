@@ -12,10 +12,10 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { NodemailerEmailService } from "./infra/lib/nodemailer/nodemailer-email-service";
 import { RedisAdapter } from "./infra/lib/redis/redis-adapter";
 import { RedisLockService } from "./infra/lib/redis/redis-lock-service";
-import { RedisPubSubService } from "./infra/lib/redis/redis-pub-sub-service";
-import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
 import { EventPublisher } from "./domain/interfaces/events/application-event-publisher";
 import { EventSubscriber } from "./domain/interfaces/events";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
 import { RedisEventSubscriber } from "./infra/lib/redis/redis-event-subscriber";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
@@ -34,6 +34,17 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
         },
       },
     }),
+    /* SHARED PUB SUB */
+    ClientsModule.register([
+      {
+        name: "SHARED_EVENTS",
+        transport: Transport.REDIS,
+        options: {
+          host: "redis",
+          port: 6379,
+        },
+      },
+    ]),
   ],
   controllers: [],
   providers: [
@@ -63,6 +74,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: EventPublisher,
       useClass: RedisEventPublisher,
     },
+    /* DEPRECATED */
     {
       provide: EventSubscriber,
       useClass: RedisEventSubscriber,
@@ -70,7 +82,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     LogUserAction,
     RedisAdapter,
     RedisLockService,
-    RedisPubSubService,
   ],
   exports: [
     UserLogsRepository,

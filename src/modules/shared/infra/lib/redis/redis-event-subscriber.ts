@@ -1,9 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { RedisPubSubService } from "./redis-pub-sub-service";
 import {
   EventContract,
   EventSubscriber,
 } from "@/modules/shared/domain/interfaces/events";
+import Redis from "ioredis";
 
 type EventHandler<T extends EventContract<string, any>> = (
   event: T
@@ -12,14 +12,24 @@ type EventHandler<T extends EventContract<string, any>> = (
 @Injectable()
 export class RedisEventSubscriber implements EventSubscriber {
   private readonly logger = new Logger(RedisEventSubscriber.name);
+  private readonly client: Redis;
 
-  constructor(private readonly redisPubSubService: RedisPubSubService) {}
+  constructor() {
+    this.client = new Redis({ host: "redis", port: 6379 });
+
+    this.client.on("connect", () =>
+      this.logger.log("Redis subscriber connected")
+    );
+    this.client.on("error", (err) =>
+      this.logger.error("Redis subscriber error", err)
+    );
+  }
 
   public async subscribe<T extends EventContract<string, any>>(
     eventName: string,
     handler: EventHandler<T>
   ) {
-    await this.redisPubSubService.subscribe(eventName, (event) => {
+    await this._subscribe(eventName, (event) => {
       try {
         this.logger.log(`Received event: ${eventName}`);
         void handler(event as unknown as T);
@@ -35,5 +45,40 @@ export class RedisEventSubscriber implements EventSubscriber {
     );
 
     await Promise.all(subscriptions);
+  }
+
+  /** Subscribe to a channel */
+  async _subscribe(
+    channel: string,
+    handler: (payload: any) => void
+  ): Promise<void> {
+    await this.client.subscribe(channel, (err) => {
+      if (err) this.logger.error(`Failed to subscribe to ${channel}`, err);
+      else this.logger.log(`Subscribed to ${channel} `);
+    });
+
+    this.client.on("message", (ch, message) => {
+      if (ch === channel) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const payload = JSON.parse(message);
+          handler(payload);
+        } catch (error: unknown) {
+          this.logger.error("Failed to parse pub/sub message", { error });
+        }
+      }
+    });
+    this.logger.log(`Subscribed to channel "${channel}"`);
+  }
+
+  /** Unsubscribe from a channel */
+  async _unsubscribe(channel: string): Promise<void> {
+    await this.client.unsubscribe(channel);
+    this.logger.log(`Unsubscribed from channel "${channel}"`);
+  }
+
+  async onModuleDestroy() {
+    this.logger.log("Disconnecting Redis Sub...");
+    await Promise.all([this.client.quit()]);
   }
 }
