@@ -2,29 +2,24 @@ import {
   EventPublisher,
   EventContract,
 } from "@/modules/shared/domain/interfaces/events";
-import { Injectable, Logger } from "@nestjs/common";
-import Redis from "ioredis";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
 
 @Injectable()
 export class RedisEventPublisher implements EventPublisher {
   private readonly logger = new Logger(RedisEventPublisher.name);
 
-  private readonly client: Redis;
+  constructor(
+    @Inject("REDIS_SHARED_EVENTS") private readonly client: ClientProxy
+  ) {}
 
-  constructor() {
-    this.client = new Redis({ host: "redis", port: 6379 });
-    this.client.on("connect", () =>
-      this.logger.log("Redis publisher connected")
+  private _publish(channel: string, payload: any): Promise<void> {
+    this.logger.log(
+      `Publishing to channel "${channel}": ${JSON.stringify(payload)}`
     );
-    this.client.on("error", (err) =>
-      this.logger.error("Redis publisher error", err)
-    );
-  }
-
-  async _publish(channel: string, payload: any): Promise<number> {
-    const message = JSON.stringify(payload);
-    this.logger.log(`Publishing to channel "${channel}": ${message}`);
-    return this.client.publish(channel, message);
+    // Fire-and-forget emit
+    this.client.emit(channel, payload);
+    return Promise.resolve();
   }
 
   public async publish<T extends EventContract<string, any>>(
@@ -34,7 +29,7 @@ export class RedisEventPublisher implements EventPublisher {
   }
 
   async onModuleDestroy() {
-    this.logger.log("Disconnecting Redis Pub...");
-    await Promise.all([this.client.quit()]);
+    this.logger.log("Closing Redis microservice client...");
+    await this.client.close();
   }
 }

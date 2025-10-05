@@ -37,7 +37,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     /* SHARED PUB SUB */
     ClientsModule.register([
       {
-        name: "SHARED_EVENTS",
+        name: "REDIS_SHARED_EVENTS",
         transport: Transport.REDIS,
         options: {
           host: "redis",
