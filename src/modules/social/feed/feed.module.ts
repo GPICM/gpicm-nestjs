@@ -5,10 +5,8 @@ import { PostController } from "./presentation/post.controller";
 import { PostRepository } from "./domain/interfaces/repositories/post-repository";
 import { PostServices } from "./application/post.service";
 import { PostVotesRepository } from "./domain/interfaces/repositories/post-votes-repository";
-import { BullModule } from "@nestjs/bullmq";
-import { PostScoreProcessor } from "./application/ post-score.processor";
-import { BullMqVoteQueueAdapter } from "./infra/bull-mq-vote-queue-adapter";
-import { VoteQueue } from "./domain/interfaces/queues/vote-queue";
+import { BullModule, getQueueToken } from "@nestjs/bullmq";
+import { PostScoreProcessor } from "./application/bull-social-post-queue-processor";
 import { PostMediasRepository } from "./domain/interfaces/repositories/post-media-repository";
 import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repository";
 import { PostMediaService } from "./application/post-media.service";
@@ -29,14 +27,17 @@ import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-inci
 import { SocialCoreModule } from "../core/social-core.module";
 import { PostVotesController } from "./presentation/post.votes.controller";
 import { PostAsyncController } from "./presentation/post-async.controller";
+import {
+  SOCIAL_POSTS_EVENTS_QUEUE_NAME,
+  SocialPostEventsQueuePublisher,
+} from "./domain/interfaces/queues/social-post-events-queue";
+import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
 
 @Module({
   controllers: [PostController, PostVotesController, PostAsyncController],
   imports: [
     SocialCoreModule,
-    BullModule.registerQueue({
-      name: "vote-events",
-    }),
+    BullModule.registerQueue({ name: SOCIAL_POSTS_EVENTS_QUEUE_NAME }),
     BullModule.registerQueue({
       name: "comments-events",
     }),
@@ -48,7 +49,6 @@ import { PostAsyncController } from "./presentation/post-async.controller";
     PostCommentsProcessor,
     PostScoreProcessor,
     PostMediaService,
-    { provide: VoteQueue, useClass: BullMqVoteQueueAdapter },
     { provide: CommentsQueue, useClass: BullMqCommentsQueueAdapter },
     {
       provide: PostRepository,
@@ -73,6 +73,11 @@ import { PostAsyncController } from "./presentation/post-async.controller";
     {
       provide: IncidentsRepository,
       useClass: PrismaIncidentsRepository,
+    },
+    {
+      provide: SocialPostEventsQueuePublisher,
+      useFactory: (queue) => new BullQueuePublisher(queue),
+      inject: [getQueueToken(SOCIAL_POSTS_EVENTS_QUEUE_NAME)],
     },
     CurseWordsFilterService,
   ],

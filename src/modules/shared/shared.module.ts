@@ -103,7 +103,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     RedisLockService,
     RedisAdapter,
     EventPublisher,
-    EventSubscriber,
+    RateLimitService,
   ],
 })
 export class SharedModule {}

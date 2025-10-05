@@ -1,4 +1,3 @@
-
 import { Processor } from "@nestjs/bullmq";
 import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
 import { BullQueueWorker } from "@/modules/shared/infra/bull-queue-worker";
@@ -10,7 +9,7 @@ import {
 } from "../domain/interfaces/queues/social-post-events-queue";
 import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
 
-type PostMetric = "score" | "comments" | "views";
+type PostMetric = "score" | "comments";
 
 type PostUpdateState = {
   metrics: Set<PostMetric>;
@@ -24,8 +23,6 @@ const eventMetricsMap: Record<SocialPostEvent, PostMetric[]> = {
   "post.viewed": [],
 };
 
-const POST_UPDATE_INTERVAL_MS = 5000;
-
 @Processor(SOCIAL_POSTS_EVENTS_QUEUE_NAME, {
   limiter: { max: 10, duration: 1000 },
 })
@@ -34,29 +31,29 @@ export class PostScoreProcessor extends BullQueueWorker<
   SocialPostEventsQueueDto
 > {
   private postsToUpdate = new Map<number, PostUpdateState>();
+  private flushTimeout?: NodeJS.Timeout;
+  private readonly FLUSH_DELAY_MS = 2000;
 
   constructor(
     private readonly postVotesRepository: PostVotesRepository,
     private readonly redisLockService: RedisLockService
   ) {
-    super(POST_UPDATE_INTERVAL_MS);
+    super();
   }
 
-  protected async performPendingFlush() {
+  protected async flushPostsUpdates() {
     const entries = Array.from(this.postsToUpdate.entries());
 
     if (entries.length === 0) {
       this.logger.debug("No pending post updates, ending flush cycle.");
-      this.endFlushCycle();
       return;
     }
 
     this.logger.log(`Flushing ${entries.length} Post(s) updates...`);
-    this.postsToUpdate.clear(); // clear before processing to avoid double updates
+    this.postsToUpdate.clear();
 
     for (const [postId, state] of entries) {
       // Acquire Redis lock to prevent concurrent updates
-
       const lock = await this.redisLockService.acquireLock(
         `Post:${postId}`,
         1000
@@ -65,6 +62,10 @@ export class PostScoreProcessor extends BullQueueWorker<
 
       try {
         const metricsToUpdate = Array.from(state.metrics);
+
+        if (metricsToUpdate.includes("comments")) {
+          console.log("Should comp[uted comments ehre");
+        }
 
         if (metricsToUpdate.includes("score")) {
           await this.postVotesRepository.refreshPostScore(postId);
@@ -83,11 +84,17 @@ export class PostScoreProcessor extends BullQueueWorker<
     const existing = this.postsToUpdate.get(postId);
     if (existing) {
       metrics.forEach((m) => existing.metrics.add(m));
-      return;
+    } else {
+      this.postsToUpdate.set(postId, { metrics: new Set(metrics) });
     }
 
-    const metricsSet = new Set(metrics);
-    this.postsToUpdate.set(postId, { metrics: metricsSet });
+    // Reset the debounce timer
+    if (this.flushTimeout) clearTimeout(this.flushTimeout);
+
+    this.flushTimeout = setTimeout(
+      () => void this.flushPostsUpdates(),
+      this.FLUSH_DELAY_MS
+    );
   }
 
   async handle({
@@ -97,7 +104,6 @@ export class PostScoreProcessor extends BullQueueWorker<
     const metrics = eventMetricsMap[event] ?? [];
     if (metrics.length > 0) {
       this.schedulePostUpdate(data.postId, metrics);
-      this.beginFlushCycle();
     }
 
     return Promise.resolve();

@@ -27,8 +27,6 @@ const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
   "post.created": ["posts"],
 };
 
-const PROFILE_UPDATE_INTERVAL_MS = 5000;
-
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
   limiter: { max: 10, duration: 1000 },
 })
@@ -37,22 +35,14 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
   SocialProfileEventsQueueDto
 > {
   private profileUpdateState = new Map<number, ProfileUpdateState>();
+  private flushTimeout?: NodeJS.Timeout;
+  private readonly FLUSH_DELAY_MS = 2000;
 
   constructor(
     private readonly profileRepository: ProfileRepository,
     private readonly redisLockService: RedisLockService
   ) {
     super();
-
-    // Flush profile updates every PROFILE_UPDATE_INTERVAL_MS
-    setInterval(
-      () => void this.flushProfileUpdates(),
-      PROFILE_UPDATE_INTERVAL_MS
-    );
-
-    this.logger.log(
-      `Profile update batch processor initialized. Flushing every ${PROFILE_UPDATE_INTERVAL_MS}ms.`
-    );
   }
 
   private async flushProfileUpdates() {
@@ -64,8 +54,7 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
     }
 
     this.logger.log(`Flushing ${entries.length} profile(s) updates...`);
-
-    this.profileUpdateState.clear(); // clear before processing to avoid double updates
+    this.profileUpdateState.clear();
 
     for (const [profileId, state] of entries) {
       // Acquire Redis lock to prevent concurrent updates
@@ -98,20 +87,21 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
     }
   }
 
-  /**
-   * Schedule a profile update by adding metrics to the pending state.
-   */
   private scheduleProfileUpdate(profileId: number, metrics: ProfileMetric[]) {
     const existing = this.profileUpdateState.get(profileId);
     if (existing) {
-      // Merge new metrics into existing set
       metrics.forEach((m) => existing.metrics.add(m));
-      return;
+    } else {
+      this.profileUpdateState.set(profileId, { metrics: new Set(metrics) });
     }
 
-    // Start a new batch for this profile
-    const metricsSet = new Set(metrics);
-    this.profileUpdateState.set(profileId, { metrics: metricsSet });
+    // Reset the debounce timer
+    if (this.flushTimeout) clearTimeout(this.flushTimeout);
+
+    this.flushTimeout = setTimeout(
+      () => void this.flushProfileUpdates(),
+      this.FLUSH_DELAY_MS
+    );
   }
 
   /**
