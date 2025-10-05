@@ -25,6 +25,7 @@ const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
   "post.commented": ["comments"],
   "post.uncommented": ["comments"],
   "post.created": ["posts"],
+  "post.voted": ["posts"],
 };
 
 const PROFILE_UPDATE_INTERVAL_MS = 5000;

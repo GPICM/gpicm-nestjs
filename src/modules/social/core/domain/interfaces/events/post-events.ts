@@ -4,7 +4,8 @@ import { EventContract } from "@/modules/shared/domain/interfaces/events";
 export type PostActionEventName =
   | "post.created"
   | "post.commented"
-  | "post.uncommented";
+  | "post.uncommented"
+  | "post.voted";
 
 export type PostActionEvent = EventContract<
   PostActionEventName,
