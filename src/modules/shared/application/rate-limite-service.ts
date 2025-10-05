@@ -1,10 +1,13 @@
-import { Logger } from "@nestjs/common";
+import { Inject, Logger } from "@nestjs/common";
 import { RedisAdapter } from "../infra/lib/redis/redis-adapter";
 
 export class RateLimitService {
   private readonly logger = new Logger(RateLimitService.name);
 
-  constructor(private readonly redis: RedisAdapter) {}
+  constructor(
+    @Inject(RedisAdapter)
+    private readonly redis: RedisAdapter
+  ) {}
 
   async isRateLimited(key: string, ttlMs: number): Promise<boolean> {
     const lastAction = await this.redis.getValue(key);

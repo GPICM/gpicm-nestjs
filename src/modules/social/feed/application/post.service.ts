@@ -21,7 +21,7 @@ import { RateLimitService } from "@/modules/shared/application/rate-limite-servi
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
-  private readonly viewCooldownMs = 30 * 1000; // 30 secs
+  private readonly viewsCoolDownMs = 30 * 1000; // 30 secs
 
   constructor(
     @Inject(PostRepository)
@@ -102,11 +102,12 @@ export class PostServices {
   }
 
   async incrementViews(postId: number, userId: number) {
+    this.logger.log("Increment views from post", { postId, userId });
     const key = `post_view:${userId}:${postId}`;
 
     await this.rateLimitService.runIfAllowed(
       key,
-      this.viewCooldownMs,
+      this.viewsCoolDownMs,
       async () => {
         this.logger.debug(`Incrementing views for post ${postId}`);
         await this.postRepository.incrementViews(postId);
