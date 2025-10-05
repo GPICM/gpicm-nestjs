@@ -101,8 +101,8 @@ export class PostServices {
     }
   }
 
-  async incrementViews(post: ViewerPost, user: User) {
-    const postViewKey = `post_view:${user.id}:${post.id}`;
+  async incrementViews(postId: number, userId: number) {
+    const postViewKey = `post_view:${userId}:${postId}`;
     const now = Date.now();
 
     try {
@@ -114,16 +114,14 @@ export class PostServices {
 
         if (now - lastViewTime < this.viewCooldownMs) {
           this.logger.log(
-            `Pulando o incremento de visualização para o post ID: ${post.id} pelo usuário ID: ${user.id} devido ao cooldown.`
+            `Pulando o incremento de visualização para o post ID: ${postId} pelo usuário ID: ${userId} devido ao cooldown.`
           );
           return;
         }
       }
 
-      this.logger.log(
-        `Incrementando visualização para o post ID: ${post.id}, Título: ${post.title}`
-      );
-      await this.postRepository.incrementViews(post);
+      this.logger.log(`Incrementando visualização para o post ID: ${postId}`);
+      await this.postRepository.incrementViews(postId);
 
       const cooldownSeconds = Math.ceil(this.viewCooldownMs / 1000);
 
