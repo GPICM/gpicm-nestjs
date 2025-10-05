@@ -27,9 +27,10 @@ import { IncidentsService } from "@/modules/incidents/application/incidents.serv
 import { IncidentsRepository } from "@/modules/incidents/domain/interfaces/repositories/incidents-repository";
 import { PrismaIncidentsRepository } from "@/modules/incidents/infra/prisma-incidents-repository";
 import { SocialCoreModule } from "../core/social-core.module";
+import { PostVotesController } from "./presentation/post.votes.controller";
 
 @Module({
-  controllers: [PostController],
+  controllers: [PostController, PostVotesController],
   imports: [
     SocialCoreModule,
     BullModule.registerQueue({

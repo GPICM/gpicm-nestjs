@@ -17,7 +17,6 @@ import { EventSubscriber } from "./domain/interfaces/events";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
 import { RedisEventSubscriber } from "./infra/lib/redis/redis-event-subscriber";
-import { TestHandlerController } from "./application/tests";
 import { BullModule } from "@nestjs/bullmq";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
@@ -57,7 +56,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       },
     ]),
   ],
-  controllers: [TestHandlerController],
   providers: [
     MongodbService,
     {
