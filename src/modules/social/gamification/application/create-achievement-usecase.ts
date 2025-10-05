@@ -4,10 +4,7 @@ import {
   AchievementCriterionType,
   AchievementOperator,
 } from "../domain/value-objects/AchievementCriterion";
-import {
-  AchievementReward,
-  ReputationReward,
-} from "../domain/value-objects/AchievementReward";
+import { AchievementReward } from "../domain/value-objects/AchievementReward";
 import { Achievement } from "../domain/entities/Achievement";
 import { AchievementsRepository } from "../domain/interfaces/repositories/achievements-repository";
 

@@ -1,7 +1,6 @@
 import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import {
-  BaseRepositoryFindManyResult,
   PostFindManyFilters,
   PostRepository,
 } from "../domain/interfaces/repositories/post-repository";
@@ -10,6 +9,7 @@ import { PrismaClient } from "@prisma/client";
 import { PostAssembler } from "./mappers/post.assembler";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostSortBy } from "../domain/enum/OrderBy";
+import { BaseRepositoryFindManyResult } from "../../core/domain/interfaces";
 
 export class PrismaPostRepository implements PostRepository {
   private readonly logger: Logger = new Logger(PrismaPostRepository.name);
