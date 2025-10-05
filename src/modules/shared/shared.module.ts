@@ -18,6 +18,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
 import { RedisEventSubscriber } from "./infra/lib/redis/redis-event-subscriber";
 import { BullModule } from "@nestjs/bullmq";
+import { RateLimitService } from "./application/rate-limite-service";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -57,6 +58,7 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
     ]),
   ],
   providers: [
+    RateLimitService,
     MongodbService,
     {
       provide: EmailService,
