@@ -32,7 +32,6 @@ import { SocialCoreModule } from "../core/social-core.module";
   controllers: [PostController],
   imports: [
     SocialCoreModule,
-    BullModule.forRoot({ connection: { url: String(process.env.REDIS_URL) } }),
     BullModule.registerQueue({
       name: "vote-events",
     }),

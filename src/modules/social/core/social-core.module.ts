@@ -10,13 +10,12 @@ import { PrismaAchievementRepository } from "@/modules/social/gamification/infra
 import { AchievementService } from "../gamification/application/achievement.service";
 import { SocialController } from "./presentation/social.controller";
 import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
-import { SocialProfileModule } from "../profile/social-profile.module";
 import { SocialProfileController } from "./presentation/profile.controller";
 import { CreateProfileUseCase } from "./application/create-profile.usecase";
 import { FindProfileByUserUseCase } from "./application/find-profile-by-user.usecase";
 
 @Module({
-  imports: [SocialProfileModule],
+  imports: [],
   controllers: [SocialController, SocialProfileController],
   providers: [
     ProfileService,

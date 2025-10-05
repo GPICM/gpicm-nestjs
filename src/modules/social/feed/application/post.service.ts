@@ -6,7 +6,6 @@ import { PostStatusEnum, PostTypeEnum } from "../domain/entities/Post";
 import { CreatePostDto } from "../presentation/dtos/create-post.dto";
 import { IncidentsService } from "@/modules/incidents/application/incidents.service";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
-import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostVote, VoteValue } from "../domain/entities/PostVote";
 import { UserShallow } from "../domain/entities/UserShallow";
@@ -14,11 +13,12 @@ import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
-import { PostFactory } from "../domain/factories/PostFactory";
 import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events/application-event-publisher";
 import { Profile } from "../../core/domain/entities/Profile";
 import { PostActionEvent } from "../../core/domain/interfaces/events";
+import { PostFactory } from "../domain/factories/PostFactory";
+import { PostAttachment } from "../domain/object-values/PostAttchment";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -41,9 +41,7 @@ export class PostServices {
   async create(user: User, dto: CreatePostDto, profile: Profile) {
     try {
       this.logger.log("Creating post", { dto });
-
       const medias = await this.validateMedias(user, dto.mediaIds);
-
       const post = PostFactory.createPost(user, dto, medias);
 
       this.logger.log(
@@ -176,7 +174,7 @@ export class PostServices {
         );
       });
 
-      await this.voteQueue.addVoteJob({ postId: postId });
+      // await this.voteQueue.addVoteJob({ postId: postId });
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`

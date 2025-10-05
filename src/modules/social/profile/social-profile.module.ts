@@ -8,9 +8,10 @@ import { BullSocialProfileProcessor } from "./application/bull-social-profile-qu
 import { PrismaProfileRepository } from "../core/infra/repositories/prisma/prisma-profile-repository";
 import { ProfileRepository } from "../core/domain/interfaces/repositories/profile-repository";
 import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
-import { SocialProfileEventsSubscriber } from "./application/social-profile-events-subscriber";
+import { SocialProfileAsyncController } from "./profile-async.controller";
 
 @Module({
+  controllers: [SocialProfileAsyncController],
   imports: [
     BullModule.registerQueue({ name: SOCIAL_PROFILE_EVENTS_QUEUE_NAME }),
   ],
@@ -25,9 +26,7 @@ import { SocialProfileEventsSubscriber } from "./application/social-profile-even
       useFactory: (queue) => new BullQueuePublisher(queue),
       inject: [getQueueToken(SOCIAL_PROFILE_EVENTS_QUEUE_NAME)],
     },
-    // messages subscriber
-    SocialProfileEventsSubscriber,
   ],
-  exports: [BullModule],
+  exports: [],
 })
 export class SocialProfileModule {}

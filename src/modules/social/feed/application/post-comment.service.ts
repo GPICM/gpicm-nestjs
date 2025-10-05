@@ -8,7 +8,6 @@ import { PostRepository } from "../domain/interfaces/repositories/post-repositor
 import { CurseWordsFilterService } from "./curse-words-filter.service";
 import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
-import { CommentsQueue } from "../domain/interfaces/queues/comments-queue";
 import { Profile } from "../../core/domain/entities/Profile";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
 import { PostActionEvent } from "../../core/domain/interfaces/events";
@@ -18,7 +17,7 @@ export class PostCommentsService {
   constructor(
     private readonly postCommentRepository: PostCommentRepository,
     private readonly postRepository: PostRepository,
-    private readonly commentsQueue: CommentsQueue,
+    // private readonly commentsQueue: CommentsQueue,
     @Inject(EventPublisher)
     private readonly eventPublisher: EventPublisher
   ) {}
@@ -56,10 +55,10 @@ export class PostCommentsService {
     });
 
     // TODO remove this
-    await this.commentsQueue.addCommentJob({
+    /* await this.commentsQueue.addCommentJob({
       postId: post.id,
       commentParentId: body.parentCommentId,
-    });
+    }); */
   }
 
   async updateComment(
@@ -101,10 +100,10 @@ export class PostCommentsService {
 
     await this.postCommentRepository.delete(commentId);
 
-    await this.commentsQueue.addCommentJob({
+    /*  await this.commentsQueue.addCommentJob({
       postId: comment.postId,
       commentParentId: comment.parentCommentId || undefined,
-    });
+    }); */
 
     await this.eventPublisher.publish<PostActionEvent>({
       event: "post.uncommented",
