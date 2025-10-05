@@ -17,6 +17,8 @@ import { EventSubscriber } from "./domain/interfaces/events";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { RedisEventPublisher } from "./infra/lib/redis/redis-event-publisher";
 import { RedisEventSubscriber } from "./infra/lib/redis/redis-event-subscriber";
+import { TestHandlerController } from "./application/tests";
+import { BullModule } from "@nestjs/bullmq";
 
 const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
 
@@ -34,19 +36,28 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
         },
       },
     }),
+    /* BULL MQ */
+    BullModule.forRoot({
+      connection: {
+        host: String(process.env.REDIS_HOST) ?? "redis",
+        port: Number(process.env.REDIS_PORT) ?? 6379,
+        db: 1,
+      },
+    }),
     /* SHARED PUB SUB */
     ClientsModule.register([
       {
-        name: "REDIS_SHARED_EVENTS",
+        name: "REDIS_SHARED_PUB_SUB",
         transport: Transport.REDIS,
         options: {
-          host: "redis",
-          port: 6379,
+          host: String(process.env.REDIS_HOST) ?? "redis",
+          port: Number(process.env.REDIS_PORT) ?? 6379,
+          db: 2,
         },
       },
     ]),
   ],
-  controllers: [],
+  controllers: [TestHandlerController],
   providers: [
     MongodbService,
     {
@@ -74,7 +85,6 @@ const MONGO_DB_URI = String(process.env.MONGO_DB_URI);
       provide: EventPublisher,
       useClass: RedisEventPublisher,
     },
-    /* DEPRECATED */
     {
       provide: EventSubscriber,
       useClass: RedisEventSubscriber,

@@ -58,17 +58,13 @@ async function main() {
 
   app.use(new LoggerMiddleware().use);
 
-  // --- Start HTTP server ---
-  const port = process.env.PORT ?? 9000;
-  await app.listen(port);
-  console.log(`HTTP server listening on port ${port}...`);
-
   // --- Connect Redis microservice ---
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.REDIS,
     options: {
       host: process.env.REDIS_HOST ?? "redis",
       port: Number(process.env.REDIS_PORT ?? 6379),
+      db: 2,
       wildcards: true,
     },
   });
@@ -76,6 +72,11 @@ async function main() {
   // --- Start all microservices ---
   await app.startAllMicroservices();
   console.log("Redis microservice listening for events...");
+
+  // --- Start HTTP server ---
+  const port = process.env.PORT ?? 9000;
+  await app.listen(port);
+  console.log(`HTTP server listening on port ${port}...`);
 }
 
 main();

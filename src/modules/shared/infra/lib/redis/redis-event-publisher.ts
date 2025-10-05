@@ -10,7 +10,7 @@ export class RedisEventPublisher implements EventPublisher {
   private readonly logger = new Logger(RedisEventPublisher.name);
 
   constructor(
-    @Inject("REDIS_SHARED_EVENTS") private readonly client: ClientProxy
+    @Inject("REDIS_SHARED_PUB_SUB") private readonly client: ClientProxy
   ) {}
 
   private _publish(channel: string, payload: any): Promise<void> {
