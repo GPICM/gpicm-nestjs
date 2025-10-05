@@ -12,7 +12,6 @@ import {
 } from "../../core/domain/queues/social-profile-events-queue";
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
 import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
-import { Logger } from "@nestjs/common";
 
 type ProfileMetric = "followers" | "comments" | "posts";
 

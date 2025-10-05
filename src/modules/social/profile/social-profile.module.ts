@@ -18,4 +18,4 @@ import { ProfileRepository } from "../core/domain/interfaces/repositories/profil
   ],
   exports: [BullModule],
 })
-export class SocialQueueModule {}
+export class SocialProfileModule {}
