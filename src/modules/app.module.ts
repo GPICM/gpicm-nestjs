@@ -14,12 +14,7 @@ import { BackOfficeModule } from "./back-office/back-office.module";
 
 @Module({
   controllers: [AppController],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
   imports: [
     CacheModule.register({
       isGlobal: true,
