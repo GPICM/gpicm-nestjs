@@ -12,12 +12,12 @@ import { UserShallow } from "../domain/entities/UserShallow";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
-import { RedisAdapter } from "@/modules/shared/infra/lib/redis/redis-adapter";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events/application-event-publisher";
 import { Profile } from "../../core/domain/entities/Profile";
 import { PostActionEvent } from "../../core/domain/interfaces/events";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
+import { RateLimitService } from "@/modules/shared/application/rate-limite-service";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -31,8 +31,8 @@ export class PostServices {
     private readonly postMediasRepository: PostMediasRepository,
     private readonly postVotesRepository: PostVotesRepository,
     private readonly mediaService: MediaService,
-    private readonly redisAdapter: RedisAdapter,
-    private readonly eventPublisher: EventPublisher
+    private readonly eventPublisher: EventPublisher,
+    private readonly rateLimitService: RateLimitService
   ) {}
 
   async create(user: User, dto: CreatePostDto, profile: Profile) {
@@ -87,7 +87,7 @@ export class PostServices {
 
       await this.eventPublisher.publish<PostActionEvent>({
         event: "post.created",
-        data: { postId: post.id!, profileId: profile.id },
+        data: { postId: post.id!, profileId: profile.id, userId: user.id },
       });
 
       this.logger.log("post created successfully", { post });
@@ -102,40 +102,16 @@ export class PostServices {
   }
 
   async incrementViews(postId: number, userId: number) {
-    const postViewKey = `post_view:${userId}:${postId}`;
-    const now = Date.now();
+    const key = `post_view:${userId}:${postId}`;
 
-    try {
-      const lastViewTimestampStr =
-        await this.redisAdapter.getValue(postViewKey);
-
-      if (lastViewTimestampStr) {
-        const lastViewTime = parseInt(lastViewTimestampStr, 10);
-
-        if (now - lastViewTime < this.viewCooldownMs) {
-          this.logger.log(
-            `Pulando o incremento de visualização para o post ID: ${postId} pelo usuário ID: ${userId} devido ao cooldown.`
-          );
-          return;
-        }
+    await this.rateLimitService.runIfAllowed(
+      key,
+      this.viewCooldownMs,
+      async () => {
+        this.logger.debug(`Incrementing views for post ${postId}`);
+        await this.postRepository.incrementViews(postId);
       }
-
-      this.logger.log(`Incrementando visualização para o post ID: ${postId}`);
-      await this.postRepository.incrementViews(postId);
-
-      const cooldownSeconds = Math.ceil(this.viewCooldownMs / 1000);
-
-      await this.redisAdapter.setKeyWithExpire(
-        postViewKey,
-        now.toString(),
-        cooldownSeconds
-      );
-    } catch (error: unknown) {
-      this.logger.error(
-        `Error incrementing post view: ${JSON.stringify(error, null, 4)}`,
-        { error }
-      );
-    }
+    );
   }
 
   async vote(
@@ -181,7 +157,7 @@ export class PostServices {
 
       await this.eventPublisher.publish<PostActionEvent>({
         event: "post.voted",
-        data: { postId: post.id!, profileId: profile.id },
+        data: { postId: post.id!, profileId: profile.id, userId: user.id },
       });
 
       this.logger.log(
@@ -209,7 +185,7 @@ export class PostServices {
 
     await this.eventPublisher.publish<PostActionEvent>({
       event: "post.viewed",
-      data: { postId: post.id!, profileId: profile?.id },
+      data: { postId: post.id!, profileId: profile?.id, userId: user.id },
     });
 
     return post;
