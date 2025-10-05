@@ -64,9 +64,10 @@ export class PrismaAchievementRepository implements AchievementsRepository {
       ]);
 
       const records: Achievement[] = [];
-      if (!data.length) {
+      if (data.length) {
         for (const ach of data) {
           try {
+            this.logger.log("Parsing achievement", { ach });
             const parsed = PrismaAchievementAssembler.fromPrisma(ach);
             if (parsed) records.push(parsed);
           } catch (parseError: unknown) {

@@ -7,13 +7,12 @@ export enum AchievementOperator {
   Ne = "!=",
 }
 
-export type AchievementCriterionType =
-  | "POSTS_COUNT"
-  | "LIKES_RECEIVED"
-  | "FOLLOWERS"
-  | "DAYS_ACTIVE"
-  | "SHARES"
-  | "COMMENTS_COUNT";
+export enum AchievementCriterionType {
+  FOLLOWERS = "FOLLOWERS",
+  POSTS_COUNT = "POSTS_COUNT",
+  DAYS_ACTIVE = "DAYS_ACTIVE",
+  COMMENTS_COUNT = "COMMENTS_COUNT",
+}
 
 export interface AchievementCriterionProps {
   type: AchievementCriterionType;
@@ -36,12 +35,11 @@ export class AchievementCriterion {
     operator,
     value,
     description,
-    version = "v1.0.0",
+    version = "v1",
   }: AchievementCriterionProps) {
     this.validateType(type);
     this.validateOperator(operator);
     this.validateValue(value);
-    this.validateVersion(version);
 
     this.type = type;
     this.operator = operator;
@@ -52,15 +50,11 @@ export class AchievementCriterion {
   }
 
   private validateType(type: string) {
-    const allowedTypes: AchievementCriterionType[] = [
-      "POSTS_COUNT",
-      "LIKES_RECEIVED",
-      "FOLLOWERS",
-      "DAYS_ACTIVE",
-      "SHARES",
-      "COMMENTS_COUNT",
-    ];
-    if (!allowedTypes.includes(type as AchievementCriterionType)) {
+    if (
+      !Object.values(AchievementCriterionType).includes(
+        type as AchievementCriterionType
+      )
+    ) {
       throw new Error(`Invalid AchievementCriterion type: ${type}`);
     }
   }
@@ -83,14 +77,6 @@ export class AchievementCriterion {
     if (value < 0) {
       throw new Error(
         `AchievementCriterion value must be non-negative. Got: ${value}`
-      );
-    }
-  }
-
-  private validateVersion(version: string) {
-    if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
-      throw new Error(
-        `Version must be a semantic version string (e.g., 1.0.0). Got: ${version}`
       );
     }
   }

@@ -51,7 +51,7 @@ export class AchievementReward<T extends RewardType = RewardType> {
           break;
         }
       }
-      if (isValid)
+      if (!isValid)
         throw new Error("Invalid reward: Missing required attributes");
 
       return new AchievementReward({

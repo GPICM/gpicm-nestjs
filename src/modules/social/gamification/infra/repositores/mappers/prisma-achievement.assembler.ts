@@ -4,6 +4,7 @@ import { MediaSource } from "@/modules/assets/domain/object-values/media-source"
 import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
 import { AchievementCriterion } from "@/modules/social/gamification/domain/value-objects/AchievementCriterion";
 import { AchievementReward } from "@/modules/social/gamification/domain/value-objects/AchievementReward";
+import { Logger } from "@nestjs/common";
 
 export const achievementInclude = Prisma.validator<Prisma.AchievementInclude>()(
   {}
@@ -14,20 +15,38 @@ type AchievementJoinModel = Prisma.AchievementGetPayload<{
 }>;
 
 export class PrismaAchievementAssembler {
+  private static readonly logger = new Logger(PrismaAchievementAssembler.name);
+
   public static fromPrisma(
     prismaData?: AchievementJoinModel | null
   ): Achievement | null {
-    if (!prismaData) return null;
+    if (!prismaData) {
+      this.logger.warn("fromPrisma called with null or undefined data");
+      return null;
+    }
+
+    this.logger.log(
+      `Parsing Achievement from Prisma (id: ${prismaData.id}, name: ${prismaData.name})`
+    );
 
     /* Load Image source */
     let imageThumbnailUrl = "";
-    const imageSources = MediaSource.fromJSON(
-      prismaData.imageSources as Record<string, unknown> | null
-    );
+    let imageSources: MediaSource | null = null;
 
-    if (imageSources) {
-      imageThumbnailUrl =
-        imageSources?.getVariant(MediaSourceVariantKey.sm)?.url || "";
+    try {
+      imageSources = MediaSource.fromJSON(
+        prismaData.imageSources as Record<string, unknown> | null
+      );
+
+      if (imageSources) {
+        imageThumbnailUrl =
+          imageSources?.getVariant(MediaSourceVariantKey.sm)?.url || "";
+      }
+    } catch (error: unknown) {
+      this.logger.error("Failed to parse imageSources for achievement", {
+        id: prismaData.id,
+        error,
+      });
     }
 
     /* Load criteria */
@@ -56,16 +75,27 @@ export class PrismaAchievementAssembler {
       }
     }
 
-    return new Achievement({
-      id: prismaData.id,
-      name: prismaData.name,
-      description: prismaData.description,
-      imageThumbnailUrl,
-      imageBlurHash: null,
-      imageSources,
-      criteria,
-      rewards,
-    });
+    try {
+      const achievement = new Achievement({
+        id: prismaData.id,
+        name: prismaData.name,
+        description: prismaData.description,
+        imageThumbnailUrl,
+        imageBlurHash: null,
+        imageSources,
+        criteria,
+        rewards,
+      });
+
+      this.logger.log(`Successfully parsed achievement ${prismaData.id}`);
+      return achievement;
+    } catch (error: unknown) {
+      this.logger.error("Failed to construct Achievement entity", {
+        id: prismaData.id,
+        error,
+      });
+      return null;
+    }
   }
 
   public static toPrismaCreateInput(
