@@ -57,7 +57,7 @@ export class PostController {
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
-    @CurrentUser() profile: Profile
+    @CurrentProfile() profile: Profile
   ) {
     try {
       this.logger.log("Starting post creation", { body });
@@ -173,12 +173,12 @@ export class PostController {
   }
 
   @Get(":postSlug")
-  async getOne(@Param("postSlug") postSlug: string, @CurrentUser() user: User) {
-    const post = await this.postService.findOne(postSlug, user);
-
-    if (post) {
-      await this.postService.incrementViews(post, user);
-    }
+  async getOne(
+    @Param("postSlug") postSlug: string,
+    @CurrentUser() user: User,
+    @CurrentProfile() profile?: Profile
+  ) {
+    const post = await this.postService.findOne(postSlug, user, profile);
 
     return post;
   }
@@ -189,11 +189,6 @@ export class PostController {
     @CurrentUser() user: User
   ) {
     const post = await this.postService.findOneByUuid(postUuid, user);
-
-    if (post) {
-      await this.postService.incrementViews(post, user);
-    }
-
     return post;
   }
 
@@ -203,7 +198,6 @@ export class PostController {
   }
 
   // TODO: MOVE PROFILE ONLY AUTHORIZED ROUES TO ANOTHER CONTROLLER
-
   @UseGuards(ActiveUserGuard, SocialProfileGuard)
   @Post(":postUuid/comments")
   async createComment(

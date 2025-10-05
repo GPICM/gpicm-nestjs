@@ -201,12 +201,18 @@ export class PostServices {
 
   public async findOne(
     postSlug: string,
-    user: User
+    user: User,
+    profile?: Profile
   ): Promise<ViewerPost | null> {
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
     const post = await this.postRepository.findBySlug(postSlug, user.id);
 
     if (!post) return null;
+
+    await this.eventPublisher.publish<PostActionEvent>({
+      event: "post.viewed",
+      data: { postId: post.id!, profileId: profile?.id },
+    });
 
     return post;
   }

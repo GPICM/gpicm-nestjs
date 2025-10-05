@@ -1,7 +1,4 @@
-import {
-  AppQueuePublisher,
-  AppQueueWorker,
-} from "@/modules/shared/domain/interfaces/application-queue";
+import { AppQueuePublisher } from "@/modules/shared/domain/interfaces/application-queue";
 
 export type SocialProfileEventsQueueDto = {
   profileId: number;
@@ -18,11 +15,6 @@ export type SocialProfileEvent =
   | "post.uncommented";
 
 export abstract class SocialProfileEventsQueuePublisher extends AppQueuePublisher<
-  SocialProfileEvent,
-  SocialProfileEventsQueueDto
-> {}
-
-export abstract class SocialProfileEventsQueueConsumer extends AppQueueWorker<
   SocialProfileEvent,
   SocialProfileEventsQueueDto
 > {}

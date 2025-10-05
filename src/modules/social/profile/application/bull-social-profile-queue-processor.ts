@@ -25,7 +25,6 @@ const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
   "post.commented": ["comments"],
   "post.uncommented": ["comments"],
   "post.created": ["posts"],
-  "post.voted": ["posts"],
 };
 
 const PROFILE_UPDATE_INTERVAL_MS = 5000;
@@ -102,10 +101,7 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
   /**
    * Schedule a profile update by adding metrics to the pending state.
    */
-  private scheduleProfileUpdate(
-    profileId: number,
-    metrics: ("followers" | "comments" | "posts")[]
-  ) {
+  private scheduleProfileUpdate(profileId: number, metrics: ProfileMetric[]) {
     const existing = this.profileUpdateState.get(profileId);
     if (existing) {
       // Merge new metrics into existing set

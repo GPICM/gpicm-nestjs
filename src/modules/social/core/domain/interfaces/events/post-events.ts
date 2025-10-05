@@ -5,12 +5,13 @@ export type PostActionEventName =
   | "post.created"
   | "post.commented"
   | "post.uncommented"
-  | "post.voted";
+  | "post.voted"
+  | "post.viewed";
 
 export type PostActionEvent = EventContract<
   PostActionEventName,
   {
     postId: number;
-    profileId: number;
+    profileId?: number;
   }
 >;
