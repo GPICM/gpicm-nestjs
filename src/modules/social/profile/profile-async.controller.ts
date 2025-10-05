@@ -30,7 +30,7 @@ export class SocialProfileAsyncController {
   ];
   constructor(
     @Inject(SocialProfileEventsQueuePublisher)
-    private readonly profileQueue: SocialProfileEventsQueuePublisher
+    private readonly queuePublisher: SocialProfileEventsQueuePublisher
   ) {}
 
   @EventPattern("post.*")
@@ -44,10 +44,12 @@ export class SocialProfileAsyncController {
 
     this.logger.log(`Received post event: ${channel}`);
 
-    void this.profileQueue.add({
-      event: event.event as SocialProfileEvent,
-      data: { profileId: event.data.profileId },
-    });
+    if (event.data.profileId) {
+      void this.queuePublisher.add({
+        event: event.event as SocialProfileEvent,
+        data: { profileId: event.data.profileId },
+      });
+    }
   }
 
   @EventPattern("profile.*")
@@ -64,7 +66,7 @@ export class SocialProfileAsyncController {
 
     this.logger.log(`Received profile event: ${channel}`);
 
-    void this.profileQueue.add({
+    void this.queuePublisher.add({
       event: event.event,
       data: {
         profileId: event.data.profileId,

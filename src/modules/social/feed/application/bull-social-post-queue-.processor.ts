@@ -17,11 +17,11 @@ type PostUpdateState = {
 };
 
 const eventMetricsMap: Record<SocialPostEvent, PostMetric[]> = {
-  "post.viewed": ["views"],
   "post.voted": ["score"],
   "post.commented": ["score", "comments"],
   "post.uncommented": ["score", "comments"],
   "post.created": [],
+  "post.viewed": [],
 };
 
 const POST_UPDATE_INTERVAL_MS = 5000;
@@ -100,6 +100,6 @@ export class PostScoreProcessor extends BullQueueWorker<
       this.beginFlushCycle();
     }
 
-    return Promise.resolve()l
+    return Promise.resolve();
   }
 }

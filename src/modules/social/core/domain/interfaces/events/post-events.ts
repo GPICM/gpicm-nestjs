@@ -12,6 +12,7 @@ export type PostActionEvent = EventContract<
   PostActionEventName,
   {
     postId: number;
+    userId: number;
     profileId?: number;
   }
 >;

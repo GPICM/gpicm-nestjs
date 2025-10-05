@@ -1,30 +1,50 @@
 /* eslint-disable prettier/prettier */
-import {
-  Controller,
-  Inject,
-  Logger,
-} from "@nestjs/common";
+import { Controller, Inject, Logger } from "@nestjs/common";
 
-import { Ctx, EventPattern, Payload, RedisContext } from "@nestjs/microservices";
+import {
+  Ctx,
+  EventPattern,
+  Payload,
+  RedisContext,
+} from "@nestjs/microservices";
 import { PostActionEvent } from "../../core/domain/interfaces/events";
-import { VoteQueue } from "../domain/interfaces/queues/vote-queue";
+import { SocialPostEventsQueuePublisher } from "../domain/interfaces/queues/social-post-events-queue";
+import { PostServices } from "../application/post.service";
 
 @Controller()
 export class PostAsyncController {
   private readonly logger: Logger = new Logger(PostAsyncController.name);
 
   constructor(
-    @Inject(VoteQueue)
-    private voteQueue: VoteQueue
+    @Inject(SocialPostEventsQueuePublisher)
+    private readonly queuePublisher: SocialPostEventsQueuePublisher,
+    private readonly postService: PostServices
   ) {}
 
   @EventPattern("post.voted")
-  handlePost(@Payload() event: PostActionEvent, @Ctx() context: RedisContext) {
+  handlePostVote(
+    @Payload() event: PostActionEvent,
+    @Ctx() context: RedisContext
+  ) {
     const channel = context.getChannel();
     this.logger.log(`Received post event: ${channel}`);
 
-    void this.voteQueue.addVoteJob({
-      postId: event.data.postId,
+    void this.queuePublisher.add({
+      event: event.event,
+      data: {
+        postId: event.data.postId,
+      },
     });
+  }
+
+  @EventPattern("post.viewed")
+  async handlePostView(
+    @Payload() event: PostActionEvent,
+    @Ctx() context: RedisContext
+  ) {
+    const channel = context.getChannel();
+    this.logger.log(`Received post event: ${channel}`);
+
+    await this.postService.incrementViews(event.data.postId, event.data.userId);
   }
 }
