@@ -3,6 +3,7 @@ import { AchievementCriterion } from "../value-objects/AchievementCriterion";
 import { AchievementReward } from "../value-objects/AchievementReward";
 import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
+export const NEW_ENTITY_ID = -1;
 export class Achievement {
   public id: number;
 
@@ -24,6 +25,14 @@ export class Achievement {
     Object.assign(this, args);
 
     this.validate();
+  }
+
+  public setId(newId: number) {
+    if (this.id !== NEW_ENTITY_ID) {
+      throw new Error("Cannot set id from a existing Entity");
+    }
+
+    this.id = newId;
   }
 
   private validate(): void {

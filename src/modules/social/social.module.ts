@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
 import { SocialCoreModule } from "./core/social.module";
 import { FeedModule } from "./feed/feed.module";
+import { SocialGamificationModule } from "./gamification/social-gamification.module";
 
 @Module({
-  imports: [SocialCoreModule, FeedModule],
+  imports: [SocialCoreModule, FeedModule, SocialGamificationModule],
   controllers: [],
   providers: [],
   exports: [],

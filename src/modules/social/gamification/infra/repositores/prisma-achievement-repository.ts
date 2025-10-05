@@ -16,7 +16,9 @@ export class PrismaAchievementRepository implements AchievementsRepository {
   async add(achievement: Achievement): Promise<void> {
     try {
       const data = PrismaAchievementAssembler.toPrismaCreateInput(achievement);
-      await this.prisma.achievement.create({ data });
+      const created = await this.prisma.achievement.create({ data });
+
+      achievement.setId(created.id);
     } catch (error: unknown) {
       this.logger.error("Failed to add achievement", { error, achievement });
       throw error;
