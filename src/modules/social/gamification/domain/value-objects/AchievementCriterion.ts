@@ -13,7 +13,6 @@ export interface AchievementCriterionProps {
   operator: AchievementOperator;
   value: number;
   description?: string;
-  metadata?: Record<string, unknown>;
   version?: string;
 }
 
@@ -21,8 +20,8 @@ export class AchievementCriterion {
   public readonly type: AchievementCriterionType;
   public readonly operator: AchievementOperator;
   public readonly value: number;
-  public readonly description?: string;
-  public readonly metadata?: Record<string, unknown>;
+  public readonly description: string;
+  public readonly metadata: Record<string, unknown> | null;
   public readonly version: string;
 
   constructor({
@@ -40,14 +39,10 @@ export class AchievementCriterion {
     this.type = type;
     this.operator = operator;
     this.value = value;
-    this.description = description;
+    this.description = description || "";
     this.metadata = {};
     this.version = version;
   }
-
-  // ------------------------------
-  // Validation methods
-  // ------------------------------
 
   private validateType(type: string) {
     const allowedTypes: AchievementCriterionType[] = [
@@ -93,10 +88,6 @@ export class AchievementCriterion {
     }
   }
 
-  // ------------------------------
-  // Utility methods
-  // ------------------------------
-
   public toJSON() {
     return {
       type: this.type,
@@ -124,6 +115,46 @@ export class AchievementCriterion {
         return value !== this.value;
       default:
         return false;
+    }
+  }
+
+  public static fromJSON(
+    entry: Record<string, unknown> | string | null
+  ): AchievementCriterion | null {
+    if (!entry) return null;
+
+    try {
+      let parsed: AchievementCriterion;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        parsed = typeof entry === "string" ? JSON.parse(entry) : entry;
+      } catch (err) {
+        console.warn("Failed to parse JSON:", err);
+        throw new Error("Failed to parse JSON");
+      }
+
+      const requiredAttributes = ["type", "operator", "value", "description"];
+      let isValid = true;
+      for (const [key] of Object.entries(parsed)) {
+        if (!requiredAttributes.includes(key)) {
+          isValid = false;
+          break;
+        }
+      }
+      if (isValid)
+        throw new Error("Invalid criteria: Missing required attributes");
+
+      return new AchievementCriterion({
+        type: parsed.type,
+        operator: parsed.operator,
+        value: parsed.value,
+        description: parsed.description,
+      });
+    } catch (error: unknown) {
+      console.error("failed to instance Achievement Creterion from json", {
+        error,
+      });
+      return null;
     }
   }
 }

@@ -359,7 +359,7 @@ model Achievement {
   name                String
   description         String               @db.LongText
   imageSources        Json?                @map("image_sources")
-  imageThumbNailUrl   String?              @map("image_thumbnail_url")
+  imageThumbnailUrl   String?              @map("image_thumbnail_url")
   imageBlurHash       String?              @map("image_blur_hash")
   criteria            Json?
   rewards             Json?

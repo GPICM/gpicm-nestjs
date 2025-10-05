@@ -16,17 +16,33 @@ export class Achievement {
 
   public readonly imageSources: MediaSource | null;
 
-  public readonly imageThumbNailUrl: string;
+  public readonly imageThumbnailUrl: string | null;
 
-  public readonly imageBlurHash: string;
+  public readonly imageBlurHash: string | null;
 
   constructor(args: NonFunctionProperties<Achievement>) {
     Object.assign(this, args);
+
+    this.validate();
   }
 
-  public toJSON() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { criteria, ...rest } = this;
-    return { ...rest };
+  private validate(): void {
+    const hasCriteria =
+      Array.isArray(this.criteria) && this.criteria.length > 0;
+    const hasRewards = Array.isArray(this.rewards) && this.rewards.length > 0;
+
+    if (!hasCriteria || !hasRewards) {
+      throw new Error(
+        `Invalid Achievement: must have at least one criterion and one reward.`
+      );
+    }
+
+    if (!this.name?.trim()) {
+      throw new Error("Invalid Achievement: name is required.");
+    }
+
+    if (!this.description?.trim()) {
+      throw new Error("Invalid Achievement: description is required.");
+    }
   }
 }
