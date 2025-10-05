@@ -1,12 +1,10 @@
 /* eslint-disable prettier/prettier */
 
+import { BaseRepositoryFindManyFilters, BaseRepositoryFindManyResult } from "@/modules/social/core/domain/interfaces";
 import { Post } from "../../entities/Post";
 import { ViewerPost } from "../../entities/ViewerPost";
 import { PostSortBy } from "../../enum/OrderBy";
-import {
-  BaseRepositoryFindManyFilters,
-  BaseRepositoryFindManyResult,
-} from "../dto/base-repository-filters";
+
 
 export abstract class PostRepository {
   abstract add(
@@ -41,5 +39,3 @@ export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
   tags?: string[];
   authorId?: number;
 }
-
-export * from "../dto/base-repository-filters";

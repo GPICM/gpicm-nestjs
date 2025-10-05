@@ -1,16 +1,18 @@
+import { Prisma } from "@prisma/client";
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
+
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostComment } from "../domain/entities/PostComment";
-import {
-  BaseRepositoryFindManyFilters,
-  BaseRepositoryFindManyResult,
-} from "../domain/interfaces/dto/base-repository-filters";
-import { Prisma } from "@prisma/client";
+
 import {
   PostCommentAssembler,
   postCommentInclude,
 } from "./mappers/post-comment.assembler";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "../../core/domain/interfaces";
 
 @Injectable()
 export class PrismaPostCommentRepository implements PostCommentRepository {

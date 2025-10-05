@@ -11,7 +11,7 @@ import {
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
-} from "../domain/interfaces/dto/base-repository-filters";
+} from "../../core/domain/interfaces/dto/base-repository-filters";
 
 @Injectable()
 export class PrismaPostVotesRepository implements PostVotesRepository {
@@ -114,8 +114,7 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
 
   public async listAllByPostId(
     postId: number,
-    filters: BaseRepositoryFindManyFilters,
-    userId?: number
+    filters: BaseRepositoryFindManyFilters
   ): Promise<BaseRepositoryFindManyResult<PostVote>> {
     try {
       const skip = filters.offset;

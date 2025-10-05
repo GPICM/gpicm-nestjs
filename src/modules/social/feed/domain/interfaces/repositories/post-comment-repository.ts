@@ -1,8 +1,9 @@
-import { PostComment } from "../../entities/PostComment";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
-} from "../dto/base-repository-filters";
+} from "@/modules/social/core/domain/interfaces";
+
+import { PostComment } from "../../entities/PostComment";
 
 export abstract class PostCommentRepository {
   abstract add(comment: PostComment): Promise<void>;

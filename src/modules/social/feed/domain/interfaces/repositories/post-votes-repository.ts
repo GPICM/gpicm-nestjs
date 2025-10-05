@@ -1,8 +1,9 @@
-import { PostVote } from "../../entities/PostVote";
 import {
   BaseRepositoryFindManyFilters,
   BaseRepositoryFindManyResult,
-} from "../dto/base-repository-filters";
+} from "@/modules/social/core/domain/interfaces";
+
+import { PostVote } from "../../entities/PostVote";
 
 export abstract class PostVotesRepository {
   abstract add(postVote: PostVote): Promise<void>;
