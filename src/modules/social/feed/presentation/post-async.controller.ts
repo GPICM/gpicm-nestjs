@@ -37,6 +37,22 @@ export class PostAsyncController {
     });
   }
 
+  @EventPattern("post.commented")
+  handlePostComment(
+    @Payload() event: PostActionEvent,
+    @Ctx() context: RedisContext
+  ) {
+    const channel = context.getChannel();
+    this.logger.log(`Received post event: ${channel}`);
+
+    void this.queuePublisher.add({
+      event: event.event,
+      data: {
+        postId: event.data.postId,
+      },
+    });
+  }
+
   @EventPattern("post.viewed")
   async handlePostView(
     @Payload() event: PostActionEvent,

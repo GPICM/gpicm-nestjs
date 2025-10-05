@@ -17,7 +17,6 @@ export class PostCommentsService {
   constructor(
     private readonly postCommentRepository: PostCommentRepository,
     private readonly postRepository: PostRepository,
-    // private readonly commentsQueue: CommentsQueue,
     @Inject(EventPublisher)
     private readonly eventPublisher: EventPublisher
   ) {}
@@ -26,8 +25,6 @@ export class PostCommentsService {
     profile: Profile,
     postUuid: string,
     body: CreatePostCommentDto,
-
-    // TODO: REMOVE LATTER
     user: User
   ): Promise<void> {
     if (CurseWordsFilterService.containsCurseWords(body.content)) {
@@ -51,14 +48,13 @@ export class PostCommentsService {
 
     await this.eventPublisher.publish<PostActionEvent>({
       event: "post.commented",
-      data: { postId: post.id, profileId: profile.id },
+      data: {
+        postId: post.id,
+        profileId: profile.id,
+        userId: profile.userId,
+        metadata: { commentId: comment.id },
+      },
     });
-
-    // TODO remove this
-    /* await this.commentsQueue.addCommentJob({
-      postId: post.id,
-      commentParentId: body.parentCommentId,
-    }); */
   }
 
   async updateComment(
@@ -100,14 +96,14 @@ export class PostCommentsService {
 
     await this.postCommentRepository.delete(commentId);
 
-    /*  await this.commentsQueue.addCommentJob({
-      postId: comment.postId,
-      commentParentId: comment.parentCommentId || undefined,
-    }); */
-
     await this.eventPublisher.publish<PostActionEvent>({
       event: "post.uncommented",
-      data: { profileId: profile.id, postId: comment.postId },
+      data: {
+        profileId: profile.id,
+        postId: comment.postId,
+        userId: profile.userId,
+        metadata: { commentId: comment.id },
+      },
     });
   }
 }

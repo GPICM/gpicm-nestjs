@@ -14,5 +14,6 @@ export type PostActionEvent = EventContract<
     postId: number;
     userId: number;
     profileId?: number;
+    metadata?: Record<string, unknown>;
   }
 >;

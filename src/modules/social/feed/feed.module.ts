@@ -14,9 +14,6 @@ import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-reposit
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
 import { CurseWordsFilterService } from "./application/curse-words-filter.service";
 import { PostCommentsService } from "./application/post-comment.service";
-import { CommentsQueue } from "./domain/interfaces/queues/comments-queue";
-import { BullMqCommentsQueueAdapter } from "./infra/bull-mq-comments-queue-adapter";
-import { PostCommentsProcessor } from "./application/ post-comments.processor";
 import { SharedModule } from "@/modules/shared/shared.module";
 import { IdentityModule } from "@/modules/identity/identity.module";
 import { IncidentsModule } from "@/modules/incidents/incidents.module";
@@ -38,18 +35,13 @@ import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher"
   imports: [
     SocialCoreModule,
     BullModule.registerQueue({ name: SOCIAL_POSTS_EVENTS_QUEUE_NAME }),
-    BullModule.registerQueue({
-      name: "comments-events",
-    }),
     SharedModule,
     IncidentsModule,
     IdentityModule,
   ],
   providers: [
-    PostCommentsProcessor,
     PostScoreProcessor,
     PostMediaService,
-    { provide: CommentsQueue, useClass: BullMqCommentsQueueAdapter },
     {
       provide: PostRepository,
       useClass: PrismaPostRepository,

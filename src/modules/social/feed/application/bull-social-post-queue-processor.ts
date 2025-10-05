@@ -8,6 +8,7 @@ import {
   SocialPostEventsQueueDto,
 } from "../domain/interfaces/queues/social-post-events-queue";
 import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
+import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 
 type PostMetric = "score" | "comments";
 
@@ -36,6 +37,7 @@ export class PostScoreProcessor extends BullQueueWorker<
 
   constructor(
     private readonly postVotesRepository: PostVotesRepository,
+    private readonly postCommentsRepository: PostCommentRepository,
     private readonly redisLockService: RedisLockService
   ) {
     super();
@@ -53,7 +55,6 @@ export class PostScoreProcessor extends BullQueueWorker<
     this.postsToUpdate.clear();
 
     for (const [postId, state] of entries) {
-      // Acquire Redis lock to prevent concurrent updates
       const lock = await this.redisLockService.acquireLock(
         `Post:${postId}`,
         1000
@@ -64,7 +65,7 @@ export class PostScoreProcessor extends BullQueueWorker<
         const metricsToUpdate = Array.from(state.metrics);
 
         if (metricsToUpdate.includes("comments")) {
-          console.log("Should comp[uted comments ehre");
+          await this.postCommentsRepository.refreshPostCommentsCount(postId);
         }
 
         if (metricsToUpdate.includes("score")) {
