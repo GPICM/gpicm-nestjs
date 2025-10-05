@@ -232,18 +232,16 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  public async incrementViews(post: Post): Promise<void> {
+  public async incrementViews(postId: number): Promise<void> {
     try {
-      this.logger.log(
-        `Updating post view with ID: ${post.id}, Title: ${post.title}`
-      );
+      this.logger.log(`Updating post view with ID: ${postId}`);
 
       await this.prisma.post.update({
-        where: { id: post.id! },
+        where: { id: postId },
         data: { views: { increment: 1 } },
       });
 
-      this.logger.log(`Post views incremented successfully for ID: ${post.id}`);
+      this.logger.log(`Post views incremented successfully for ID: ${postId}`);
     } catch (error: unknown) {
       console.log(error);
       this.logger.error("Failed to list posts", { error });

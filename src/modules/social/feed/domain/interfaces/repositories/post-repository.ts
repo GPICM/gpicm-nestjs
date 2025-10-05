@@ -21,7 +21,7 @@ export abstract class PostRepository {
 
   abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
 
-  abstract incrementViews(post: Post): Promise<void>;
+  abstract incrementViews(postId: number): Promise<void>;
 
   abstract listAll(
     filters: PostFindManyFilters,
@@ -29,7 +29,6 @@ export abstract class PostRepository {
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 
   abstract delete(post: Post): Promise<void>;
-  
 }
 
 export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
