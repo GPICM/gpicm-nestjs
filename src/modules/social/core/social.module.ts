@@ -7,7 +7,7 @@ import {
 } from "@/modules/social/core/domain/interfaces/repositories/profile-repository";
 import { AchievementsRepository } from "@/modules/social/gamification/domain/interfaces/repositories/achievements-repository";
 import { PrismaAchievementRepository } from "@/modules/social/gamification/infra/repositores/prisma-achievement-repository";
-import { AchievementService } from "./application/achievement.service";
+import { AchievementService } from "../gamification/application/achievement.service";
 import { SocialController } from "./presentation/social.controller";
 import { PrismaProfileFollowRepository } from "./infra/repositories/prisma/prisma-profile-follow-repository";
 import { SocialQueueModule } from "./social-queue.module";

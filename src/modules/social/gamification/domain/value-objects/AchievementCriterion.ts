@@ -1,4 +1,11 @@
-export type AchievementOperator = ">=" | ">" | "<=" | "<" | "==" | "!=";
+export enum AchievementOperator {
+  Gte = ">=",
+  Gt = ">",
+  Lte = "<=",
+  Lt = "<",
+  Eq = "==",
+  Ne = "!=",
+}
 
 export type AchievementCriterionType =
   | "POSTS_COUNT"
@@ -60,12 +67,12 @@ export class AchievementCriterion {
 
   private validateOperator(operator: string) {
     const allowedOperators: AchievementOperator[] = [
-      ">=",
-      ">",
-      "<=",
-      "<",
-      "==",
-      "!=",
+      AchievementOperator.Gte,
+      AchievementOperator.Gt,
+      AchievementOperator.Lte,
+      AchievementOperator.Lt,
+      AchievementOperator.Eq,
+      AchievementOperator.Ne,
     ];
     if (!allowedOperators.includes(operator as AchievementOperator)) {
       throw new Error(`Invalid AchievementCriterion operator: ${operator}`);
@@ -101,17 +108,17 @@ export class AchievementCriterion {
 
   public matches(value: number): boolean {
     switch (this.operator) {
-      case ">=":
+      case AchievementOperator.Gte:
         return value >= this.value;
-      case ">":
+      case AchievementOperator.Gt:
         return value > this.value;
-      case "<=":
+      case AchievementOperator.Lte:
         return value <= this.value;
-      case "<":
+      case AchievementOperator.Lt:
         return value < this.value;
-      case "==":
+      case AchievementOperator.Eq:
         return value === this.value;
-      case "!=":
+      case AchievementOperator.Ne:
         return value !== this.value;
       default:
         return false;

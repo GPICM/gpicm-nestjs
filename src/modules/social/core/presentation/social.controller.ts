@@ -2,7 +2,6 @@ import {
   Get,
   Param,
   Post,
-  Body,
   Logger,
   UseGuards,
   Controller,
@@ -10,7 +9,6 @@ import {
 
 import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 
-import { AchievementService } from "../application/achievement.service";
 import { ProfileService } from "../application/profile.service";
 import { SocialProfileGuard } from "../infra/guards/SocialProfileGuard";
 import { Profile } from "../domain/entities/Profile";
@@ -21,20 +19,7 @@ import { CurrentProfile } from "../infra/decorators/profile.decorator";
 export class SocialController {
   private readonly logger = new Logger(SocialController.name);
 
-  constructor(
-    private readonly achievementService: AchievementService,
-    private readonly profileService: ProfileService
-  ) {}
-
-  @Post("/achievements")
-  async createAchievement(@Body() body: any) {
-    return this.achievementService.create(body);
-  }
-
-  @Get("/achievements/:id")
-  async getAchievement(@Param("id") id: number) {
-    return this.achievementService.findById(id);
-  }
+  constructor(private readonly profileService: ProfileService) {}
 
   @Post("/follow/:handle")
   async followUser(
