@@ -112,6 +112,13 @@ export class ProfileService {
     return { success: true, message: "User unfollowed successfully" };
   }
 
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    return await this.profileFollowRepository.isFollowing(
+      followerId,
+      followingId
+    );
+  }
+
   async getFollowers(
     profileId: number,
     limit = 10,
