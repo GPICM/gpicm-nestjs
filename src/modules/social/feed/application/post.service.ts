@@ -14,10 +14,10 @@ import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events/application-event-publisher";
 import { Profile } from "../../core/domain/entities/Profile";
-import { PostActionEvent } from "../../core/domain/interfaces/events";
 import { PostFactory } from "../domain/factories/PostFactory";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { RateLimitService } from "@/modules/shared/application/rate-limite-service";
+import { PostEvent } from "../../core/domain/interfaces/events";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -85,10 +85,9 @@ export class PostServices {
         }
       );
 
-      await this.eventPublisher.publish<PostActionEvent>({
-        event: "post.created",
-        data: { postId: post.id!, profileId: profile.id, userId: user.id },
-      });
+      await this.eventPublisher.publish(
+        new PostEvent("post.created", user.id, post, profile.id)
+      );
 
       this.logger.log("post created successfully", { post });
       return post;
@@ -156,10 +155,9 @@ export class PostServices {
         );
       });
 
-      await this.eventPublisher.publish<PostActionEvent>({
-        event: "post.voted",
-        data: { postId: post.id!, profileId: profile.id, userId: user.id },
-      });
+      await this.eventPublisher.publish(
+        new PostEvent("post.voted", userId, post, profile.id)
+      );
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
@@ -179,15 +177,16 @@ export class PostServices {
     user: User,
     profile?: Profile
   ): Promise<ViewerPost | null> {
+    const userId = user.id;
+
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
     const post = await this.postRepository.findBySlug(postSlug, user.id);
 
     if (!post) return null;
 
-    await this.eventPublisher.publish<PostActionEvent>({
-      event: "post.viewed",
-      data: { postId: post.id!, profileId: profile?.id, userId: user.id },
-    });
+    await this.eventPublisher.publish(
+      new PostEvent("post.viewed", userId, post, profile?.id)
+    );
 
     return post;
   }

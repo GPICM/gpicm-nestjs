@@ -6,14 +6,8 @@ import {
   RedisContext,
 } from "@nestjs/microservices";
 
-import {
-  SocialProfileEvent,
-  SocialProfileEventsQueuePublisher,
-} from "./domain/queues/social-profile-events-queue";
-import {
-  PostActionEvent,
-  ProfileFollowingEvent,
-} from "../core/domain/interfaces/events";
+import { SocialProfileEventsQueuePublisher } from "./domain/queues/social-profile-events-queue";
+import { ProfileEvent } from "../core/domain/interfaces/events";
 
 @Controller()
 export class SocialProfileAsyncController {
@@ -25,16 +19,18 @@ export class SocialProfileAsyncController {
   ];
 
   private readonly expectedProfileEvents = [
+    "profile.created",
     "profile.followed",
     "profile.unfollowed",
   ];
+
   constructor(
     @Inject(SocialProfileEventsQueuePublisher)
     private readonly queuePublisher: SocialProfileEventsQueuePublisher
   ) {}
 
   @EventPattern("post.*")
-  handlePost(@Payload() event: PostActionEvent, @Ctx() context: RedisContext) {
+  handlePost(@Payload() event: ProfileEvent, @Ctx() context: RedisContext) {
     const channel = context.getChannel();
 
     if (!this.expectedPostEvents.includes(channel)) {
@@ -46,17 +42,14 @@ export class SocialProfileAsyncController {
 
     if (event.data.profileId) {
       void this.queuePublisher.add({
-        event: event.event as SocialProfileEvent,
+        event: event.name,
         data: { profileId: event.data.profileId },
       });
     }
   }
 
   @EventPattern("profile.*")
-  handleProfile(
-    @Payload() event: ProfileFollowingEvent,
-    @Ctx() context: RedisContext
-  ) {
+  handleProfile(@Payload() event: ProfileEvent, @Ctx() context: RedisContext) {
     const channel = context.getChannel();
 
     if (!this.expectedProfileEvents.includes(channel)) {
@@ -67,7 +60,7 @@ export class SocialProfileAsyncController {
     this.logger.log(`Received profile event: ${channel}`);
 
     void this.queuePublisher.add({
-      event: event.event,
+      event: event.name,
       data: {
         profileId: event.data.profileId,
         targetProfileId: event.data.targetProfileId,

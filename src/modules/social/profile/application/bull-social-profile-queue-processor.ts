@@ -7,8 +7,8 @@ import { BullQueueWorker } from "@/modules/shared/infra/bull-queue-worker";
 import { ProfileRepository } from "../../core/domain/interfaces/repositories/profile-repository";
 import {
   SOCIAL_PROFILE_EVENTS_QUEUE_NAME,
-  SocialProfileEvent,
   SocialProfileEventsQueueDto,
+  SocialProfileQueueEvent,
 } from "../domain/queues/social-profile-events-queue";
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
 import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
@@ -19,19 +19,24 @@ type ProfileUpdateState = {
   metrics: Set<ProfileMetric>;
 };
 
-const eventMetricsMap: Record<SocialProfileEvent, ProfileMetric[]> = {
+const eventMetricsMap: Record<SocialProfileQueueEvent, ProfileMetric[]> = {
   "profile.followed": ["followers"],
   "profile.unfollowed": ["followers"],
-  "post.commented": ["comments"],
-  "post.uncommented": ["comments"],
+  "post-comment.created": ["comments"],
   "post.created": ["posts"],
+  "profile.created": [],
+  "post.viewed": [],
+  "post.voted": [],
+  "post-comment.updated": [],
+  "post-comment.removed": [],
+  "post-comment.replied": [],
 };
 
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
   limiter: { max: 10, duration: 1000 },
 })
 export class BullSocialProfileProcessor extends BullQueueWorker<
-  SocialProfileEvent,
+  SocialProfileQueueEvent,
   SocialProfileEventsQueueDto
 > {
   private profileUpdateState = new Map<number, ProfileUpdateState>();
@@ -112,7 +117,7 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
     event,
     data,
   }: AppQueueEvent<
-    SocialProfileEvent,
+    SocialProfileQueueEvent,
     SocialProfileEventsQueueDto
   >): Promise<void> {
     const metricsToUpdate = eventMetricsMap[event] ?? [];

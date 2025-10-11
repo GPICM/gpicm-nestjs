@@ -10,7 +10,7 @@ import { UserShallow } from "../domain/entities/UserShallow";
 import { PostComment } from "../domain/entities/PostComment";
 import { Profile } from "../../core/domain/entities/Profile";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
-import { PostActionEvent } from "../../core/domain/interfaces/events";
+import { PostCommentEvent } from "../../core/domain/interfaces/events";
 
 @Injectable()
 export class PostCommentsService {
@@ -46,15 +46,9 @@ export class PostCommentsService {
 
     await this.postCommentRepository.add(comment);
 
-    await this.eventPublisher.publish<PostActionEvent>({
-      event: "post.commented",
-      data: {
-        postId: post.id,
-        profileId: profile.id,
-        userId: profile.userId,
-        metadata: { commentId: comment.id },
-      },
-    });
+    await this.eventPublisher.publish(
+      new PostCommentEvent("post-comment.created", comment, profile)
+    );
   }
 
   async updateComment(
@@ -78,8 +72,11 @@ export class PostCommentsService {
     }
 
     comment.setContent(content);
+    await this.postCommentRepository.update(comment);
 
-    return this.postCommentRepository.update(comment);
+    await this.eventPublisher.publish(
+      new PostCommentEvent("post-comment.updated", comment, profile)
+    );
   }
 
   async deleteComment(profile: Profile, commentId: number): Promise<void> {
@@ -96,14 +93,8 @@ export class PostCommentsService {
 
     await this.postCommentRepository.delete(commentId);
 
-    await this.eventPublisher.publish<PostActionEvent>({
-      event: "post.uncommented",
-      data: {
-        profileId: profile.id,
-        postId: comment.postId,
-        userId: profile.userId,
-        metadata: { commentId: comment.id },
-      },
-    });
+    await this.eventPublisher.publish(
+      new PostCommentEvent("post-comment.removed", comment, profile)
+    );
   }
 }

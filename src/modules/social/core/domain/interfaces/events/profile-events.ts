@@ -1,15 +1,27 @@
-import { EventContract } from "@/modules/shared/domain/interfaces/events";
+import { EventBusEnvelope } from "@/modules/shared/domain/interfaces/events";
+import { Profile } from "../../entities/Profile";
 
-/* Event to be trigger when the user follows/unfollow someone */
-
-export type ProfileFollowingEventName =
+export type SocialProfileEventName =
+  | "profile.created"
   | "profile.followed"
   | "profile.unfollowed";
 
-export type ProfileFollowingEvent = EventContract<
-  ProfileFollowingEventName,
+export class ProfileEvent extends EventBusEnvelope<
+  SocialProfileEventName,
   {
     profileId: number;
-    targetProfileId: number;
+    targetProfileId?: number;
   }
->;
+> {
+  constructor(
+    name: SocialProfileEventName,
+    profile: Profile,
+    targetProfile?: Profile
+  ) {
+    super(
+      name,
+      { profileId: profile.id, targetProfileId: targetProfile?.id },
+      { targetProfile, profile }
+    );
+  }
+}

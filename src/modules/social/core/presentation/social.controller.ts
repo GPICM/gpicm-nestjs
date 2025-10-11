@@ -26,7 +26,7 @@ export class SocialController {
     @Param("handle") handle: string,
     @CurrentProfile() profile: Profile
   ) {
-    return await this.profileService.followUser(profile.id, handle);
+    return await this.profileService.followUser(profile, handle);
   }
 
   @Post("/unfollow/:handle")
@@ -34,7 +34,7 @@ export class SocialController {
     @Param("handle") handle: string,
     @CurrentProfile() profile: Profile
   ) {
-    return await this.profileService.unfollowUser(profile.id, handle);
+    return await this.profileService.unfollowUser(profile, handle);
   }
 
   @Get("/followers/:id")
