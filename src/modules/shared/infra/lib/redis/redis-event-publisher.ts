@@ -1,6 +1,6 @@
 import {
   EventPublisher,
-  EventContract,
+  EventBusEnvelope,
 } from "@/modules/shared/domain/interfaces/events";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
@@ -22,10 +22,10 @@ export class RedisEventPublisher implements EventPublisher {
     return Promise.resolve();
   }
 
-  public async publish<T extends EventContract<string, any>>(
+  public async publish<T extends EventBusEnvelope<string, any>>(
     event: T
   ): Promise<void> {
-    await this._publish(event.event, event);
+    await this._publish(event.name, event);
   }
 
   async onModuleDestroy() {

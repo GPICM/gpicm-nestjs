@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
-  EventContract,
+  EventBusEnvelope,
   EventSubscriber,
 } from "@/modules/shared/domain/interfaces/events";
 import Redis from "ioredis";
 
-type EventHandler<T extends EventContract<string, any>> = (
+type EventHandler<T extends EventBusEnvelope<string, any>> = (
   event: T
 ) => void | Promise<void>;
 
@@ -25,7 +25,7 @@ export class RedisEventSubscriber implements EventSubscriber {
     );
   }
 
-  public async subscribe<T extends EventContract<string, any>>(
+  public async subscribe<T extends EventBusEnvelope<string, any>>(
     eventName: string,
     handler: EventHandler<T>
   ) {
