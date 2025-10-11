@@ -1,14 +1,17 @@
 import { Processor } from "@nestjs/bullmq";
-import { PostVotesRepository } from "../domain/interfaces/repositories/post-votes-repository";
+
 import { BullQueueWorker } from "@/modules/shared/infra/bull-queue-worker";
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
+
+import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
+
+import { PostVotesRepository } from "../../domain/interfaces/repositories/post-votes-repository";
+import { PostCommentRepository } from "../../domain/interfaces/repositories/post-comment-repository";
 import {
   SOCIAL_POSTS_EVENTS_QUEUE_NAME,
-  SocialPostEvent,
+  SocialPostQueueEvent,
   SocialPostEventsQueueDto,
-} from "../domain/interfaces/queues/social-post-events-queue";
-import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
-import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
+} from "../../domain/interfaces/queues/social-post-events-queue";
 
 type PostMetric = "score" | "comments";
 
@@ -16,10 +19,13 @@ type PostUpdateState = {
   metrics: Set<PostMetric>;
 };
 
-const eventMetricsMap: Record<SocialPostEvent, PostMetric[]> = {
+const eventMetricsMap: Record<SocialPostQueueEvent, PostMetric[]> = {
+  "post-comment.created": ["score", "comments"],
+  "post-comment.removed": ["score", "comments"],
   "post.voted": ["score"],
-  "post.commented": ["score", "comments"],
-  "post.uncommented": ["score", "comments"],
+  // TODO: IMPLEMENT
+  "post-comment.updated": [],
+  "post-comment.replied": [],
   "post.created": [],
   "post.viewed": [],
 };
@@ -28,7 +34,7 @@ const eventMetricsMap: Record<SocialPostEvent, PostMetric[]> = {
   limiter: { max: 10, duration: 1000 },
 })
 export class PostScoreProcessor extends BullQueueWorker<
-  SocialPostEvent,
+  SocialPostQueueEvent,
   SocialPostEventsQueueDto
 > {
   private postsToUpdate = new Map<number, PostUpdateState>();
@@ -101,7 +107,7 @@ export class PostScoreProcessor extends BullQueueWorker<
   async handle({
     event,
     data,
-  }: AppQueueEvent<SocialPostEvent, SocialPostEventsQueueDto>) {
+  }: AppQueueEvent<SocialPostQueueEvent, SocialPostEventsQueueDto>) {
     const metrics = eventMetricsMap[event] ?? [];
     if (metrics.length > 0) {
       this.schedulePostUpdate(data.postId, metrics);
