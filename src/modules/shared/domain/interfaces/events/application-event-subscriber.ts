@@ -1,7 +1,7 @@
-import { EventContract } from "./application-event-types";
+import { EventBusEnvelope } from "./event-bus-envelope";
 
 export abstract class EventSubscriber {
-  abstract subscribe<T extends EventContract<string, any>>(
+  abstract subscribe<T extends EventBusEnvelope<string, any>>(
     eventName: string,
     handler: (event: T) => void | Promise<void>
   ): Promise<void>;
@@ -9,7 +9,7 @@ export abstract class EventSubscriber {
   abstract subscribeMany(
     events: Record<
       string,
-      (event: EventContract<string, any>) => void | Promise<void>
+      (event: EventBusEnvelope<string, any>) => void | Promise<void>
     >
   ): Promise<void>;
 }
