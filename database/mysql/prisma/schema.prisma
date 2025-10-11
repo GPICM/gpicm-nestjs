@@ -34,9 +34,6 @@ model User {
   UserLogs           UserLog[]
   UserAgreements     UserPolicyAgreement[]
   Incidents          Incident[]
-  Posts              Post[]
-  PostVotes          PostVote[]
-  Comments           PostComment[]
   Medias             Media[]
   Profile            Profile?
 
@@ -230,7 +227,7 @@ model Post {
   updatedAt         DateTime              @updatedAt @map("updated_at")
   deletedAt         DateTime?             @map("deleted_at")
 
-  Author    User          @relation(fields: [authorId], references: [id])
+  Author    Profile       @relation(fields: [authorId], references: [id])
   Incident  Incident?     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   Votes     PostVote[]
   Comments  PostComment[]
@@ -282,15 +279,15 @@ model PartnerApiKey {
 
 model PostVote {
   postId    Int      @map("post_id")
-  userId    Int      @map("user_id")
+  profileId Int      @map("profile_id")
   value     Int
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  Post Post @relation(fields: [postId], references: [id])
-  User User @relation(fields: [userId], references: [id])
+  Post    Post    @relation(fields: [postId], references: [id])
+  Profile Profile @relation(fields: [profileId], references: [id])
 
-  @@id([postId, userId])
+  @@id([postId, profileId])
   @@map("post_votes")
 }
 
@@ -344,11 +341,15 @@ model Profile {
   followingCount Int      @default(0) @map("following_count")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
+  reputation     Int?
 
   Follows      ProfileFollow[]      @relation("FollowerRelation")
   Followed     ProfileFollow[]      @relation("FollowingRelation")
   Achievements ProfileAchievement[] @relation("ProfileAchievements")
   User         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Post         Post[]
+  PostVote     PostVote[]
+  PostComment  PostComment[]
 
   @@index([userId])
   @@map("profiles")
@@ -402,7 +403,7 @@ model ProfileFollow {
 model PostComment {
   id           Int       @id @default(autoincrement())
   postId       Int       @map("post_id")
-  userId       Int       @map("user_id")
+  profileId    Int       @map("profile_id")
   content      String    @db.LongText
   parentId     Int?      @map("parent_id")
   repliesCount Int       @default(0) @map("replies_count")
@@ -410,7 +411,7 @@ model PostComment {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
   Post         Post      @relation(fields: [postId], references: [id])
-  User         User      @relation(fields: [userId], references: [id])
+  Profile      Profile   @relation(fields: [profileId], references: [id])
 
   ParentComment PostComment?  @relation("parent-comment", fields: [parentId], references: [id])
   Replies       PostComment[] @relation("parent-comment")
