@@ -79,7 +79,7 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
         suspendedCount,
       ] = await Promise.all([
         this.prisma.user.count({}),
-        this.prisma.user.count({ where: { status: "PENDING_PROFILE" } }),
+        this.prisma.user.count({ where: { status: "PENDING" } }),
         this.prisma.user.count({ where: { status: "GUEST" } }),
         this.prisma.user.count({ where: { status: "ACTIVE" } }),
         this.prisma.user.count({ where: { role: "ADMIN" } }),

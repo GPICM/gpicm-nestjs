@@ -94,7 +94,7 @@ export class AdminUsersController {
     }
 
     const profile = await this.findProfile.execute(user);
-    if (profile) {
+    if (!profile) {
       throw new ForbiddenException(
         "User cannot be activated without a profile"
       );

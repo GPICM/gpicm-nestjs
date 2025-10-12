@@ -33,7 +33,6 @@ import { ListPostCommentsDto } from "../presentation/dtos/list-post-comments.dto
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { PostCommentsService } from "../application/post-comment.service";
 import { PostSortBy } from "../domain/enum/OrderBy";
-import { UsersRepository } from "@/modules/identity/core/domain/interfaces/repositories/users-repository";
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { Profile } from "../../core/domain/entities/Profile";
@@ -45,7 +44,6 @@ export class PostController {
   private readonly logger: Logger = new Logger(PostController.name);
 
   constructor(
-    private readonly userRepository: UsersRepository,
     private readonly postRepository: PostRepository,
     private readonly postMedias: PostMediaService,
     private readonly postService: PostServices,
