@@ -19,10 +19,11 @@ import { PrismaUserCredentialsRepository } from "./infra/prisma-user-credentials
 import { UserVerificationRepository } from "./domain/interfaces/repositories/user-verification-repository";
 import { PrismaUserVerificationRepository } from "./infra/prisma-user-verification-repository";
 import { IdentityCoreModule } from "../core/identity-core.module";
+import { ExternalProfileModule } from "@/modules/social/core/external-profile.module";
 
 @Global()
 @Module({
-  imports: [IdentityCoreModule],
+  imports: [IdentityCoreModule, ExternalProfileModule],
   controllers: [
     UserController,
     GuestAuthController,

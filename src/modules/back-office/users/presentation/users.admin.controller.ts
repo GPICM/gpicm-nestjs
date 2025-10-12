@@ -5,7 +5,6 @@ import {
   Controller,
   Query,
   Inject,
-  Post,
   Param,
   NotFoundException,
   ForbiddenException,
@@ -18,7 +17,6 @@ import { AdminGuard } from "@/modules/identity/auth/presentation/meta/guards/adm
 import { UsersAdminRepository } from "../domain/interfaces/users-repository";
 import { ListUsersAdminQueryDto } from "./dtos/list-users.admin.dto";
 import { PaginatedResponse } from "@/modules/shared/domain/protocols/pagination-response";
-import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
 import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
 import { FindProfileByUserUseCase } from "@/modules/social/core/application/find-profile-by-user.usecase";
 import { UserService } from "@/modules/identity/auth/application/user/user.service";
@@ -31,7 +29,6 @@ export class AdminUsersController {
   constructor(
     @Inject(UsersAdminRepository)
     private readonly usersRepository: UsersAdminRepository,
-    private readonly createProfile: CreateProfileUseCase,
     private readonly findProfile: FindProfileByUserUseCase,
     private readonly userService: UserService
   ) {}
@@ -59,25 +56,6 @@ export class AdminUsersController {
   async getUsersCountSummary() {
     this.logger.log("Fetching users count summary");
     return this.usersRepository.getCountSummary();
-  }
-
-  @Post("/:userId/profile")
-  async createUserProfile(@Param("userId") userId: number) {
-    this.logger.log("Creating new pofile", { userId });
-
-    const user = await this.userService.findById(userId);
-    if (!user) throw new NotFoundException();
-
-    if (user.status !== UserStatus.PENDING_PROFILE) {
-      throw new ForbiddenException("Perfil de usuario nao pode ser gerado");
-    }
-
-    await this.createProfile.execute(user);
-
-    user.setStatus(UserStatus.ACTIVE);
-    await this.userService.updateStatus(user);
-
-    return { message: "success." };
   }
 
   @Put("/:userId/ban")
@@ -111,13 +89,18 @@ export class AdminUsersController {
       throw new ForbiddenException("User is already active");
     }
 
-    // todo: o correto deve ser: se ele em credentials e nao tiver perfil enta ele eh um guest, e se ele tiver credencials e nao tiver pefil, entao ele en PENDING_PROFILE
+    if (user.status === UserStatus.GUEST) {
+      throw new ForbiddenException("Cannot active a guest");
+    }
+
     const profile = await this.findProfile.execute(user);
     if (profile) {
-      user.setStatus(UserStatus.ACTIVE);
-    } else {
-      user.setStatus(UserStatus.GUEST);
+      throw new ForbiddenException(
+        "User cannot be activated without a profile"
+      );
     }
+
+    user.setStatus(UserStatus.ACTIVE);
     await this.userService.updateStatus(user);
 
     return { message: "success." };

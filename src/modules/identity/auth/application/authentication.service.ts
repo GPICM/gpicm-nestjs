@@ -17,6 +17,7 @@ import { UserCredential } from "../domain/entities/UserCredential";
 import { UserVerificationService } from "./user/user-verification.service";
 import { UserStatus } from "../../core/domain/enums/user-status";
 import { UserCredentialsRepository } from "../domain/interfaces/repositories/user-credentials-repository";
+import { CreateProfileUseCase } from "@/modules/social/core/application/create-profile.usecase";
 
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
@@ -28,7 +29,8 @@ export class AuthenticationService {
     private readonly logUserAction: LogUserAction,
     private readonly encryptor: Encryptor<UserJWTpayload>,
     private readonly prismaService: PrismaService,
-    private readonly userVerificationService: UserVerificationService
+    private readonly userVerificationService: UserVerificationService,
+    private readonly createProfile: CreateProfileUseCase
   ) {}
 
   public async signUp(params: {
@@ -63,18 +65,20 @@ export class AuthenticationService {
         );
       }
 
-      const emailPasswordCredential =
-        UserCredential.CreateEmailPasswordCredential(email, password);
+      const credentials = UserCredential.CreateEmailPasswordCredential(
+        email,
+        password
+      );
 
       let newUser: User | null = null;
       if (guestUser) {
         guestUser.setName(name);
         guestUser.setRole(UserRoles.USER);
-        guestUser.setStatus(UserStatus.PENDING_PROFILE);
-        guestUser.addCredentials(emailPasswordCredential);
+        guestUser.setStatus(UserStatus.PENDING);
+        guestUser.addCredentials(credentials);
       } else {
-        newUser = User.Create(name, emailPasswordCredential);
-        newUser.setStatus(UserStatus.PENDING_PROFILE);
+        newUser = User.Create(name, credentials);
+        newUser.setStatus(UserStatus.PENDING);
       }
 
       let userId: number;
@@ -82,17 +86,20 @@ export class AuthenticationService {
         if (newUser) {
           userId = await this.usersRepository.add(newUser, tx);
           newUser.setId(userId);
-          emailPasswordCredential.setUserId(userId);
+          credentials.setUserId(userId);
+
+          await this.createProfile.execute(newUser, { txContext: tx });
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
+
+          await this.createProfile.execute(guestUser, { txContext: tx });
         }
-        await this.userCredentialsRepository.add(emailPasswordCredential, tx);
+
+        await this.userCredentialsRepository.add(credentials, tx);
       });
 
-      await this.userVerificationService.startUserVerification(
-        emailPasswordCredential
-      );
+      await this.userVerificationService.startUserVerification(credentials);
 
       await this.logUserAction.execute(userId!, "SIGNUP");
       const accessToken = this.encryptor.generateToken({
