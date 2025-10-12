@@ -6,6 +6,8 @@ import { CreateAchievementUseCase } from "./application/create-achievement-useca
 import { SocialGamificationAdminController } from "./presentation/social-gamification.admin.controller";
 import { AchievementsRepository } from "./domain/interfaces/repositories/achievements-repository";
 import { PrismaAchievementRepository } from "./infra/repositores/prisma-achievement-repository";
+import { ProfileAchievementRepository } from "./domain/interfaces/repositories/profile-achievements-repository";
+import { PrismaProfileAchievementRepository } from "./infra/repositores/prisma-profile-achievement-repository";
 
 @Module({
   controllers: [SocialGamificationAdminController],
@@ -13,6 +15,10 @@ import { PrismaAchievementRepository } from "./infra/repositores/prisma-achievem
   providers: [
     AchievementService,
     CreateAchievementUseCase,
+    {
+      provide: ProfileAchievementRepository,
+      useClass: PrismaProfileAchievementRepository,
+    },
     { provide: AchievementsRepository, useClass: PrismaAchievementRepository },
   ],
   exports: [],
