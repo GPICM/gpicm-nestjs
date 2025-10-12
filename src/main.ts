@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { winstonLogger, logtail } from "./logger";
 import { LoggerMiddleware } from "./modules/shared/LoggerMiddleware";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
 const projectName = `
 .d8888b.  8888888b. 8888888 .d8888b.  888b     d888 
@@ -30,7 +31,10 @@ async function bootstrap(): Promise<INestApplication<any>> {
   const logger =
     String(process.env.NODE_ENV) === "production" ? winstonLogger : console;
 
-  const app = await NestFactory.create(AppModule, { logger });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger,
+  });
+  app.set("trust proxy", 1);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.enableCors({ origin: "*" });
