@@ -33,12 +33,15 @@ export class AuthenticationService {
     private readonly createProfile: CreateProfileUseCase
   ) {}
 
-  public async signUp(params: {
-    name: string;
-    email: string;
-    password: string;
-    deviceKey?: string;
-  }): Promise<{ accessToken: string }> {
+  public async signUp(
+    params: {
+      name: string;
+      email: string;
+      password: string;
+      deviceKey?: string;
+    },
+    device?: { ipAddress?: string }
+  ): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started Sign Up", { params });
 
@@ -89,11 +92,19 @@ export class AuthenticationService {
           credentials.setUserId(userId);
 
           await this.createProfile.execute(newUser, { txContext: tx });
+
+          newUser.lastLoginAt = new Date();
+          newUser.ipAddress = device?.ipAddress || null;
+          await this.usersRepository.update(newUser, tx);
         } else if (guestUser) {
           userId = guestUser.id;
           await this.usersRepository.update(guestUser, tx);
 
           await this.createProfile.execute(guestUser, { txContext: tx });
+
+          guestUser.lastLoginAt = new Date();
+          guestUser.ipAddress = device?.ipAddress || null;
+          await this.usersRepository.update(guestUser, tx);
         }
 
         await this.userCredentialsRepository.add(credentials, tx);
@@ -113,10 +124,13 @@ export class AuthenticationService {
     }
   }
 
-  public async signIn(params: {
-    email: string;
-    password: string;
-  }): Promise<{ accessToken: string }> {
+  public async signIn(
+    params: {
+      email: string;
+      password: string;
+    },
+    device?: { ipAddress?: string }
+  ): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started user Sign In", { params });
       const { email, password } = params;
@@ -142,6 +156,7 @@ export class AuthenticationService {
       }
 
       user.lastLoginAt = new Date();
+      user.ipAddress = device?.ipAddress || null;
       await this.usersRepository.update(user);
 
       const accessToken = this.encryptor.generateToken({

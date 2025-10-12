@@ -20,7 +20,8 @@ export class GuestAuthenticationService {
 
   async signIn(
     params: GuestSignInParams,
-    bypassCaptcha = false
+    bypassCaptcha = false,
+    device?: { ipAddress?: string }
   ): Promise<{ accessToken: string; deviceKey: string }> {
     try {
       const { name, captchaToken, deviceKey } = params;
@@ -52,6 +53,10 @@ export class GuestAuthenticationService {
       });
 
       await this.logUserAction.execute(guestUser.id, "GUEST_SIGNIN");
+
+      guestUser.lastLoginAt = new Date();
+      guestUser.ipAddress = device?.ipAddress || null;
+      await this.usersRepository.update(guestUser);
 
       return { accessToken, deviceKey: guestUser.deviceKey };
     } catch (error: unknown) {

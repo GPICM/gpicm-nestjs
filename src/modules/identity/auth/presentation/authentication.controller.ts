@@ -32,12 +32,17 @@ export class AuthenticationController {
   ): Promise<any> {
     try {
       this.logger.log("SignUp started ", { ipAddress, body });
-      const result = await this.authenticationService.signUp({
-        email: body.email,
-        name: body.name,
-        password: body.password,
-        deviceKey: body.deviceKey,
-      });
+      const result = await this.authenticationService.signUp(
+        {
+          email: body.email,
+          name: body.name,
+          password: body.password,
+          deviceKey: body.deviceKey,
+        },
+        {
+          ipAddress,
+        }
+      );
 
       return result;
     } catch (error: unknown) {
@@ -57,10 +62,15 @@ export class AuthenticationController {
   ): Promise<any> {
     try {
       this.logger.log("Started guest upgrade ", { ipAddress, body });
-      const result = await this.authenticationService.signIn({
-        email: body.email,
-        password: body.password,
-      });
+      const result = await this.authenticationService.signIn(
+        {
+          email: body.email,
+          password: body.password,
+        },
+        {
+          ipAddress,
+        }
+      );
       return result;
     } catch (error: unknown) {
       this.logger.error("Failed to signIn Guest", { error });
