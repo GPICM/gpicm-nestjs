@@ -40,7 +40,7 @@ import { ExternalProfileModule } from "@/modules/social/core/external-profile.mo
     PartnerApiKeyGuard,
     {
       provide: Encryptor,
-      useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "1d"),
+      useFactory: () => new JwtAdapter(String(process.env.JWT_SECRET), "12h"),
     },
     {
       provide: PartnerApiKeysRepository,

@@ -8,6 +8,7 @@ import { AchievementsRepository } from "./domain/interfaces/repositories/achieve
 import { PrismaAchievementRepository } from "./infra/repositores/prisma-achievement-repository";
 import { ProfileAchievementRepository } from "./domain/interfaces/repositories/profile-achievements-repository";
 import { PrismaProfileAchievementRepository } from "./infra/repositores/prisma-profile-achievement-repository";
+import { AchievementEngine } from "./application/achievement.engine";
 
 @Module({
   controllers: [SocialGamificationAdminController],
@@ -15,6 +16,7 @@ import { PrismaProfileAchievementRepository } from "./infra/repositores/prisma-p
   providers: [
     AchievementService,
     CreateAchievementUseCase,
+    AchievementEngine,
     {
       provide: ProfileAchievementRepository,
       useClass: PrismaProfileAchievementRepository,

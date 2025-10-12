@@ -7,17 +7,22 @@ import {
 } from "../../domain/interfaces/repositories/achievements-repository";
 import { PrismaAchievementAssembler } from "./mappers/prisma-achievement.assembler";
 import { BaseRepositoryFindManyResult } from "@/modules/social/core/domain/interfaces";
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaAchievementRepository implements AchievementsRepository {
   private readonly logger = new Logger(PrismaAchievementRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 
-  async add(achievement: Achievement): Promise<void> {
+  async add(
+    achievement: Achievement,
+    options?: { txContext: PrismaClient }
+  ): Promise<void> {
     try {
+      const prisma = options?.txContext ?? this.prisma.getConnection();
+
       const data = PrismaAchievementAssembler.toPrismaCreateInput(achievement);
-      const created = await this.prisma.achievement.create({ data });
+      const created = await prisma.achievement.create({ data });
 
       achievement.setId(created.id);
     } catch (error: unknown) {
