@@ -1,14 +1,14 @@
 import { Prisma } from "@prisma/client";
 import { PostVote, VoteValue } from "../../domain/entities/PostVote";
-import { UserShallow } from "../../domain/entities/UserShallow";
+import { ProfileSummary } from "../../domain/object-values/ProfileSummary";
 
 export const postVoteInclude = Prisma.validator<Prisma.PostVoteInclude>()({
-  User: {
+  Profile: {
     select: {
       id: true,
-      name: true,
+      handle: true,
+      displayName: true,
       avatarUrl: true,
-      publicId: true,
     },
   },
 });
@@ -23,8 +23,8 @@ class PostVoteAssembler {
       Post: {
         connect: { id: vote.postId },
       },
-      User: {
-        connect: { id: vote.user.id },
+      Profile: {
+        connect: { id: vote.profile.id },
       },
       value: vote.value,
     };
@@ -41,16 +41,16 @@ class PostVoteAssembler {
   ): PostVote | null {
     if (!prismaData) return null;
 
-    const userData = prismaData.User;
+    const profileData = prismaData.Profile;
 
     return new PostVote({
       postId: prismaData.postId,
       value: prismaData.value as VoteValue,
-      user: new UserShallow({
-        id: userData.id,
-        name: userData.name ?? "",
-        avatarUrl: userData.avatarUrl || "",
-        publicId: userData.publicId,
+      profile: new ProfileSummary({
+        id: profileData.id,
+        name: profileData.displayName ?? "",
+        avatarUrl: profileData.avatarUrl || "",
+        handle: profileData.handle,
       }),
     });
   }

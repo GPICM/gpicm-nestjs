@@ -29,7 +29,10 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
       this.logger.log(`Upserting vote for postId=${postVote.postId}`);
       await prisma.postVote.upsert({
         where: {
-          postId_userId: { postId: postVote.postId, userId: postVote.user.id },
+          postId_profileId: {
+            postId: postVote.postId,
+            profileId: postVote.profile.id,
+          },
         },
         create: PostVoteAssembler.toPrismaCreate(postVote),
         update: PostVoteAssembler.toPrismaUpdate(postVote),
@@ -62,7 +65,10 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
     try {
       await this.prisma.postVote.update({
         where: {
-          postId_userId: { postId: postVote.postId, userId: postVote.user.id },
+          postId_profileId: {
+            postId: postVote.postId,
+            profileId: postVote.profile.id,
+          },
         },
         data: PostVoteAssembler.toPrismaUpdate(postVote),
       });
@@ -73,16 +79,21 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
     }
   }
 
-  async delete(userId: number, postId: number): Promise<void> {
+  async delete(profileId: number, postId: number): Promise<void> {
     try {
       await this.prisma.postVote.delete({
         where: {
-          postId_userId: { postId, userId },
+          postId_profileId: {
+            postId: postId,
+            profileId: profileId,
+          },
         },
       });
-      this.logger.log(`Vote deleted for postId=${postId}, userId=${userId}`);
+      this.logger.log(
+        `Vote deleted for postId=${postId}, profileId=${profileId}`
+      );
     } catch (error: unknown) {
-      this.logger.error("Failed to delete vote", { postId, userId, error });
+      this.logger.error("Failed to delete vote", { postId, profileId, error });
       throw new Error("Failed to delete vote");
     }
   }
@@ -127,7 +138,7 @@ export class PrismaPostVotesRepository implements PostVotesRepository {
       };
 
       if (filters.search) {
-        where.OR = [{ User: { name: { contains: filters.search } } }];
+        where.OR = [{ Profile: { displayName: { contains: filters.search } } }];
       }
 
       this.logger.log(

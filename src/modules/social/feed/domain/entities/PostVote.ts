@@ -1,5 +1,5 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
-import { UserShallow } from "./UserShallow";
+import { ProfileSummary } from "../object-values/ProfileSummary";
 
 export enum VoteValue {
   UP = 1,
@@ -12,7 +12,7 @@ export class PostVote {
 
   public readonly value: VoteValue;
 
-  public readonly user: UserShallow;
+  public readonly profile: ProfileSummary;
 
   constructor(args: NonFunctionProperties<PostVote>) {
     if (args.value !== VoteValue.UP && args.value !== VoteValue.DOWN) {
