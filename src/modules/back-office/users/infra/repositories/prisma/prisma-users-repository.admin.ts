@@ -31,7 +31,7 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
       this.logger.log("Staging to list posts", { filters });
       const skip = filters.offset ?? 0;
       const take = filters.limit ?? 10;
-      const sort = filters.sort ?? "createdAt";
+      const sort = filters.sort ?? "lastLoginAt";
       const order = filters.order?.toUpperCase() === "ASC" ? "asc" : "desc";
 
       const where: Prisma.UserWhereInput = {};
