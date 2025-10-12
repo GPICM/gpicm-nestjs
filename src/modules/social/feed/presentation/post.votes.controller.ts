@@ -26,7 +26,7 @@ import { Profile } from "../../core/domain/entities/Profile";
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 
 @Controller("posts")
-@UseGuards(JwtAuthGuard, SocialProfileGuard)
+@UseGuards(JwtAuthGuard, SocialProfileGuard())
 export class PostVotesController {
   private readonly logger: Logger = new Logger(PostVotesController.name);
 

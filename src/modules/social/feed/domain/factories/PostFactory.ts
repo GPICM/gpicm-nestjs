@@ -2,21 +2,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Media, MediaTypeEnum } from "@/modules/assets/domain/entities/Media";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-import { User } from "@/modules/identity/core/domain/entities/User";
 import { randomUUID } from "crypto";
-import { PostAuthor } from "../entities/PostAuthor";
 import { Post, PostStatusEnum } from "../entities/Post";
 import { CreatePostDto } from "../../presentation/dtos/create-post.dto";
 import { PostMedia } from "../entities/PostMedia";
 import { PostAttachment } from "../object-values/PostAttchment";
 import { Incident } from "@/modules/incidents/domain/entities/Incident";
 import { BadRequestException, Logger } from "@nestjs/common";
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
+import { ProfileSummary } from "../object-values/ProfileSummary";
 
 export class PostFactory {
   private static logger: Logger = new Logger(PostFactory.name);
 
-  static createPost(user: User, dto: CreatePostDto, medias: Media[]): Post {
-    const author = PostAuthor.fromUser(user);
+  static createPost(
+    userProfile: Profile,
+    dto: CreatePostDto,
+    medias: Media[]
+  ): Post {
+    const author = ProfileSummary.fromProfile(userProfile);
 
     const postMedias = (medias ?? []).map((media, index) =>
       PostMedia.FromMedia(media, index)
@@ -24,7 +28,7 @@ export class PostFactory {
 
     let coverImageMedia: Media | null = null;
     if (medias.length) {
-      coverImageMedia = this.getCoverImage(user, medias);
+      coverImageMedia = this.getCoverImage(medias);
     }
 
     const coverImageSource = coverImageMedia ? coverImageMedia.sources : null;
@@ -37,7 +41,7 @@ export class PostFactory {
       content: dto.content,
       publishedAt: new Date(),
       status: PostStatusEnum.PUBLISHING,
-      slug: Post.createSlug(user, dto.title),
+      slug: Post.createSlug(userProfile, dto.title),
       location: new GeoPosition(dto.latitude, dto.longitude),
       address: dto.address ?? "",
       isVerified: false,
@@ -63,7 +67,7 @@ export class PostFactory {
     post.setStatus(PostStatusEnum.PUBLISHED);
   }
 
-  static getCoverImage(user: User, medias: Media[]): Media | null {
+  static getCoverImage(medias: Media[]): Media | null {
     try {
       this.logger.log("Searching for a cover image");
       let coverImageMedia: Media | null = null;
@@ -71,6 +75,7 @@ export class PostFactory {
       for (const media of medias) {
         if (media.type === MediaTypeEnum.IMAGE) {
           coverImageMedia = media;
+          break;
         }
       }
 

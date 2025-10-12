@@ -1,10 +1,12 @@
 /* eslint-disable prettier/prettier */
 
-import { BaseRepositoryFindManyFilters, BaseRepositoryFindManyResult } from "@/modules/social/core/domain/interfaces";
+import {
+  BaseRepositoryFindManyFilters,
+  BaseRepositoryFindManyResult,
+} from "@/modules/social/core/domain/interfaces";
 import { Post } from "../../entities/Post";
 import { ViewerPost } from "../../entities/ViewerPost";
 import { PostSortBy } from "../../enum/OrderBy";
-
 
 export abstract class PostRepository {
   abstract add(
@@ -17,15 +19,24 @@ export abstract class PostRepository {
     options?: { transactionContext?: unknown }
   ): Promise<void>;
 
-  abstract findByUuid(uuid: string, userId: number): Promise<ViewerPost | null>;
+  abstract findByUuid(
+    uuid: string,
+    userId: number,
+    profileId?: number
+  ): Promise<ViewerPost | null>;
 
-  abstract findBySlug(slug: string, userId: number): Promise<ViewerPost | null>;
+  abstract findBySlug(
+    slug: string,
+    userId: number,
+    profileId?: number
+  ): Promise<ViewerPost | null>;
 
   abstract incrementViews(postId: number): Promise<void>;
 
   abstract listAll(
     filters: PostFindManyFilters,
-    userId: number
+    userId: number,
+    profileId?: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>>;
 
   abstract delete(post: Post): Promise<void>;
@@ -34,7 +45,7 @@ export abstract class PostRepository {
 export interface PostFindManyFilters extends BaseRepositoryFindManyFilters {
   startDate?: Date;
   endDate?: Date;
-  sortBy?: PostSortBy
+  sortBy?: PostSortBy;
   tags?: string[];
   authorId?: number;
 }

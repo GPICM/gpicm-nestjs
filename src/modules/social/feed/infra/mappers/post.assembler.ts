@@ -3,7 +3,6 @@
 import { Prisma, PostStatus, PostType } from "@prisma/client";
 
 import { Post, PostStatusEnum, PostTypeEnum } from "../../domain/entities/Post";
-import { PostAuthor } from "../../domain/entities/PostAuthor";
 import { PostAttachment } from "../../domain/object-values/PostAttchment";
 import { ViewerPost } from "../../domain/entities/ViewerPost";
 import { VoteValue } from "../../domain/entities/PostVote";
@@ -17,6 +16,7 @@ import { IncidentShallow } from "../../domain/entities/IncidentShallow";
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
 import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
+import { ProfileSummary } from "../../domain/object-values/ProfileSummary";
 
 class PostAssembler {
   public static toPrismaUpdate(post: Post): Prisma.PostUpdateInput {
@@ -111,16 +111,17 @@ class PostAssembler {
 
   public static fromSqlSelect(
     sqlData: PostRawQuery[],
-    userId: number
+    userId: number,
+    profileId?: number
   ): ViewerPost | null {
     const data = sqlData?.[0];
     if (!data) return null;
 
-    const author = new PostAuthor({
+    const author = new ProfileSummary({
       id: data.author_id,
+      handle: data.author_handle,
       name: data.author_name || "Anônimo",
       avatarUrl: data.author_avatar_url || "",
-      publicId: data.author_public_id,
     });
 
     let attachment;
@@ -214,17 +215,19 @@ class PostAssembler {
         tags,
       },
       userId,
-      voteValue
+      voteValue,
+      profileId
     );
   }
 
   public static fromSqlMany(
     sqlDataArray: PostRawQuery[],
-    userId: number
+    userId: number,
+    profileId?: number
   ): ViewerPost[] {
     const posts: ViewerPost[] = [];
     for (const sqlData of sqlDataArray) {
-      const post = this.fromSqlSelect([sqlData], userId);
+      const post = this.fromSqlSelect([sqlData], userId, profileId);
       if (post) {
         posts.push(post);
       }

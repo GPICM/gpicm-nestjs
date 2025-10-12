@@ -4,16 +4,19 @@ import { VoteValue } from "./PostVote";
 
 export class ViewerPost<A = unknown> extends Post<A> {
   public readonly userId: number;
+  public readonly profileId: number | null;
 
   public userVote: VoteValue;
 
   public constructor(
     args: NonFunctionProperties<Post<A>>,
     _userId: number,
-    _vote: VoteValue
+    _vote: VoteValue,
+    _profileId?: number
   ) {
     super(args);
     this.userId = _userId;
+    this.profileId = _profileId || null;
     this.userVote = _vote ?? VoteValue.NULL;
   }
 

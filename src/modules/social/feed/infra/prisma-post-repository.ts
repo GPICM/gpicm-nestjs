@@ -86,19 +86,20 @@ export class PrismaPostRepository implements PostRepository {
 
   public async findBySlug(
     slug: string,
-    userId: number
+    userId: number,
+    profileId?: number
   ): Promise<ViewerPost | null> {
     try {
-      this.logger.log(`Fetching post by slug: ${slug}`);
+      this.logger.log(`Fetching post by slug: ${slug}`, { userId, profileId });
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.prisma.$queryRawUnsafe<any>(
         `${this.buildBasePostSelectQuery(["p.slug = ?"])} GROUP BY p.id`,
-        userId,
+        profileId,
         slug
       );
 
-      const parsed = PostAssembler.fromSqlSelect(result, userId);
+      const parsed = PostAssembler.fromSqlSelect(result, userId, profileId);
 
       return parsed;
     } catch (error: unknown) {
@@ -108,18 +109,21 @@ export class PrismaPostRepository implements PostRepository {
     }
   }
 
-  async findByUuid(uuid: string, userId: number): Promise<ViewerPost | null> {
+  async findByUuid(
+    uuid: string,
+    profileId: number
+  ): Promise<ViewerPost | null> {
     try {
       this.logger.log(`Fetching post by uuid: ${uuid}`);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.prisma.$queryRawUnsafe<any>(
         `${this.buildBasePostSelectQuery(["p.uuid = ?"])} GROUP BY p.id`,
-        userId,
+        profileId,
         uuid
       );
 
-      const parsed = PostAssembler.fromSqlSelect(result, userId);
+      const parsed = PostAssembler.fromSqlSelect(result, profileId);
 
       this.logger.log(`Post found for uuid: ${uuid}`);
       return parsed;
@@ -131,7 +135,8 @@ export class PrismaPostRepository implements PostRepository {
 
   public async listAll(
     filters: PostFindManyFilters,
-    userId: number
+    userId: number,
+    profileId?: number
   ): Promise<BaseRepositoryFindManyResult<ViewerPost>> {
     try {
       this.logger.log("Staging to list posts", { filters });
@@ -183,7 +188,7 @@ export class PrismaPostRepository implements PostRepository {
 
       const countQuery = `SELECT COUNT(*) AS total FROM posts p ${this.joinWhereCauses(whereClauses)}`;
 
-      const queryParams = [userId, ...searchParams, take, skip];
+      const queryParams = [profileId || "", ...searchParams, take, skip];
       const countQueryParams = [...searchParams];
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -194,7 +199,7 @@ export class PrismaPostRepository implements PostRepository {
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const count = Number(countResult[0]?.total ?? 0);
-      const records = PostAssembler.fromSqlMany(result, userId);
+      const records = PostAssembler.fromSqlMany(result, userId, profileId);
 
       return { records: records, count };
     } catch (error: unknown) {
@@ -259,17 +264,17 @@ export class PrismaPostRepository implements PostRepository {
     return `
     SELECT  
       p.*,  
-      a.name AS author_name,
-      a.public_id AS author_public_id,
-      a.avatar_url AS author_avatar_url,
+      up.display_name AS author_name,
+      up.handle AS author_handle,
+      up.avatar_url AS author_avatar_url,
       IF(i.id IS NOT NULL, JSON_OBJECT('id', i.id, 'incident_date', i.incident_date, 'incident_type_slug', it.slug), NULL) AS incident_obj,
-      IF(v_self.user_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'user_id', v_self.user_id), NULL) AS vote_obj,
+      IF(v_self.profile_id IS NOT NULL, JSON_OBJECT('value', v_self.value, 'profile_id', v_self.profile_id), NULL) AS vote_obj,
       IF(p.location IS NOT NULL, JSON_OBJECT('latitude', ST_Y(p.location), 'longitude', ST_X(p.location)), NULL) AS location_obj
     FROM posts p
       LEFT JOIN incidents i ON p.incident_id = i.id
       LEFT JOIN incident_types it ON i.incident_type_id = it.id
-      LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.user_id = ?
-      LEFT JOIN users a ON p.author_id = a.id
+      LEFT JOIN post_votes v_self ON v_self.post_id = p.id AND v_self.profile_id = ?
+      LEFT JOIN profiles up ON p.author_id = up.id
     ${where}
   `;
   }

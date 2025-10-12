@@ -53,7 +53,7 @@ export class PostController {
   ) {}
 
   @PostMethod()
-  @UseGuards(ActiveUserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard())
   async create(
     @Body() body: CreatePostDto,
     @CurrentUser() user: User,
@@ -62,7 +62,7 @@ export class PostController {
     try {
       this.logger.log("Starting post creation", { body });
 
-      const post = await this.postService.create(user, body, profile);
+      const post = await this.postService.create(user, profile, body);
 
       this.logger.log("Post successfully created", { post });
       return;
@@ -73,7 +73,12 @@ export class PostController {
   }
 
   @Get()
-  async list(@Query() query: ListPostQueryDto, @CurrentUser() user: User) {
+  @UseGuards(SocialProfileGuard({ optional: true }))
+  async list(
+    @Query() query: ListPostQueryDto,
+    @CurrentUser() user: User,
+    @CurrentProfile() profile: Profile
+  ) {
     this.logger.log("Fetching all posts", { query });
 
     const page = query.page ?? 1;
@@ -95,14 +100,15 @@ export class PostController {
         startDate: query.startDate,
         sortBy: query.sortBy,
       },
-      user.id
+      user.id,
+      profile?.id
     );
 
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
   @Delete(":postUuid")
-  @UseGuards(ActiveUserGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard())
   async delete(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
     this.logger.log("Deleting post", { postUuid });
     const post = await this.postRepository.findByUuid(postUuid, user.id);
@@ -173,11 +179,13 @@ export class PostController {
   }
 
   @Get(":postSlug")
+  @UseGuards(SocialProfileGuard({ optional: true }))
   async getOne(
     @Param("postSlug") postSlug: string,
     @CurrentUser() user: User,
     @CurrentProfile() profile?: Profile
   ) {
+    console.log(profile);
     const post = await this.postService.findOne(postSlug, user, profile);
 
     return post;
@@ -198,7 +206,7 @@ export class PostController {
   }
 
   // TODO: MOVE PROFILE ONLY AUTHORIZED ROUES TO ANOTHER CONTROLLER
-  @UseGuards(ActiveUserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard())
   @Post(":postUuid/comments")
   async createComment(
     @Param("postUuid") postUuid: string,
@@ -209,7 +217,7 @@ export class PostController {
     return this.postCommentService.addComment(profile, postUuid, body, user);
   }
 
-  @UseGuards(ActiveUserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard())
   @Patch("comments/:commentId")
   async updateComment(
     @Param("commentId") commentId: string,
@@ -224,7 +232,7 @@ export class PostController {
     );
   }
 
-  @UseGuards(ActiveUserGuard, SocialProfileGuard)
+  @UseGuards(ActiveUserGuard, SocialProfileGuard())
   @Delete("comments/:commentId")
   async deleteComment(
     @Param("commentId") commentId: string,

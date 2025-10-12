@@ -26,7 +26,7 @@ export type PostRawQuery = {
   /* Author */
   author_id: number;
   author_name: string;
-  author_public_id: string;
+  author_handle: string;
   author_avatar_url: string | null;
 
   /* Location */

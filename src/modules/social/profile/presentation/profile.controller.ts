@@ -23,7 +23,7 @@ import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 
 @Controller("social/profile")
-@UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard)
+@UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard())
 export class SocialProfileController {
   private readonly logger = new Logger(SocialProfileController.name);
 

@@ -1,12 +1,14 @@
-import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
-import { User } from "@/modules/identity/core/domain/entities/User";
+import crypto from "crypto";
 
-import { PostAuthor } from "./PostAuthor";
-import { PostAttachment } from "../object-values/PostAttchment";
-import { formatDateToNumber } from "@/modules/shared/utils/date-utils";
+import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
+
 import { GeoPosition } from "@/modules/shared/domain/object-values/GeoPosition";
-import { PostMedia } from "./PostMedia";
 import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
+import { Profile } from "@/modules/social/core/domain/entities/Profile";
+
+import { PostAttachment } from "../object-values/PostAttchment";
+import { PostMedia } from "./PostMedia";
+import { ProfileSummary } from "../object-values/ProfileSummary";
 
 export enum PostStatusEnum {
   DRAFT = "DRAFT",
@@ -36,7 +38,7 @@ export class Post<A = unknown> {
 
   public readonly address: string;
 
-  public readonly author: PostAuthor;
+  public readonly author: ProfileSummary;
 
   public readonly type: PostTypeEnum;
 
@@ -49,7 +51,6 @@ export class Post<A = unknown> {
   public readonly thumbnailUrl: string = "";
 
   public readonly publishedAt: Date | null;
-
 
   public coverImageSource: MediaSource | null;
 
@@ -107,17 +108,21 @@ export class Post<A = unknown> {
     return this.medias || null;
   }
 
-  public static createSlug(user: User, text: string): string {
+  public static createSlug(profile: Profile, text: string): string {
     const sanitized = text
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 100);
+      .replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/[^a-z0-9]+/g, "-") // replace non-alphanumerics with dashes
+      .replace(/^-+|-+$/g, "") // trim leading/trailing dashes
+      .slice(0, 80); // keep short and clean
 
-    const numericDate = formatDateToNumber(new Date());
+    const hash = crypto
+      .createHash("sha1")
+      .update(`${profile.handle}-${text}`)
+      .digest("hex")
+      .slice(0, 6);
 
-    return `${sanitized}_${numericDate}_${user.publicId.slice(0, 6)}`;
+    return `${sanitized}-${hash}`;
   }
 }

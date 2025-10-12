@@ -127,7 +127,12 @@ export class PostServices {
         voteValue,
       });
 
-      const post = await this.postRepository.findByUuid(postUuid, userId);
+      const post = await this.postRepository.findByUuid(
+        postUuid,
+        userId,
+        profile.id
+      );
+
       if (!post) {
         throw new BadRequestException("Post not found");
       }
@@ -178,7 +183,11 @@ export class PostServices {
     const userId = user.id;
 
     this.logger.log(`Fetching incident with postSlug: ${postSlug}`);
-    const post = await this.postRepository.findBySlug(postSlug, user.id);
+    const post = await this.postRepository.findBySlug(
+      postSlug,
+      user.id,
+      profile?.id
+    );
 
     if (!post) return null;
 

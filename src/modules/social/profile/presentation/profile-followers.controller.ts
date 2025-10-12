@@ -16,7 +16,7 @@ import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { ActiveUserGuard } from "@/modules/identity/auth/presentation/meta/guards/active-user.guard";
 
 @Controller("social")
-@UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard)
+@UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard())
 export class SocialFollowersController {
   private readonly logger = new Logger(SocialFollowersController.name);
 
