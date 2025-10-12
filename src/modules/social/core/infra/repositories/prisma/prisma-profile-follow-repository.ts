@@ -55,7 +55,7 @@ export class PrismaProfileFollowRepository implements ProfileFollowRepository {
     const follow = await this.prisma.profileFollow.findUnique({
       where: { followerId_followingId: { followerId, followingId } },
     });
-    return !!follow;
+    return follow !== null;
   }
 
   async getFollowersCount(profileId: number): Promise<number> {

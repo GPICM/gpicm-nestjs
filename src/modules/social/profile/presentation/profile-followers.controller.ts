@@ -47,4 +47,12 @@ export class SocialFollowersController {
   async getFollowing(@Param("id") id: number) {
     return await this.profileService.getFollowing(id);
   }
+
+  @Get("/user/isFollowing/:userId")
+  async isFollowing(
+    @Param("userId") userId: number,
+    @CurrentProfile() profile: Profile
+  ) {
+    return await this.profileService.isFollowing(profile.id, userId);
+  }
 }
