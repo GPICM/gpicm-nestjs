@@ -79,9 +79,15 @@ export class AuthenticationService {
         guestUser.setRole(UserRoles.USER);
         guestUser.setStatus(UserStatus.PENDING);
         guestUser.addCredentials(credentials);
+
+        guestUser.lastLoginAt = new Date();
+        guestUser.ipAddress = device?.ipAddress || null;
       } else {
         newUser = User.Create(name, credentials);
         newUser.setStatus(UserStatus.PENDING);
+
+        newUser.lastLoginAt = new Date();
+        newUser.ipAddress = device?.ipAddress || null;
       }
 
       let userId: number;
@@ -92,19 +98,11 @@ export class AuthenticationService {
           credentials.setUserId(userId);
 
           await this.createProfile.execute(newUser, { txContext: tx });
-
-          newUser.lastLoginAt = new Date();
-          newUser.ipAddress = device?.ipAddress || null;
-          await this.usersRepository.update(newUser, tx);
         } else if (guestUser) {
           userId = guestUser.id;
-          await this.usersRepository.update(guestUser, tx);
 
+          await this.usersRepository.update(guestUser, tx);
           await this.createProfile.execute(guestUser, { txContext: tx });
-
-          guestUser.lastLoginAt = new Date();
-          guestUser.ipAddress = device?.ipAddress || null;
-          await this.usersRepository.update(guestUser, tx);
         }
 
         await this.userCredentialsRepository.add(credentials, tx);

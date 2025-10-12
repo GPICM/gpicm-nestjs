@@ -119,9 +119,9 @@ export class Post<A = unknown> {
 
     const hash = crypto
       .createHash("sha1")
-      .update(`${profile.handle}-${text}`)
+      .update(`${profile.handle}-${text}-${Date.now()}`)
       .digest("hex")
-      .slice(0, 6);
+      .slice(0, 12);
 
     return `${sanitized}-${hash}`;
   }

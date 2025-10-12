@@ -4,25 +4,33 @@ import { AchievementCriterionType } from "../domain/value-objects/AchievementCri
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { ProfileAchievementRepository } from "../domain/interfaces/repositories/profile-achievements-repository";
 import { ProfileAchievement } from "../domain/entities/ProfileAchievement";
-import { Profile } from "../../core/domain/entities/Profile";
+import { ProfileRepository } from "../../core/domain/interfaces/repositories/profile-repository";
 
 @Injectable()
 export class AchievementEngine {
   constructor(
-    @Inject(AchievementsRepository)
-    private readonly achievementRepo: AchievementsRepository,
     @Inject(PrismaService)
     private readonly prismaService: PrismaService,
+
+    @Inject(ProfileRepository)
+    private readonly profileRepository: ProfileRepository,
+    @Inject(AchievementsRepository)
+    private readonly achievementRepo: AchievementsRepository,
     @Inject(ProfileAchievementRepository)
     private readonly profileAchievementRepo: ProfileAchievementRepository
   ) {}
 
-  async execute(profile: Profile): Promise<boolean> {
+  async execute(profileId: number): Promise<boolean> {
     const { records: achievements } = await this.achievementRepo.listAll({
-      notInProfile: profile.id,
+      notInProfile: profileId,
       limit: 1000,
       offset: 0,
     });
+
+    const profile = await this.profileRepository.findById(profileId);
+    if (!profile) {
+      return false;
+    }
 
     const eligibleAchievements = achievements.filter((a) => {
       if (!a.criteria) return false;

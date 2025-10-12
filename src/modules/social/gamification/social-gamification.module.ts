@@ -9,9 +9,13 @@ import { PrismaAchievementRepository } from "./infra/repositores/prisma-achievem
 import { ProfileAchievementRepository } from "./domain/interfaces/repositories/profile-achievements-repository";
 import { PrismaProfileAchievementRepository } from "./infra/repositores/prisma-profile-achievement-repository";
 import { AchievementEngine } from "./application/achievement.engine";
+import { SocialGamificationAsyncController } from "./presentation/social-gamification-async.controller";
 
 @Module({
-  controllers: [SocialGamificationAdminController],
+  controllers: [
+    SocialGamificationAdminController,
+    SocialGamificationAsyncController,
+  ],
   imports: [SocialCoreModule],
   providers: [
     AchievementService,
