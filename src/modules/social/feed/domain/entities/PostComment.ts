@@ -1,4 +1,4 @@
-import { UserShallow } from "./UserShallow";
+import { ProfileSummary } from "../object-values/ProfileSummary";
 
 export enum CommentType {
   COMMENT = "COMMENT",
@@ -18,7 +18,7 @@ export class PostComment {
 
   public readonly updatedAt: Date;
 
-  public readonly user: UserShallow;
+  public readonly profile: ProfileSummary;
 
   public readonly parentCommentId?: number | null;
 
@@ -31,7 +31,7 @@ export class PostComment {
     postId: number;
     postUuid?: string;
     content: string;
-    user: UserShallow;
+    profile: ProfileSummary;
     createdAt?: Date;
     updatedAt?: Date;
     parentCommentId?: number | null;
@@ -41,7 +41,7 @@ export class PostComment {
     this.postId = args.postId;
     this.postUuid = args.postUuid;
     this.content = args.content;
-    this.user = args.user;
+    this.profile = args.profile;
     this.createdAt = args.createdAt ?? new Date();
     this.updatedAt = args.updatedAt ?? new Date();
     this.parentCommentId = args.parentCommentId ?? null;
@@ -70,9 +70,9 @@ export class PostComment {
   toJSON() {
     return {
       id: this.id,
-      user: this.user,
       type: this.type,
       postId: this.postId,
+      profile: this.profile,
       postUuid: this.postUuid,
       content: this.content,
       isEdited: this.isEdited,

@@ -4,12 +4,12 @@ import { Processor } from "@nestjs/bullmq";
 
 import { BullQueueWorker } from "@/modules/shared/infra/bull-queue-worker";
 
-import { ProfileRepository } from "../../core/domain/interfaces/repositories/profile-repository";
+import { ProfileRepository } from "../../../core/domain/interfaces/repositories/profile-repository";
 import {
   SOCIAL_PROFILE_EVENTS_QUEUE_NAME,
   SocialProfileEventsQueueDto,
   SocialProfileQueueEvent,
-} from "../domain/queues/social-profile-events-queue";
+} from "../../domain/queues/social-profile-events-queue";
 import { AppQueueEvent } from "@/modules/shared/domain/interfaces/application-queue";
 import { RedisLockService } from "@/modules/shared/infra/lib/redis/redis-lock-service";
 
@@ -20,16 +20,15 @@ type ProfileUpdateState = {
 };
 
 const eventMetricsMap: Record<SocialProfileQueueEvent, ProfileMetric[]> = {
-  "profile.followed": ["followers"],
-  "profile.unfollowed": ["followers"],
-  "post-comment.created": ["comments"],
   "post.created": ["posts"],
-  "profile.created": [],
   "post.viewed": [],
   "post.voted": [],
+  "profile.followed": ["followers"],
+  "profile.unfollowed": ["followers"],
+  "profile.created": [],
+  "post-comment.created": ["comments"],
   "post-comment.updated": [],
   "post-comment.removed": [],
-  "post-comment.replied": [],
 };
 
 @Processor(SOCIAL_PROFILE_EVENTS_QUEUE_NAME, {
@@ -41,7 +40,7 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
 > {
   private profileUpdateState = new Map<number, ProfileUpdateState>();
   private flushTimeout?: NodeJS.Timeout;
-  private readonly FLUSH_DELAY_MS = 2000;
+  private readonly FLUSH_DELAY_MS = 500;
 
   constructor(
     private readonly profileRepository: ProfileRepository,
@@ -80,6 +79,7 @@ export class BullSocialProfileProcessor extends BullQueueWorker<
           await this.profileRepository.refreshCommentCount(profileId);
         }
         if (metricsToUpdate.includes("posts")) {
+          console.log("Updaint post count now");
           await this.profileRepository.refreshPostCount(profileId);
         }
 

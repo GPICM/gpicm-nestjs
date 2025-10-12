@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import * as badWordsJson from "../domain/badwords.json";
+import * as badWordsJson from "../../domain/badwords.json";
 
 @Injectable()
 export class CurseWordsFilterService {

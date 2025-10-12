@@ -12,7 +12,7 @@ import { PrismaPostMediasRepository } from "./infra/prisma-post-medias-repositor
 import { PostMediaService } from "./application/post-media.service";
 import { PrismaPostCommentRepository } from "./infra/prisma-post-comment-repository";
 import { PostCommentRepository } from "./domain/interfaces/repositories/post-comment-repository";
-import { CurseWordsFilterService } from "./application/curse-words-filter.service";
+import { CurseWordsFilterService } from "./infra/utils/curse-words-filter.service";
 import { PostCommentsService } from "./application/post-comment.service";
 import { SharedModule } from "@/modules/shared/shared.module";
 import { IdentityModule } from "@/modules/identity/identity.module";
@@ -29,18 +29,25 @@ import {
   SocialPostEventsQueuePublisher,
 } from "./domain/interfaces/queues/social-post-events-queue";
 import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher";
+import {
+  SOCIAL_POST_COMMENTS_EVENTS_QUEUE_NAME,
+  SocialPostCommentEventsQueuePublisher,
+} from "./domain/interfaces/queues/social-post-comment-events-queue";
+import { PostCommentsProcessor } from "./application/bull-social-post-comments-queue-processor";
 
 @Module({
   controllers: [PostController, PostVotesController, PostAsyncController],
   imports: [
     SocialCoreModule,
     BullModule.registerQueue({ name: SOCIAL_POSTS_EVENTS_QUEUE_NAME }),
+    BullModule.registerQueue({ name: SOCIAL_POST_COMMENTS_EVENTS_QUEUE_NAME }),
     SharedModule,
     IncidentsModule,
     IdentityModule,
   ],
   providers: [
     PostScoreProcessor,
+    PostCommentsProcessor,
     PostMediaService,
     {
       provide: PostRepository,
@@ -71,6 +78,12 @@ import { BullQueuePublisher } from "@/modules/shared/infra/bull-queue-publisher"
       useFactory: (queue) => new BullQueuePublisher(queue),
       inject: [getQueueToken(SOCIAL_POSTS_EVENTS_QUEUE_NAME)],
     },
+    {
+      provide: SocialPostCommentEventsQueuePublisher,
+      useFactory: (queue) => new BullQueuePublisher(queue),
+      inject: [getQueueToken(SOCIAL_POST_COMMENTS_EVENTS_QUEUE_NAME)],
+    },
+
     CurseWordsFilterService,
   ],
 

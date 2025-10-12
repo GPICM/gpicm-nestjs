@@ -1,14 +1,14 @@
 import { Prisma } from "@prisma/client";
-import { UserShallow } from "../../domain/entities/UserShallow";
+import { ProfileSummary } from "../../domain/object-values/ProfileSummary";
 import { PostComment } from "../../domain/entities/PostComment";
 
 export const postCommentInclude = Prisma.validator<Prisma.PostCommentInclude>()(
   {
-    User: {
+    Profile: {
       select: {
         id: true,
-        name: true,
-        publicId: true,
+        handle: true,
+        displayName: true,
         avatarUrl: true,
       },
     },
@@ -34,9 +34,9 @@ class PostCommentAssembler {
           id: comment.postId,
         },
       },
-      User: {
+      Profile: {
         connect: {
-          id: comment.user?.id,
+          id: comment.profile.id,
         },
       },
       content: comment.content,
@@ -69,7 +69,7 @@ class PostCommentAssembler {
   ): PostComment | null {
     if (!prismaData) return null;
 
-    const userData = prismaData.User;
+    const profile = prismaData.Profile;
 
     return new PostComment({
       id: prismaData.id,
@@ -80,11 +80,11 @@ class PostCommentAssembler {
       updatedAt: prismaData.updatedAt,
       parentCommentId: prismaData.parentId,
       repliesCount: prismaData.repliesCount,
-      user: new UserShallow({
-        id: userData.id,
-        name: userData.name ?? "",
-        avatarUrl: userData.avatarUrl || "",
-        publicId: userData.publicId,
+      profile: new ProfileSummary({
+        id: profile.id,
+        name: profile.displayName ?? "",
+        avatarUrl: profile.avatarUrl || "",
+        handle: profile.handle,
       }),
     });
   }

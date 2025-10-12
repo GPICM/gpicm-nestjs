@@ -1,12 +1,10 @@
 import { Injectable, BadRequestException, Inject } from "@nestjs/common";
 
-import { User } from "@/modules/identity/core/domain/entities/User";
-
 import { PostCommentRepository } from "../domain/interfaces/repositories/post-comment-repository";
 import { CreatePostCommentDto } from "../presentation/dtos/create-post-comment.dto";
 import { PostRepository } from "../domain/interfaces/repositories/post-repository";
-import { CurseWordsFilterService } from "./curse-words-filter.service";
-import { UserShallow } from "../domain/entities/UserShallow";
+import { CurseWordsFilterService } from "../infra/utils/curse-words-filter.service";
+import { ProfileSummary } from "../domain/object-values/ProfileSummary";
 import { PostComment } from "../domain/entities/PostComment";
 import { Profile } from "../../core/domain/entities/Profile";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
@@ -24,14 +22,17 @@ export class PostCommentsService {
   async addComment(
     profile: Profile,
     postUuid: string,
-    body: CreatePostCommentDto,
-    user: User
+    body: CreatePostCommentDto
   ): Promise<void> {
     if (CurseWordsFilterService.containsCurseWords(body.content)) {
       throw new BadRequestException("Comentário contém palavras proibidas.");
     }
 
-    const post = await this.postRepository.findByUuid(postUuid, user.id);
+    const post = await this.postRepository.findByUuid(
+      postUuid,
+      profile.id,
+      profile.userId
+    );
     if (!post?.id) {
       throw new BadRequestException("Post não encontrado");
     }
@@ -39,8 +40,7 @@ export class PostCommentsService {
     const comment = new PostComment({
       postId: post.id,
       content: body.content,
-      // TODO: USER PROFILE IN THE FUTURE
-      user: UserShallow.fromUser(user),
+      profile: ProfileSummary.fromProfile(profile),
       parentCommentId: body.parentCommentId ?? null,
     });
 
@@ -61,7 +61,7 @@ export class PostCommentsService {
       throw new BadRequestException("Comentário não encontrado");
     }
 
-    if (comment.user.id !== profile.userId) {
+    if (comment.profile.id !== profile.id) {
       throw new BadRequestException(
         "Você não tem permissão para editar este comentário"
       );
@@ -85,7 +85,7 @@ export class PostCommentsService {
       throw new BadRequestException("Comentário não encontrado");
     }
 
-    if (comment.user.id !== profile.userId) {
+    if (comment.profile.id !== profile.id) {
       throw new BadRequestException(
         "Você não tem permissão para excluir este comentário"
       );

@@ -34,9 +34,7 @@ export class PostEvent extends EventBusEnvelope<
 export type SocialPostCommentsBusEnvelopeName =
   | "post-comment.created"
   | "post-comment.updated"
-  | "post-comment.removed"
-  | "post-comment.replied";
-
+  | "post-comment.removed";
 export class PostCommentEvent extends EventBusEnvelope<
   SocialPostCommentsBusEnvelopeName,
   {

@@ -141,7 +141,7 @@ export class PrismaPostCommentRepository implements PostCommentRepository {
     const order = filters.order ?? "desc";
 
     const where: Prisma.PostCommentWhereInput = {
-      userId,
+      Profile: { userId },
       deletedAt: null,
       OR: [
         { parentId: null },

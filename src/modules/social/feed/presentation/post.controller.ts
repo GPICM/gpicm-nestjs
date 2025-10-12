@@ -185,7 +185,7 @@ export class PostController {
     @CurrentUser() user: User,
     @CurrentProfile() profile: Profile
   ) {
-    return this.postCommentService.addComment(profile, postUuid, body, user);
+    return this.postCommentService.addComment(profile, postUuid, body);
   }
 
   @UseGuards(ActiveUserGuard, SocialProfileGuard())

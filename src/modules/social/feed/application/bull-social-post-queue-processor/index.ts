@@ -23,15 +23,13 @@ const eventMetricsMap: Record<SocialPostQueueEvent, PostMetric[]> = {
   "post-comment.created": ["score", "comments"],
   "post-comment.removed": ["score", "comments"],
   "post.voted": ["score"],
-  // TODO: IMPLEMENT
   "post-comment.updated": [],
-  "post-comment.replied": [],
   "post.created": [],
   "post.viewed": [],
 };
 
 @Processor(SOCIAL_POSTS_EVENTS_QUEUE_NAME, {
-  limiter: { max: 10, duration: 1000 },
+  limiter: { max: 10, duration: 5000 },
 })
 export class PostScoreProcessor extends BullQueueWorker<
   SocialPostQueueEvent,
@@ -39,7 +37,7 @@ export class PostScoreProcessor extends BullQueueWorker<
 > {
   private postsToUpdate = new Map<number, PostUpdateState>();
   private flushTimeout?: NodeJS.Timeout;
-  private readonly FLUSH_DELAY_MS = 2000;
+  private readonly FLUSH_DELAY_MS = 6000;
 
   constructor(
     private readonly postVotesRepository: PostVotesRepository,
