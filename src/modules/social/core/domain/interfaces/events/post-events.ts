@@ -11,7 +11,6 @@ export type SocialPostBusEnvelopeName =
 /* -- POST EVENTS -- */
 
 // TODO: CREATE PROFILE ON USER CREATE AND USE ONLY STATUS TO AUTHORIZE
-// TODO: RENAME STATUS FROM PENDING_PROFILE TO WAITING_APPROVAL
 export class PostEvent extends EventBusEnvelope<
   SocialPostBusEnvelopeName,
   {

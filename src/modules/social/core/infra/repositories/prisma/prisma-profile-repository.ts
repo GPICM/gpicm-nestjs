@@ -54,6 +54,13 @@ export class PrismaProfileRepository implements ProfileRepository {
     return ProfileAssembler.fromPrisma(data);
   }
 
+  public async updateAvatar(profile: Profile): Promise<void> {
+    await this.prisma.profile.update({
+      where: { id: profile.id },
+      data: ProfileAssembler.toPrismaAvatarUpdateInput(profile),
+    });
+  }
+
   public async create(
     profile: Profile,
     options?: { txContext?: PrismaClient }
@@ -77,13 +84,13 @@ export class PrismaProfileRepository implements ProfileRepository {
     });
   }
 
-  async refreshCommentCount(userId: number): Promise<void> {
+  async refreshCommentCount(profileId: number): Promise<void> {
     const commentCount = await this.prisma.postComment.count({
-      where: { userId, deletedAt: null },
+      where: { profileId, deletedAt: null },
     });
 
     await this.prisma.profile.update({
-      where: { userId },
+      where: { id: profileId },
       data: { commentsCount: commentCount },
     });
   }

@@ -4,8 +4,6 @@ import { UserCredential } from "@/modules/identity/auth/domain/entities/UserCred
 import { AuthProviders } from "@/modules/identity/core/domain/enums/auth-provider";
 import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
-import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
-import { UserAvatar } from "@/modules/identity/core/domain/value-objects/user-avatar";
 
 export const userInclude = Prisma.validator<Prisma.UserInclude>()({
   Credentials: true,
@@ -38,17 +36,6 @@ export class UserAssembler {
       });
     }
 
-    let avatar: UserAvatar | null = null;
-    if (prismaData.avatarImageSources) {
-      const avatarImageSource = MediaSource.fromJSON(
-        prismaData.avatarImageSources as Record<string, unknown> | null
-      );
-
-      if (avatarImageSource) {
-        avatar = new UserAvatar(avatarImageSource);
-      }
-    }
-
     return new User({
       id: prismaData.id,
       publicId: prismaData.publicId,
@@ -68,17 +55,12 @@ export class UserAssembler {
       longitude: prismaData.longitude,
       locationUpdatedAt: prismaData.locationUpdatedAt,
       credentials,
-      avatar,
       createdAt: prismaData.createdAt,
       updateAt: prismaData.updatedAt,
     });
   }
 
   public static toPrismaCreateInput(user: User): Prisma.UserCreateInput {
-    const avatarImageSourceJSON = user.avatar
-      ? user.avatar.getImageSource()?.toJSON()
-      : undefined;
-
     return {
       publicId: user.publicId,
       bio: user.bio,
@@ -91,11 +73,6 @@ export class UserAssembler {
       role: user.role,
       ipAddress: user.ipAddress,
       deviceKey: user.deviceKey,
-      avatarUrl: user.avatar?.getAvatarUrl() || "",
-      avatarImageSources: avatarImageSourceJSON as
-        | Prisma.NullableJsonNullValueInput
-        | Prisma.InputJsonValue
-        | undefined,
       deviceInfo: (user.deviceInfo ?? undefined) as
         | Prisma.NullableJsonNullValueInput
         | Prisma.InputJsonValue
@@ -104,10 +81,6 @@ export class UserAssembler {
   }
 
   public static toPrismaUpdateInput(user: User): Prisma.UserUpdateInput {
-    const avatarImageSourceJSON = user.avatar
-      ? user.avatar.getImageSource()?.toJSON()
-      : undefined;
-
     return {
       bio: user.bio,
       birthDate: user.birthDate,
@@ -119,11 +92,6 @@ export class UserAssembler {
       status: user.status,
       ipAddress: user.ipAddress,
       lastLoginAt: user.lastLoginAt,
-      avatarUrl: user.avatar?.getAvatarUrl() || "",
-      avatarImageSources: avatarImageSourceJSON as
-        | Prisma.NullableJsonNullValueInput
-        | Prisma.InputJsonValue
-        | undefined,
       deviceKey: user.deviceKey,
       deviceInfo: (user.deviceInfo ?? undefined) as
         | Prisma.NullableJsonNullValueInput

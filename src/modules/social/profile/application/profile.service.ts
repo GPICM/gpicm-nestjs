@@ -1,21 +1,34 @@
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
+
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
+
 import {
   ProfileFollowRepository,
   ProfileRepository,
-} from "../domain/interfaces/repositories/profile-repository";
-import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
-import { ProfileFollowingEvent } from "../domain/interfaces/events";
+} from "../../core/domain/interfaces/repositories/profile-repository";
+import { ProfileEvent } from "../../core/domain/interfaces/events";
+import { UpdateProfileAvatarDto } from "../../core/presentation/dtos/profile-update-avatar-request.dto";
+import { MediaService } from "@/modules/assets/application/media.service";
+import { UserAvatar } from "@/modules/shared/domain/object-values/user-avatar";
 
 @Injectable()
 export class ProfileService {
+  private readonly logger = new Logger(ProfileService.name);
   constructor(
     @Inject(ProfileRepository)
     private readonly profileRepository: ProfileRepository,
     @Inject(ProfileFollowRepository)
     private readonly profileFollowRepository: ProfileFollowRepository,
     @Inject(EventPublisher)
-    private readonly eventsPublisher: EventPublisher
+    private readonly eventsPublisher: EventPublisher,
+    @Inject(MediaService)
+    private readonly mediaService: MediaService
   ) {}
 
   async countFollowersByProfileId(profileId: number): Promise<number> {
@@ -24,11 +37,37 @@ export class ProfileService {
     );
   }
 
-  async updateAvatar(userId: number, avatarUrl: string | null) {
-    const profile = await this.profileRepository.findByUserId(userId);
-    if (profile) {
-      profile.setAvatar(avatarUrl);
-      await this.profileRepository.update(profile);
+  public async updateAvatar(
+    profile: Profile,
+    { avatarMediaId }: UpdateProfileAvatarDto
+  ) {
+    try {
+      this.logger.log("Updating user location", { avatarMediaId });
+
+      if (!avatarMediaId) {
+        profile.setAvatar(null);
+      } else {
+        this.logger.log("Looking for avatar mediaId", {
+          avatarMediaId,
+        });
+
+        const media = await this.mediaService.findOneById(avatarMediaId);
+
+        if (media?.sources) {
+          this.logger.log("Media Found, assigning avatar to user", {
+            avatarMediaId,
+          });
+
+          profile.setAvatar(new UserAvatar(media.sources));
+        }
+      }
+
+      await this.profileRepository.updateAvatar(profile);
+
+      this.logger.log("User data updated successfully");
+    } catch (error: unknown) {
+      this.logger.error("Failed to update user data", { error });
+      throw error;
     }
   }
 
@@ -58,9 +97,10 @@ export class ProfileService {
   }
 
   async followUser(
-    userProfileId: number,
+    userProfile: Profile,
     targetProfileHandle: string
   ): Promise<{ success: boolean; message: string }> {
+    const { id: userProfileId } = userProfile;
     const followingProfile =
       await this.profileRepository.findByHandle(targetProfileHandle);
 
@@ -71,23 +111,25 @@ export class ProfileService {
     if (userProfileId === followingProfile.id) {
       throw new BadRequestException("You cannot follow yourself.");
     }
+
     await this.profileFollowRepository.follow(
       userProfileId,
       followingProfile.id
     );
 
-    await this.eventsPublisher.publish<ProfileFollowingEvent>({
-      event: "profile.followed",
-      data: { profileId: userProfileId, targetProfileId: followingProfile.id },
-    });
+    await this.eventsPublisher.publish(
+      new ProfileEvent("profile.followed", userProfile, followingProfile)
+    );
 
     return { success: true, message: "User followed successfully" };
   }
 
   async unfollowUser(
-    userProfileId: number,
+    userProfile: Profile,
     targetProfileHandle: string
   ): Promise<{ success: boolean; message: string }> {
+    const { id: userProfileId } = userProfile;
+
     const followingProfile =
       await this.profileRepository.findByHandle(targetProfileHandle);
 
@@ -104,10 +146,9 @@ export class ProfileService {
       followingProfile.id
     );
 
-    await this.eventsPublisher.publish<ProfileFollowingEvent>({
-      event: "profile.unfollowed",
-      data: { profileId: userProfileId, targetProfileId: followingProfile.id },
-    });
+    await this.eventsPublisher.publish(
+      new ProfileEvent("profile.unfollowed", userProfile, followingProfile)
+    );
 
     return { success: true, message: "User unfollowed successfully" };
   }

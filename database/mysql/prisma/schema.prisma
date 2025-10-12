@@ -330,19 +330,20 @@ model Media {
 }
 
 model Profile {
-  id             Int      @id @default(autoincrement())
-  userId         Int      @unique @map("user_id")
-  displayName    String   @map("display_name")
-  handle         String   @unique @map("handle") // New field for public unique identifier
-  bio            String?  @db.LongText
-  profileImage   String?  @map("profile_image")
-  postsCount     Int      @default(0) @map("posts_count")
-  commentsCount  Int      @default(0) @map("comments_count")
-  followersCount Int      @default(0) @map("followers_count")
-  followingCount Int      @default(0) @map("following_count")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  reputation     Int?
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique @map("user_id")
+  displayName        String   @map("display_name")
+  handle             String   @unique @map("handle") // New field for public unique identifier
+  bio                String?  @db.LongText
+  postsCount         Int      @default(0) @map("posts_count")
+  commentsCount      Int      @default(0) @map("comments_count")
+  followersCount     Int      @default(0) @map("followers_count")
+  followingCount     Int      @default(0) @map("following_count")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  reputation         Int?
+  avatarImageSources Json?    @map("avatar_image_sources")
+  avatarUrl          String?  @map("avatar_url")
 
   Follows      ProfileFollow[]      @relation("FollowerRelation")
   Followed     ProfileFollow[]      @relation("FollowingRelation")

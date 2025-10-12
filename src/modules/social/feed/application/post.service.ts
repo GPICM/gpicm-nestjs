@@ -8,7 +8,6 @@ import { IncidentsService } from "@/modules/incidents/application/incidents.serv
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 import { ViewerPost } from "../domain/entities/ViewerPost";
 import { PostVote, VoteValue } from "../domain/entities/PostVote";
-import { UserShallow } from "../domain/entities/UserShallow";
 import { PostMediasRepository } from "../domain/interfaces/repositories/post-media-repository";
 import { MediaService } from "@/modules/assets/application/media.service";
 import { Media } from "@/modules/assets/domain/entities/Media";
@@ -18,6 +17,7 @@ import { PostFactory } from "../domain/factories/PostFactory";
 import { PostAttachment } from "../domain/object-values/PostAttchment";
 import { RateLimitService } from "@/modules/shared/application/rate-limite-service";
 import { PostEvent } from "../../core/domain/interfaces/events";
+import { ProfileSummary } from "../domain/object-values/ProfileSummary";
 
 export class PostServices {
   private readonly logger: Logger = new Logger(PostServices.name);
@@ -35,11 +35,11 @@ export class PostServices {
     private readonly rateLimitService: RateLimitService
   ) {}
 
-  async create(user: User, dto: CreatePostDto, profile: Profile) {
+  async create(user: User, profile: Profile, dto: CreatePostDto) {
     try {
       this.logger.log("Creating post", { dto });
-      const medias = await this.validateMedias(user, dto.mediaIds);
-      const post = PostFactory.createPost(user, dto, medias);
+      const medias = await this.validateMedias(profile.userId, dto.mediaIds);
+      const post = PostFactory.createPost(profile, dto, medias);
 
       this.logger.log(
         `Storing post to the database: ${JSON.stringify(post, null, 4)}`
@@ -64,9 +64,7 @@ export class PostServices {
             post.setAttachment(
               new PostAttachment(incident.id, incident, "Incident")
             );
-
             post.setTags([incident.incidentType.slug]);
-
             post.setStatus(PostStatusEnum.PUBLISHED);
           }
 
@@ -149,7 +147,7 @@ export class PostServices {
           new PostVote({
             postId,
             value: updatedVote,
-            user: UserShallow.fromUser(user),
+            profile: ProfileSummary.fromProfile(profile),
           }),
           { transactionContext }
         );
@@ -204,11 +202,11 @@ export class PostServices {
   }
 
   private async validateMedias(
-    user: User,
+    userId: number,
     mediaIds: string[]
   ): Promise<Media[]> {
     try {
-      const medias = await this.mediaService.findManyByIds(user, mediaIds);
+      const medias = await this.mediaService.findManyByIds(mediaIds);
       if (!mediaIds.length) {
         return [];
       }

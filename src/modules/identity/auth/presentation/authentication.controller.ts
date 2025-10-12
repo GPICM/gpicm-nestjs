@@ -1,9 +1,7 @@
 import {
   UnauthorizedException,
   Controller,
-  UseGuards,
   Logger,
-  Get,
   Post,
   Ip,
   Body,
@@ -11,9 +9,6 @@ import {
   HttpException,
 } from "@nestjs/common";
 
-import { CurrentUser } from "./meta/decorators/user.decorator";
-import { JwtAuthGuard } from "./meta";
-import { User } from "../../core/domain/entities/User";
 import {
   SignInRequestBodyDto,
   SignUpRequestBodyDto,
@@ -22,24 +17,13 @@ import { AuthenticationService } from "../application/authentication.service";
 import { IpAddress } from "@/modules/shared/decorators/IpAddress";
 
 @Controller("identity")
-export class CommonAuthController {
-  private readonly logger = new Logger(CommonAuthController.name);
+export class AuthenticationController {
+  private readonly logger = new Logger(AuthenticationController.name);
 
   public constructor(
     @Inject(AuthenticationService)
     private readonly authenticationService: AuthenticationService
   ) {}
-
-  @Get("/me")
-  @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: User): User {
-    try {
-      return user;
-    } catch (error: unknown) {
-      this.logger.error("Failed to signIn Guest", { error });
-      throw new UnauthorizedException();
-    }
-  }
 
   @Post("/signup")
   async signUp(

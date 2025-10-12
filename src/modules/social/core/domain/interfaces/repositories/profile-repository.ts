@@ -10,6 +10,7 @@ export abstract class ProfileRepository {
     options?: { txContext?: unknown }
   ): Promise<void>;
   abstract update(profile: Profile): Promise<void>;
+  abstract updateAvatar(profile: Profile): Promise<void>;
   abstract delete(id: number): Promise<void>;
   abstract refreshPostCount(userId: number): Promise<void>;
   abstract refreshCommentCount(userId: number): Promise<void>;

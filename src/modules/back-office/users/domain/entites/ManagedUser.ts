@@ -1,6 +1,6 @@
 import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
 import { UserStatus } from "@/modules/identity/core/domain/enums/user-status";
-import { UserAvatar } from "@/modules/identity/core/domain/value-objects/user-avatar";
+import { UserAvatar } from "@/modules/shared/domain/object-values/user-avatar";
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 
 export type ProfileSummary = {

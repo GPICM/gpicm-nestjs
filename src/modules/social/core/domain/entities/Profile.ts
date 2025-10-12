@@ -1,40 +1,29 @@
 import { NonFunctionProperties } from "@/modules/shared/domain/protocols/non-function-properties";
 import { User } from "@/modules/identity/core/domain/entities/User";
+import { UserAvatar } from "@/modules/shared/domain/object-values/user-avatar";
 
 export class Profile {
-  id: number;
-  userId: number;
-  handle: string;
-  bio: string;
-  displayName: string;
-  profileImage: string | null;
+  public id: number;
+  public userId: number;
+  public handle: string;
+  public bio: string;
+  public displayName: string;
+  public followersCount: number;
+  public followingCount: number;
+  public postsCount: number;
+  public commentsCount: number;
+  public avatar: UserAvatar | null = null;
+  public reputation: number;
+  // Users Virtual
+  public readonly phoneNumber: string | null = null;
+  public readonly gender: string | null = null;
+  public readonly birthDate: Date | null = null;
+  public readonly fullName: string | null = null;
+  public readonly isUserVerified: boolean | null = null;
+  public readonly lastLoginAt: Date | null = null;
 
-  // metrics (TODO: IN THE FUTURE MOVE IT O MONGO COLLECTION OR SPECIALIZED METRICS TABLE)
-  followersCount: number;
-  followingCount: number;
-  postsCount: number;
-  commentsCount: number;
-
-  // Virtual
-  private readonly phoneNumber: string | null = null;
-  private readonly gender: string | null = null;
-  private readonly birthDate: Date | null = null;
-  private readonly avatarUrl: string | null = null;
-
-  constructor(
-    args: NonFunctionProperties<Profile>,
-    virtual?: {
-      gender: string | null;
-      birthDate: Date | null;
-      avatarUrl?: string | null;
-      phoneNumber?: string | null;
-    }
-  ) {
+  constructor(args: NonFunctionProperties<Profile>) {
     Object.assign(this, args);
-    this.avatarUrl = virtual?.avatarUrl ?? null;
-    this.gender = virtual?.gender ?? null;
-    this.birthDate = virtual?.birthDate ?? null;
-    this.phoneNumber = virtual?.phoneNumber ?? null;
   }
 
   public static fromUser(
@@ -48,19 +37,36 @@ export class Profile {
       bio: "",
       displayName,
       userId: user.id,
-      profileImage: null,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      phoneNumber: user.phoneNumber,
+      fullName: user.name,
+      isUserVerified: user.isVerified,
+      lastLoginAt: user.lastLoginAt,
+      avatar: null,
       followersCount: 0,
       followingCount: 0,
-      postsCount: 0,
       commentsCount: 0,
+      postsCount: 0,
+      reputation: 0,
     });
   }
 
   public setId(newId: number) {
-    this.id = newId;
+    if (this.id === -1) {
+      this.id = newId;
+    }
   }
 
-  public setAvatar(avatarUrl: string | null) {
-    this.profileImage = avatarUrl;
+  public setAvatar(avatar: UserAvatar | null) {
+    this.avatar = avatar;
+  }
+
+  public toJSON() {
+    const { avatar, ...rest } = this;
+    return {
+      ...rest,
+      avatarUrl: avatar?.getAvatarUrl() || "",
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Global, Module } from "@nestjs/common";
 import { UserController } from "./presentation/user.controller";
 import { GuestAuthController } from "./presentation/guest.auth.controller";
-import { CommonAuthController } from "./presentation/common.auth.controller";
+import { AuthenticationController } from "./presentation/authentication.controller";
 import { UserVerificationController } from "./presentation/user-verification.controller";
 import { UserVerificationService } from "./application/user/user-verification.service";
 import { AuthenticationService } from "./application/authentication.service";
@@ -27,7 +27,7 @@ import { ExternalProfileModule } from "@/modules/social/core/external-profile.mo
   controllers: [
     UserController,
     GuestAuthController,
-    CommonAuthController,
+    AuthenticationController,
     UserVerificationController,
   ],
   providers: [

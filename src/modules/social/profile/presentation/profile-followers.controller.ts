@@ -10,14 +10,15 @@ import {
 import { JwtAuthGuard } from "@/modules/identity/auth/presentation/meta";
 
 import { ProfileService } from "../application/profile.service";
-import { SocialProfileGuard } from "../infra/guards/SocialProfileGuard";
-import { Profile } from "../domain/entities/Profile";
-import { CurrentProfile } from "../infra/decorators/profile.decorator";
+import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
+import { Profile } from "../../core/domain/entities/Profile";
+import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
+import { ActiveUserGuard } from "@/modules/identity/auth/presentation/meta/guards/active-user.guard";
 
 @Controller("social")
-@UseGuards(JwtAuthGuard, SocialProfileGuard)
-export class SocialController {
-  private readonly logger = new Logger(SocialController.name);
+@UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard)
+export class SocialFollowersController {
+  private readonly logger = new Logger(SocialFollowersController.name);
 
   constructor(private readonly profileService: ProfileService) {}
 

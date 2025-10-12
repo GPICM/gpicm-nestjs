@@ -1,5 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Profile } from "@/modules/social/core/domain/entities/Profile";
+import { UserAvatar } from "@/modules/shared/domain/object-values/user-avatar";
+import { MediaSource } from "@/modules/assets/domain/object-values/media-source";
 
 export const profileInclude = Prisma.validator<Prisma.ProfileInclude>()({
   User: true,
@@ -15,26 +17,36 @@ export class ProfileAssembler {
   ): Profile | null {
     if (!prismaData) return null;
 
-    return new Profile(
-      {
-        id: prismaData.id,
-        bio: prismaData.bio || "",
-        displayName: prismaData.displayName,
-        followersCount: prismaData.followingCount,
-        followingCount: prismaData.followersCount,
-        handle: prismaData.handle,
-        profileImage: prismaData.profileImage,
-        postsCount: prismaData.postsCount ?? 0,
-        commentsCount: prismaData.commentsCount ?? 0,
-        userId: prismaData.userId,
-      },
-      {
-        birthDate: prismaData.User.birthDate,
-        gender: prismaData.User.gender,
-        avatarUrl: prismaData.User.avatarUrl,
-        phoneNumber: prismaData.User.phoneNumber,
+    let avatar: UserAvatar | null = null;
+    if (prismaData.avatarImageSources) {
+      const avatarImageSource = MediaSource.fromJSON(
+        prismaData.avatarImageSources as Record<string, unknown> | null
+      );
+
+      if (avatarImageSource) {
+        avatar = new UserAvatar(avatarImageSource);
       }
-    );
+    }
+
+    return new Profile({
+      id: prismaData.id,
+      bio: prismaData.bio || "",
+      displayName: prismaData.displayName,
+      followersCount: prismaData.followingCount,
+      followingCount: prismaData.followersCount,
+      handle: prismaData.handle,
+      reputation: prismaData.reputation ?? 0,
+      postsCount: prismaData.postsCount ?? 0,
+      commentsCount: prismaData.commentsCount ?? 0,
+      userId: prismaData.userId,
+      birthDate: prismaData.User.birthDate,
+      fullName: prismaData.User.name,
+      gender: prismaData.User.gender,
+      isUserVerified: prismaData.User.isVerified,
+      lastLoginAt: prismaData.User.lastLoginAt,
+      phoneNumber: prismaData.User.phoneNumber,
+      avatar,
+    });
   }
 
   public static toPrismaCreateInput(
@@ -48,7 +60,6 @@ export class ProfileAssembler {
       handle: profile.handle,
       postsCount: profile.postsCount,
       commentsCount: profile.commentsCount,
-      profileImage: profile.profileImage,
       User: {
         connect: { id: profile.userId },
       },
@@ -66,7 +77,22 @@ export class ProfileAssembler {
       handle: profile.handle,
       postsCount: profile.postsCount,
       commentsCount: profile.commentsCount,
-      profileImage: profile.profileImage,
+    };
+  }
+
+  public static toPrismaAvatarUpdateInput(
+    profile: Profile
+  ): Prisma.ProfileUpdateInput {
+    const avatarImageSourceJSON = profile.avatar
+      ? profile.avatar.getImageSource()?.toJSON()
+      : undefined;
+
+    return {
+      avatarUrl: profile.avatar?.getAvatarUrl() || "",
+      avatarImageSources: avatarImageSourceJSON as
+        | Prisma.NullableJsonNullValueInput
+        | Prisma.InputJsonValue
+        | undefined,
     };
   }
 }

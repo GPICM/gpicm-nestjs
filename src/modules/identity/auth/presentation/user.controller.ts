@@ -7,22 +7,14 @@ import {
   UseGuards,
   BadRequestException,
   Get,
-  Patch,
-  Param,
-  NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 
 import { CurrentUser } from "./meta/decorators/user.decorator";
 import { User } from "../../core/domain/entities/User";
-import {
-  UpdateLocationDto,
-  UpdateUserAvatarDto,
-  UpdateUserDataDto,
-} from "./dtos/user-request.dtos";
+import { UpdateLocationDto, UpdateUserDataDto } from "./dtos/user-request.dtos";
 import { JwtAuthGuard } from "./meta/guards/jwt-auth.guard";
 import { ActiveUserGuard } from "./meta/guards/active-user.guard";
-import { UserBasicData } from "../../core/domain/value-objects/user-basic-data";
-import { UserPublicData } from "../../core/domain/value-objects/user-public-data";
 import { UserService } from "../application/user/user.service";
 
 @Controller("identity/users")
@@ -35,7 +27,7 @@ export class UserController {
     private readonly userService: UserService
   ) {}
 
-  @Put("/location")
+  @Put("/me/location")
   async updateLocation(
     @CurrentUser() user: User,
     @Body() body: UpdateLocationDto
@@ -60,7 +52,7 @@ export class UserController {
     }
   }
 
-  @Put("/profile")
+  @Put("/me")
   @UseGuards(ActiveUserGuard)
   async updateUserData(
     @CurrentUser() user: User,
@@ -89,58 +81,14 @@ export class UserController {
     }
   }
 
-  @Patch("/profile/avatar")
-  @UseGuards(ActiveUserGuard)
-  async updateUserAvatar(
-    @CurrentUser() user: User,
-    @Body() body: UpdateUserAvatarDto
-  ): Promise<any> {
+  @Get("/me")
+  @UseGuards(JwtAuthGuard)
+  me(@CurrentUser() user: User): User {
     try {
-      this.logger.log("Updating user avatar", {
-        userId: user.id,
-        fields: Object.keys(body),
-      });
-
-      await this.userService.updateUserAvatar(user, body);
-
-      return { success: true };
-    } catch (error: unknown) {
-      this.logger.error("Failed to update data", { error });
-      throw new BadRequestException();
-    }
-  }
-
-  @Get("/profile")
-  @UseGuards(ActiveUserGuard)
-  getMyBasicData(@CurrentUser() user: User): UserBasicData {
-    try {
-      this.logger.log(`Fetching basic data for current user: ${user.publicId}`);
-      return user.toUserBasicData();
-    } catch (error: unknown) {
-      this.logger.error("Failed to get user basic data", { error });
-      throw new BadRequestException();
-    }
-  }
-
-  @Get("/public-data/:publicId")
-  async getPublicData(
-    @Param("publicId") publicId: string
-  ): Promise<UserPublicData> {
-    try {
-      this.logger.log(`Fetching public data for current user: ${publicId}`);
-
-      const user = await this.userService.getPublicUserDataByPublicId(publicId);
-
-      if (!user) {
-        throw new NotFoundException(
-          `User with public ID ${publicId} not found.`
-        );
-      }
-
       return user;
     } catch (error: unknown) {
-      this.logger.error("Failed to get user public data", { error });
-      throw new BadRequestException();
+      this.logger.error("Failed to signIn Guest", { error });
+      throw new UnauthorizedException();
     }
   }
 }

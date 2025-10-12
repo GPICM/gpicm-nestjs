@@ -11,7 +11,6 @@ import { SocialProfileModule } from "./profile/social-profile.module";
     SocialProfileModule,
     SocialGamificationModule,
   ],
-
   controllers: [],
   providers: [],
   exports: [],

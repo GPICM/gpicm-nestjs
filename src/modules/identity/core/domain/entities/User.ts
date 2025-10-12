@@ -4,8 +4,6 @@ import { randomUUID } from "crypto";
 import { UserStatus } from "../enums/user-status";
 import { UserCredential } from "../../../auth/domain/entities/UserCredential";
 import { AuthProviders } from "../enums/auth-provider";
-import { UserBasicData } from "../value-objects/user-basic-data";
-import { UserAvatar } from "../value-objects/user-avatar";
 
 export class User {
   public id: number;
@@ -46,8 +44,6 @@ export class User {
 
   public updateAt: Date | null;
 
-  public avatar: UserAvatar | null;
-
   // Virtual
   public credentials: UserCredential[];
 
@@ -58,14 +54,6 @@ export class User {
   public getCredential(provider: AuthProviders): UserCredential | null {
     const found = this.credentials.find((c) => c.provider === provider);
     return found ?? null;
-  }
-
-  public setAvatar(avatar: UserAvatar | null): void {
-    this.avatar = avatar;
-  }
-
-  public getAvatar(): UserAvatar | null {
-    return this.avatar;
   }
 
   public static Create(name: string, credential?: UserCredential) {
@@ -81,7 +69,6 @@ export class User {
         role: UserRoles.USER,
         status: credential ? UserStatus.ACTIVE : UserStatus.GUEST,
         credentials: credential ? [credential] : [],
-        avatar: null,
         ipAddress: null,
         deviceInfo: null,
         bio: null,
@@ -154,28 +141,12 @@ export class User {
       status: this.status,
       latitude: this.latitude,
       longitude: this.longitude,
-      locationUpdatedAt: this.locationUpdatedAt,
-      avatarUrl: this.avatar?.getAvatarUrl() || "",
-    };
-  }
-
-  public toUserBasicData(): UserBasicData {
-    let email = "";
-    const emailCredentials = this.getCredential(AuthProviders.EMAIL_PASSWORD);
-    if (emailCredentials) {
-      email = emailCredentials.email;
-    }
-
-    return {
-      name: this.name,
-      email,
-      bio: this.bio,
-      gender: this.gender ?? null,
       phoneNumber: this.phoneNumber,
       birthDate: this.birthDate,
+      email: this.credentials[0]?.email,
+      locationUpdatedAt: this.locationUpdatedAt,
       createdAt: this.createdAt,
-      updatedAt: this.updateAt,
-      avatarUrl: this.avatar?.getAvatarUrl() || "",
+      updatedAt: this.updateAt
     };
   }
 }

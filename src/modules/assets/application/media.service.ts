@@ -107,11 +107,8 @@ export class MediaService {
     }
   }
 
-  public async findManyByIds(user: User, ids: string[]): Promise<Media[]> {
-    const userId = user.id;
-
+  public async findManyByIds(ids: string[]): Promise<Media[]> {
     this.logger.log("(findManyById) Finding medias by ids", {
-      userId,
       ids,
     });
 
@@ -125,11 +122,8 @@ export class MediaService {
     }
   }
 
-  public async findOneById(user: User, id: string): Promise<Media | null> {
-    const userId = user.id;
-
+  public async findOneById(id: string): Promise<Media | null> {
     this.logger.log("(findManyById) Finding medias by ids", {
-      userId,
       id,
     });
 

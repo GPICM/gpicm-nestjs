@@ -2,13 +2,8 @@
 import { MediaService } from "@/modules/assets/application/media.service";
 import { User } from "@/modules/identity/core/domain/entities/User";
 import { UsersRepository } from "@/modules/identity/core/domain/interfaces/repositories/users-repository";
-import { UserAvatar } from "@/modules/identity/core/domain/value-objects/user-avatar";
-import { UserPublicData } from "@/modules/identity/core/domain/value-objects/user-public-data";
-import {
-  UpdateUserAvatarDto,
-  UpdateUserDataDto,
-} from "@/modules/identity/auth/presentation/dtos/user-request.dtos";
-import { Inject, Logger, NotFoundException } from "@nestjs/common";
+import { UpdateUserDataDto } from "@/modules/identity/auth/presentation/dtos/user-request.dtos";
+import { Inject, Logger } from "@nestjs/common";
 
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -37,39 +32,6 @@ export class UserService {
       await this.usersRepository.update(user);
     } catch (error: unknown) {
       this.logger.error("Failed to update user location", { error });
-      throw error;
-    }
-  }
-
-  public async getPublicUserDataByPublicId(
-    publicId: string
-  ): Promise<UserPublicData> {
-    try {
-      this.logger.log(
-        `Attempting to fetch public data for publicId: ${publicId}`
-      );
-
-      const user = await this.usersRepository.findByPublicId(publicId);
-
-      if (!user) {
-        throw new NotFoundException(
-          `User with public ID ${publicId} not found.`
-        );
-      }
-
-      const userPublicData: UserPublicData = {
-        name: user.name,
-        bio: user.bio,
-        avatarUrl: user.avatar?.avatarUrl,
-        publicId: user.publicId,
-      };
-
-      this.logger.log(
-        `Successfully fetched public data for publicId: ${publicId}`
-      );
-      return userPublicData;
-    } catch (error) {
-      this.logger.error("Failed to get public user data", { error });
       throw error;
     }
   }
@@ -117,39 +79,6 @@ export class UserService {
 
       if (userData.phoneNumber) {
         user.phoneNumber = userData.phoneNumber;
-      }
-
-      await this.usersRepository.update(user);
-
-      this.logger.log("User data updated successfully");
-    } catch (error: unknown) {
-      this.logger.error("Failed to update user data", { error });
-      throw error;
-    }
-  }
-
-  public async updateUserAvatar(user: User, userData: UpdateUserAvatarDto) {
-    try {
-      this.logger.log("Updating user location", userData);
-
-      const { avatarMediaId } = userData;
-
-      if (!avatarMediaId) {
-        user.setAvatar(null);
-      } else {
-        this.logger.log("Looking for avatar mediaId", {
-          avatarMediaId,
-        });
-
-        const media = await this.mediaService.findOneById(user, avatarMediaId);
-
-        if (media?.sources) {
-          this.logger.log("Media Found, assigning avatar to user", {
-            avatarMediaId,
-          });
-
-          user.setAvatar(new UserAvatar(media.sources));
-        }
       }
 
       await this.usersRepository.update(user);

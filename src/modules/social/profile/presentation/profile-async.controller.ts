@@ -5,18 +5,12 @@ import {
   Payload,
   RedisContext,
 } from "@nestjs/microservices";
-
-import { SocialProfileEventsQueuePublisher } from "./domain/queues/social-profile-events-queue";
-import { ProfileEvent } from "../core/domain/interfaces/events";
+import { SocialProfileEventsQueuePublisher } from "../domain/queues/social-profile-events-queue";
+import { ProfileEvent } from "../../core/domain/interfaces/events";
 
 @Controller()
 export class SocialProfileAsyncController {
   private readonly logger = new Logger(SocialProfileAsyncController.name);
-  private readonly expectedPostEvents = [
-    "post.created",
-    "post.commented",
-    "post.uncommented",
-  ];
 
   private readonly expectedProfileEvents = [
     "profile.created",
@@ -32,8 +26,30 @@ export class SocialProfileAsyncController {
   @EventPattern("post.*")
   handlePost(@Payload() event: ProfileEvent, @Ctx() context: RedisContext) {
     const channel = context.getChannel();
+    const expectedPostEvents = ["post.created"];
+    if (!expectedPostEvents.includes(channel)) {
+      this.logger.warn(`Ignoring unexpected post event: ${channel}`);
+      return;
+    }
 
-    if (!this.expectedPostEvents.includes(channel)) {
+    this.logger.log(`Received post event: ${channel}`);
+    if (event.data.profileId) {
+      void this.queuePublisher.add({
+        event: event.name,
+        data: { profileId: event.data.profileId },
+      });
+    }
+  }
+
+  @EventPattern("post-comment.*")
+  handleCommentPost(
+    @Payload() event: ProfileEvent,
+    @Ctx() context: RedisContext
+  ) {
+    const channel = context.getChannel();
+    const expectedEventNames = ["post-comment.created", "post-comment.removed"];
+
+    if (!expectedEventNames.includes(channel)) {
       this.logger.warn(`Ignoring unexpected post event: ${channel}`);
       return;
     }
