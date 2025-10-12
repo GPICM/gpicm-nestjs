@@ -120,16 +120,18 @@ export class PostController {
     await this.postRepository.delete(post);
   }
 
-  @Get("author/:authorPublicId")
+  @Get("author/:handle")
+  @UseGuards(SocialProfileGuard())
   async listAllPostsByAuthor(
-    @Param("authorPublicId") authorPublicId: string,
+    @Param("handle") authorHandle: string,
     @Query() query: ListPostQueryDto,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
+    @CurrentProfile() profile?: Profile
   ) {
-    const author = await this.userRepository.findByPublicId(authorPublicId);
-    if (!author) throw new NotFoundException("Autor nao encontradok");
+    const author = await this.profileRepository.findByHandle(authorHandle);
+    if (!author) throw new NotFoundException("Author not found");
 
-    this.logger.log(`Fetching all posts by author ${authorPublicId}`);
+    this.logger.log(`Fetching all posts by author ${authorHandle}`);
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 16;
@@ -146,7 +148,8 @@ export class PostController {
         sortBy: PostSortBy.MOST_POPULAR,
         authorId: author.id,
       },
-      user.id
+      user.id,
+      profile?.id
     );
     return new PaginatedResponse(records, total, limit, page, {});
   }
@@ -178,7 +181,6 @@ export class PostController {
     return await this.postMedias.listMediasByPostUuid(user, uuid);
   }
 
-  // TODO: MOVE PROFILE ONLY AUTHORIZED ROUES TO ANOTHER CONTROLLER
   @UseGuards(ActiveUserGuard, SocialProfileGuard())
   @Post(":postUuid/comments")
   async createComment(
@@ -247,7 +249,6 @@ export class PostController {
     @Param("handle") handle: string,
     @Query() query: ListPostCommentsDto
   ) {
-
     const author = await this.profileRepository.findByHandle(handle);
     if (!author) throw new NotFoundException("Autor nao encontradok");
 
