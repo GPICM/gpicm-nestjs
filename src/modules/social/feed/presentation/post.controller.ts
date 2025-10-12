@@ -37,6 +37,7 @@ import { UsersRepository } from "@/modules/identity/core/domain/interfaces/repos
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
 import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { Profile } from "../../core/domain/entities/Profile";
+import { ProfileRepository } from "../../core/domain/interfaces/repositories/profile-repository";
 
 @Controller("posts")
 @UseGuards(JwtAuthGuard)
@@ -49,7 +50,8 @@ export class PostController {
     private readonly postMedias: PostMediaService,
     private readonly postService: PostServices,
     private readonly postCommentService: PostCommentsService,
-    private readonly postCommentRepository: PostCommentRepository
+    private readonly postCommentRepository: PostCommentRepository,
+    private readonly profileRepository: ProfileRepository
   ) {}
 
   @PostMethod()
@@ -240,12 +242,13 @@ export class PostController {
     return new PaginatedResponse(records, total, limit, page, {});
   }
 
-  @Get("comments/author/:authorPublicId")
+  @Get("comments/author/:handle")
   async listCommentsByAuthor(
-    @Param("authorPublicId") authorPublicId: string,
+    @Param("handle") handle: string,
     @Query() query: ListPostCommentsDto
   ) {
-    const author = await this.userRepository.findByPublicId(authorPublicId);
+
+    const author = await this.profileRepository.findByHandle(handle);
     if (!author) throw new NotFoundException("Autor nao encontradok");
 
     const page = query.page ?? 1;
@@ -254,24 +257,6 @@ export class PostController {
 
     const { records, count: total } =
       await this.postCommentRepository.findByUserId(author.id, {
-        limit,
-        offset,
-      });
-
-    return new PaginatedResponse(records, total, limit, page, {});
-  }
-
-  @Get("comments/user")
-  async listUserComments(
-    @CurrentUser() user: User,
-    @Query() query: ListPostCommentsDto
-  ) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 16;
-    const offset = limit * (page - 1);
-
-    const { records, count: total } =
-      await this.postCommentRepository.findByUserId(user.id, {
         limit,
         offset,
       });

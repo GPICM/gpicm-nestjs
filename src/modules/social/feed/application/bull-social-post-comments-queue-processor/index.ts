@@ -29,7 +29,7 @@ const eventMetricsMap: Record<SocialPostCommentQueueEvent, CommentMetric[]> = {
 };
 
 @Processor(SOCIAL_POST_COMMENTS_EVENTS_QUEUE_NAME, {
-  limiter: { max: 10, duration: 5000 },
+  limiter: { max: 10, duration: 1000 },
 })
 export class PostCommentsProcessor extends BullQueueWorker<
   SocialPostQueueEvent,
@@ -37,7 +37,7 @@ export class PostCommentsProcessor extends BullQueueWorker<
 > {
   private commentsToUpdate = new Map<number, CommentUpdateState>();
   private flushTimeout?: NodeJS.Timeout;
-  private readonly FLUSH_DELAY_MS = 6000;
+  private readonly FLUSH_DELAY_MS = 1000;
 
   constructor(
     private readonly postCommentsRepository: PostCommentRepository,

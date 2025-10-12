@@ -29,19 +29,6 @@ export class SocialProfileController {
 
   constructor(private readonly profileService: ProfileService) {}
 
-  // TODO: CHANGE TO PROFILE HANDLE LATER
-  @Get("/user/:userPublicId")
-  async getProfileByUserPublicId(@Param("userPublicId") userPublicId: string) {
-    try {
-      const profile =
-        await this.profileService.getProfileByUserPublicId(userPublicId);
-      return profile;
-    } catch (error: unknown) {
-      this.logger.error("Failed to get user basic data", { error });
-      throw new BadRequestException();
-    }
-  }
-
   @Get("/me")
   getMe(@CurrentUser() user: User, @CurrentProfile() profile: Profile) {
     try {
