@@ -7,6 +7,7 @@ import {
 } from "../../domain/interfaces/repositories/achievements-repository";
 import { PrismaAchievementAssembler } from "./mappers/prisma-achievement.assembler";
 import { BaseRepositoryFindManyResult } from "@/modules/social/core/domain/interfaces";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class PrismaAchievementRepository implements AchievementsRepository {
@@ -50,16 +51,32 @@ export class PrismaAchievementRepository implements AchievementsRepository {
   ): Promise<BaseRepositoryFindManyResult<Achievement>> {
     try {
       this.logger.log("Listing all achievements");
-      const { limit, offset } = filters || {};
+      const { limit, offset, profileId, notInProfile } = filters || {};
+
+      const where: Prisma.AchievementWhereInput = { isActive: true };
+
+      if (notInProfile) {
+        where.ProfileAchievements = {
+          none: { profileId: notInProfile },
+        };
+      }
+
+      if (profileId) {
+        where.ProfileAchievements = {
+          some: { profileId },
+        };
+      }
 
       const [count, data] = await Promise.all([
         this.prisma.achievement.count({
           take: limit,
           skip: offset,
+          where,
         }),
         this.prisma.achievement.findMany({
           take: limit,
           skip: offset,
+          where,
         }),
       ]);
 
