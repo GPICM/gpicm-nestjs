@@ -49,7 +49,7 @@ docker compose up --build
 
 
 
-## Problemas em fazer upload de iamgem
+## Problemas em fazer upload de imagem
 
 ```
 chmod 777 -R public/assets
