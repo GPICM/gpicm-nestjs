@@ -6,7 +6,7 @@ import { ProfileAchievement } from "@/modules/social/gamification/domain/entitie
 
 export interface AchievementsFindManyFilters
   extends BaseRepositoryFindManyFilters {
-  profileHandle?: number;
+  profileHandle?: string;
 }
 
 export abstract class ProfileAchievementRepository {

@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "@/modules/shared/services/prisma-services";
 
-import { PrismaProfileAchievementAssembler } from "./mappers/prisma-profile-achievement.assembler";
+import {
+  PrismaProfileAchievementAssembler,
+  profileAchievementInclude,
+} from "./mappers/prisma-profile-achievement.assembler";
 import {
   AchievementsFindManyFilters,
   ProfileAchievementRepository,
@@ -33,6 +36,7 @@ export class PrismaProfileAchievementRepository
     try {
       const data = await this.prisma.profileAchievement.findMany({
         where: { profileId },
+        include: profileAchievementInclude,
       });
 
       return (
@@ -72,7 +76,7 @@ export class PrismaProfileAchievementRepository
       this.logger.log("Listing all achievements");
       const { limit, offset, profileHandle } = filters || {};
 
-      const where: Prisma.ProfileAchievementWhereInput = { };
+      const where: Prisma.ProfileAchievementWhereInput = {};
 
       if (profileHandle) {
         where.Profile = {
@@ -90,6 +94,7 @@ export class PrismaProfileAchievementRepository
           take: limit,
           skip: offset,
           where,
+          include: profileAchievementInclude,
         }),
       ]);
 

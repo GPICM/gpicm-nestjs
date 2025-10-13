@@ -5,7 +5,9 @@ import { AchievementCriterion } from "../../../domain/value-objects/AchievementC
 import { AchievementReward } from "../../../domain/value-objects/AchievementReward";
 
 export const profileAchievementInclude =
-  Prisma.validator<Prisma.ProfileAchievementInclude>()({});
+  Prisma.validator<Prisma.ProfileAchievementInclude>()({
+    Achievement: true,
+  });
 
 type ProfileAchievementJoinModel = Prisma.ProfileAchievementGetPayload<{
   include: typeof profileAchievementInclude;
@@ -69,6 +71,9 @@ export class PrismaProfileAchievementAssembler {
         criteriaSnapshot,
         rewardsSnapshot,
         createdAt: prismaData.createdAt,
+        name: prismaData.Achievement.name,
+        description: prismaData.Achievement.description,
+        imageThumbnailUrl: prismaData.Achievement.imageThumbnailUrl,
       });
 
       return entity;

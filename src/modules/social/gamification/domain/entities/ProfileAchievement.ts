@@ -12,6 +12,11 @@ export class ProfileAchievement {
   public rewardsSnapshot: AchievementReward[];
   public createdAt: Date;
 
+  // Virtual
+  name: string;
+  description: string;
+  imageThumbnailUrl: string | null;
+
   constructor(args: NonFunctionProperties<ProfileAchievement>) {
     Object.assign(this, args);
   }
@@ -26,6 +31,9 @@ export class ProfileAchievement {
     return new ProfileAchievement({
       id: -1, // will be set by DB
       profileId,
+      name: achievement.name,
+      description: achievement.description,
+      imageThumbnailUrl: achievement.imageThumbnailUrl,
       achievementId: achievement.id,
       handle: `${profileId}-${achievement.id}-${Date.now()}`,
       criteriaSnapshot: achievement.criteria ?? [],
