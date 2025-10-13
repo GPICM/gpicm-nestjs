@@ -1,0 +1,83 @@
+name: Sync main-to-staging-sync → testesStag
+
+on:
+  push:
+    branches: [ "main-to-staging-sync" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Buscar branches remotas
+        run: |
+          git fetch --all --prune
+          # garante que 'testesStag' existe localmente
+          if git ls-remote --heads origin testesStag | grep -q testesStag; then
+            git fetch origin testesStag:testesStag
+          else
+            # se não existir, cria 'testesStag' a partir da main-to-staging-sync (primeira execução)
+            git branch testesStag origin/main-to-staging-sync
+            git push -u origin testesStag
+          fi
+
+      - name: Tentar merge main-to-staging-sync → testesStag
+        id: merge
+        shell: bash
+        run: |
+          set -e
+          git checkout testesStag
+          # Tentativa de merge; não falha o job, apenas registra o resultado
+          set +e
+          git merge --no-ff --no-edit origin/main-to-staging-sync
+          status=$?
+          set -e
+          if [ $status -eq 0 ]; then
+            echo "result=merged" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=conflict" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push para testesStag
+        if: steps.merge.outputs.result == 'merged'
+        id: push
+        run: |
+          set +e
+          git push origin HEAD:testesStag
+          status=$?
+          set -e
+          if [ $status -ne 0 ]; then
+            echo "push_blocked=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Abrir PR (conflito ou push bloqueado)
+        if: steps.merge.outputs.result == 'conflict' || steps.push.outputs.push_blocked == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Cria/reativa PR de main-to-staging-sync → testesStag
+          existing=$(gh pr list --base testesStag --head main-to-staging-sync --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh pr comment "$existing" --body "Atualização automática: houve conflito ou proteção de branch ao sincronizar $GITHUB_SHA."
+          else
+            gh pr create \
+              --base testesStag \
+              --head main-to-staging-sync \
+              --title "Sync main-to-staging-sync → testesStag" \
+              --body "PR automático: conflito no merge ou proteção da branch impediu push direto. Commit: $GITHUB_SHA"
+          fi
