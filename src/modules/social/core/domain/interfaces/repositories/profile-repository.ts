@@ -15,6 +15,7 @@ export abstract class ProfileRepository {
   abstract refreshPostCount(userId: number): Promise<void>;
   abstract refreshCommentCount(userId: number): Promise<void>;
   abstract refreshFollowersCounts(profileId: number): Promise<void>;
+  abstract listTopProfiles();
 }
 
 export abstract class ProfileFollowRepository {
