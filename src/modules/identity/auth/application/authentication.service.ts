@@ -39,13 +39,14 @@ export class AuthenticationService {
       email: string;
       password: string;
       deviceKey?: string;
+      bio?: string;
     },
     device?: { ipAddress?: string }
   ): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started Sign Up", { params });
 
-      const { name, email, password, deviceKey } = params;
+      const { name, email, password, deviceKey, bio } = params;
 
       let guestUser: User | null = null;
       if (deviceKey) {
@@ -97,7 +98,7 @@ export class AuthenticationService {
           newUser.setId(userId);
           credentials.setUserId(userId);
 
-          await this.createProfile.execute(newUser, { txContext: tx });
+          await this.createProfile.execute(newUser, { txContext: tx, bio });
         } else if (guestUser) {
           userId = guestUser.id;
 
