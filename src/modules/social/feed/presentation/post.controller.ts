@@ -112,6 +112,9 @@ export class PostController {
   async delete(@Param("postUuid") postUuid: string, @CurrentUser() user: User) {
     this.logger.log("Deleting post", { postUuid });
     const post = await this.postRepository.findByUuid(postUuid, user.id);
+    if (post?.author.id !== user.id && !user.isAdmin) {
+      throw new BadRequestException("You are not allowed to delete this post");
+    }
     if (!post) {
       throw new NotFoundException("Post not found");
     }
@@ -212,7 +215,7 @@ export class PostController {
     @CurrentUser() user: User,
     @CurrentProfile() profile: Profile
   ) {
-    await this.postCommentService.deleteComment(profile, Number(commentId));
+    await this.postCommentService.deleteComment(user,profile, Number(commentId));
     return { message: "Comentário excluído com sucesso" };
   }
 

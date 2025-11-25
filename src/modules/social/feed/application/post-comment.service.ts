@@ -7,6 +7,8 @@ import { CurseWordsFilterService } from "../infra/utils/curse-words-filter.servi
 import { ProfileSummary } from "../domain/object-values/ProfileSummary";
 import { PostComment } from "../domain/entities/PostComment";
 import { Profile } from "../../core/domain/entities/Profile";
+import { User } from "@/modules/identity/core/domain/entities/User";
+import { UserRoles } from "@/modules/identity/core/domain/enums/user-roles";
 import { EventPublisher } from "@/modules/shared/domain/interfaces/events";
 import { PostCommentEvent } from "../../core/domain/interfaces/events";
 
@@ -79,13 +81,17 @@ export class PostCommentsService {
     );
   }
 
-  async deleteComment(profile: Profile, commentId: number): Promise<void> {
+  async deleteComment(
+    user: User,
+    profile: Profile,
+    commentId: number
+  ): Promise<void> {
     const comment = await this.postCommentRepository.findById(commentId);
     if (!comment) {
       throw new BadRequestException("Comentário não encontrado");
     }
 
-    if (comment.profile.id !== profile.id) {
+    if (comment.profile.id !== profile.id && user.role !== UserRoles.ADMIN) {
       throw new BadRequestException(
         "Você não tem permissão para excluir este comentário"
       );
