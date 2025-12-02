@@ -34,7 +34,7 @@ export class Profile {
     return new Profile({
       id: -1,
       handle,
-      bio: "",
+      bio: user?.bio || "",
       displayName,
       userId: user.id,
       birthDate: user.birthDate,

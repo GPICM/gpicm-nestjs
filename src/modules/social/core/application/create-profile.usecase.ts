@@ -16,10 +16,8 @@ export class CreateProfileUseCase {
 
   async execute(
     user: User,
-    options?: { txContext?: unknown; bio?: string }
+    options?: { txContext?: unknown }
   ): Promise<Profile> {
-    const { bio } = options || {};
-
     const baseHandle = generateBaseHandle(user.name || "Usuario");
     const candidates = generateHandleCandidates(baseHandle, 10);
 
@@ -38,11 +36,6 @@ export class CreateProfileUseCase {
     }
 
     const profile = Profile.fromUser(user, user.name || "Usuario", handle);
-
-    if (bio) {
-      profile.bio = bio;
-    }
-
     await this.profileRepository.create(profile, options);
 
     return profile;

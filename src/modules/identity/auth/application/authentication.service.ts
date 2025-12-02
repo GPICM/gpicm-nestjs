@@ -80,12 +80,14 @@ export class AuthenticationService {
         guestUser.setRole(UserRoles.USER);
         guestUser.setStatus(UserStatus.PENDING);
         guestUser.addCredentials(credentials);
+        guestUser.setBio(bio);
 
         guestUser.lastLoginAt = new Date();
         guestUser.ipAddress = device?.ipAddress || null;
       } else {
         newUser = User.Create(name, credentials);
         newUser.setStatus(UserStatus.PENDING);
+        newUser.setBio(bio);
 
         newUser.lastLoginAt = new Date();
         newUser.ipAddress = device?.ipAddress || null;
@@ -98,7 +100,7 @@ export class AuthenticationService {
           newUser.setId(userId);
           credentials.setUserId(userId);
 
-          await this.createProfile.execute(newUser, { txContext: tx, bio });
+          await this.createProfile.execute(newUser, { txContext: tx });
         } else if (guestUser) {
           userId = guestUser.id;
 
