@@ -16,6 +16,20 @@ export class PrismaProfileRepository implements ProfileRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  public async listTopProfiles() {
+    const profiles = await this.prisma.profile.findMany({
+      orderBy: {
+        reputation: "asc",
+      },
+      include: profileInclude,
+      take: 10,
+    });
+
+    return profiles
+      ?.map((p) => ProfileAssembler.fromPrisma(p))
+      .filter((p) => !!p);
+  }
+
   async findByHandle(handle: string): Promise<Profile | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { handle },

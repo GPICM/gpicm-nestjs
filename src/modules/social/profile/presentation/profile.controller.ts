@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Get,
   Param,
@@ -21,13 +22,17 @@ import { ProfileService } from "../application/profile.service";
 import { Profile } from "../../core/domain/entities/Profile";
 import { CurrentProfile } from "../../core/infra/decorators/profile.decorator";
 import { SocialProfileGuard } from "../../core/infra/guards/SocialProfileGuard";
+import { ProfileRepository } from "../../core/domain/interfaces/repositories/profile-repository";
 
 @Controller("social/profile")
 @UseGuards(JwtAuthGuard, ActiveUserGuard, SocialProfileGuard())
 export class SocialProfileController {
   private readonly logger = new Logger(SocialProfileController.name);
 
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly profileRepository: ProfileRepository,
+    private readonly profileService: ProfileService
+  ) {}
 
   @Get("/me")
   getMe(@CurrentUser() user: User, @CurrentProfile() profile: Profile) {
@@ -55,6 +60,18 @@ export class SocialProfileController {
       return { success: true };
     } catch (error: unknown) {
       this.logger.error("Failed to update data", { error });
+      throw new BadRequestException();
+    }
+  }
+
+  @Get("/reputation-ranking")
+  async ranking() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const profiles = await this.profileRepository.listTopProfiles();
+      return profiles ?? [];
+    } catch (error: unknown) {
+      this.logger.error("Failed to list top profiles", { error });
       throw new BadRequestException();
     }
   }

@@ -29,7 +29,7 @@ export class SocialGamificationAsyncController {
     }
 
     const lockKey = `achievement-lock:${profileId}`;
-    const lockTTL = 5000; // 5 seconds, adjust based on expected execution time
+    const lockTTL = 1000; // 5 seconds, adjust based on expected execution time
 
     const lock = await this.redisLockService.acquireLock(lockKey, lockTTL);
     if (!lock) {
