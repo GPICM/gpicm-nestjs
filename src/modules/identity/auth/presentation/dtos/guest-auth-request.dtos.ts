@@ -40,4 +40,8 @@ export class SignUpRequestBodyDto {
   @IsString()
   @IsOptional()
   deviceKey?: string;
+
+  @IsString()
+  @IsOptional()
+  bio?: string;
 }

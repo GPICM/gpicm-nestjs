@@ -36,6 +36,7 @@ export class AuthenticationController {
         {
           email: body.email,
           name: body.name,
+          bio: body.bio,
           password: body.password,
           deviceKey: body.deviceKey,
         },

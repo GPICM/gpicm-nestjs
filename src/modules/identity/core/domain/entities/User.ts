@@ -126,6 +126,10 @@ export class User {
     this.status = s;
   }
 
+  public setBio(newBio?: string) {
+    this.bio = newBio || null;
+  }
+
   public addCredentials(credential: UserCredential) {
     credential.userId = this.id;
     this.credentials.push(credential);
@@ -138,6 +142,8 @@ export class User {
       name: this.name,
       gender: this.gender ?? null,
       role: this.role,
+      bio: this.bio,
+      ipAddress: this.ipAddress,
       status: this.status,
       latitude: this.latitude,
       longitude: this.longitude,
@@ -146,7 +152,7 @@ export class User {
       email: this.credentials[0]?.email,
       locationUpdatedAt: this.locationUpdatedAt,
       createdAt: this.createdAt,
-      updatedAt: this.updateAt
+      updatedAt: this.updateAt,
     };
   }
 }
