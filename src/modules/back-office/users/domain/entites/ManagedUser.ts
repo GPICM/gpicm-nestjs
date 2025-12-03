@@ -36,6 +36,8 @@ export class ManagedUser {
 
   public lastLoginAt: Date | null;
 
+  public bio: string | null;
+
   constructor(args: NonFunctionProperties<ManagedUser>) {
     Object.assign(this, args);
   }
