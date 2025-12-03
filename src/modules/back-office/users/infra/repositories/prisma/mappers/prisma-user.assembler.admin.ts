@@ -62,6 +62,7 @@ export class UserAdminAssembler {
       updateAt: prismaData.updatedAt,
       lastLoginAt: prismaData.lastLoginAt,
       avatar,
+      bio: prismaData.bio,
     });
   }
 }
