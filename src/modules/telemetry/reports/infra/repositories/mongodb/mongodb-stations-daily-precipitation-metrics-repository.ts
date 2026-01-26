@@ -23,6 +23,27 @@ export class MongoDbStationDailyPrecipitationMetricsRepository {
     private readonly mongoService: MongodbService
   ) {}
 
+  private async getActiveStationsSlug(): Promise<string[]> {
+    try {
+      this.db = this.mongoService.getDatabase();
+      const stationsCollection = this.db.collection<{
+        slug: string;
+        isActive: boolean;
+      }>("stations");
+
+      const activeStations = await stationsCollection
+        .find({ isActive: true })
+        .project({ slug: 1, _id: 0 })
+        .toArray();
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return activeStations?.map((s) => s.slug);
+    } catch (error: unknown) {
+      this.logger.error("failed to load stations", { error });
+      return [];
+    }
+  }
+
   public async getRainInsights(targetDateStr: string): Promise<
     Record<
       string,
@@ -36,6 +57,8 @@ export class MongoDbStationDailyPrecipitationMetricsRepository {
     this.logger.log("Staging getting rain insights", { targetDateStr });
 
     try {
+      const activeSlugs = await this.getActiveStationsSlug();
+
       this.db = this.mongoService.getDatabase();
 
       const collection =
@@ -56,6 +79,7 @@ export class MongoDbStationDailyPrecipitationMetricsRepository {
           {
             $match: {
               date: { $gte: cutoff96hStartDay.toUTC().toJSDate() },
+              stationSlug: { $in: activeSlugs },
             },
           },
           {
