@@ -1,4 +1,4 @@
-name: Sync main → staging
+name: Sync main → homolog
 
 on:
   push:
@@ -27,19 +27,19 @@ jobs:
       - name: Buscar branches remotas
         run: |
           git fetch --all --prune
-          if git ls-remote --heads origin staging | grep -q staging; then
-            git fetch origin staging:staging
+          if git ls-remote --heads origin homolog | grep -q homolog; then
+            git fetch origin homolog:homolog
           else
-            git branch staging origin/main
-            git push -u origin staging
+            git branch homolog origin/main
+            git push -u origin homolog
           fi
 
-      - name: Tentar merge main → staging
+      - name: Tentar merge main → homolog
         id: merge
         shell: bash
         run: |
           set -e
-          git checkout staging
+          git checkout homolog
           # Tentativa de merge; não falha o job, apenas registra o resultado
           set +e
           git merge --no-ff --no-edit origin/main
@@ -51,12 +51,12 @@ jobs:
             echo "result=conflict" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Push para staging
+      - name: Push para homolog
         if: steps.merge.outputs.result == 'merged'
         id: push
         run: |
           set +e
-          git push origin HEAD:staging
+          git push origin HEAD:homolog
           status=$?
           set -e
           if [ $status -ne 0 ]; then
@@ -68,14 +68,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Cria/reativa PR de main → staging
-          existing=$(gh pr list --base staging --head main --state open --json number --jq '.[0].number')
+          # Cria/reativa PR de main → homolog
+          existing=$(gh pr list --base homolog --head main --state open --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             gh pr comment "$existing" --body "Atualização automática: houve conflito ou proteção de branch ao sincronizar $GITHUB_SHA."
           else
             gh pr create \
-              --base staging \
+              --base homolog \
               --head main \
-              --title "Sync main → staging" \
+              --title "Sync main → homolog" \
               --body "PR automático: conflito no merge ou proteção da branch impediu push direto. Commit: $GITHUB_SHA"
           fi
