@@ -39,13 +39,14 @@ export class AuthenticationService {
       email: string;
       password: string;
       deviceKey?: string;
+      bio?: string;
     },
     device?: { ipAddress?: string }
   ): Promise<{ accessToken: string }> {
     try {
       this.logger.log("Started Sign Up", { params });
 
-      const { name, email, password, deviceKey } = params;
+      const { name, email, password, deviceKey, bio } = params;
 
       let guestUser: User | null = null;
       if (deviceKey) {
@@ -79,12 +80,14 @@ export class AuthenticationService {
         guestUser.setRole(UserRoles.USER);
         guestUser.setStatus(UserStatus.PENDING);
         guestUser.addCredentials(credentials);
+        guestUser.setBio(bio);
 
         guestUser.lastLoginAt = new Date();
         guestUser.ipAddress = device?.ipAddress || null;
       } else {
         newUser = User.Create(name, credentials);
         newUser.setStatus(UserStatus.PENDING);
+        newUser.setBio(bio);
 
         newUser.lastLoginAt = new Date();
         newUser.ipAddress = device?.ipAddress || null;

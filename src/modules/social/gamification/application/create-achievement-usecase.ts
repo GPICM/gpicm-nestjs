@@ -7,6 +7,9 @@ import {
 import { AchievementReward } from "../domain/value-objects/AchievementReward";
 import { Achievement } from "../domain/entities/Achievement";
 import { AchievementsRepository } from "../domain/interfaces/repositories/achievements-repository";
+import { MediaService } from "@/modules/assets/application/media.service";
+import { error } from "console";
+import { MediaSourceVariantKey } from "@/modules/assets/domain/object-values/media-source-variant";
 
 export interface CreateAchievementCriterionDto {
   operator: AchievementOperator;
@@ -20,13 +23,23 @@ export interface CreateAchievementUseCaseDto {
   description: string;
   reputationReward: number;
   criteria: CreateAchievementCriterionDto[];
+  mediaId: string;
 }
 
 @Injectable()
 export class CreateAchievementUseCase {
-  constructor(private readonly repository: AchievementsRepository) {}
+  constructor(
+    private readonly repository: AchievementsRepository,
+    private readonly mediaService: MediaService
+  ) {}
 
   async execute(dto: CreateAchievementUseCaseDto): Promise<Achievement> {
+  
+    const media = await this.mediaService.findOneById(dto.mediaId);
+    if(!media){
+      throw new Error('Media not found')
+    }    
+
     const criteria = dto.criteria.map((crt) => {
       return new AchievementCriterion({
         operator: crt.operator,
@@ -49,8 +62,8 @@ export class CreateAchievementUseCase {
       description: dto.description,
       criteria,
       rewards,
-      imageSources: null,
-      imageThumbnailUrl: null,
+      imageSources: media.sources,
+      imageThumbnailUrl: media.sources?.getVariant(MediaSourceVariantKey.md)?.url ?? '',
       imageBlurHash: null,
     });
 

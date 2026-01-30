@@ -9,6 +9,7 @@ import {
   IsNotEmpty,
   ValidateNested,
   ArrayMinSize,
+  IsOptional,
 } from "class-validator";
 import {
   CreateAchievementCriterionDto,
@@ -56,4 +57,7 @@ export class CreateAchievementBodyDto implements CreateAchievementUseCaseDto {
   @ValidateNested({ each: true })
   @Type(() => CreateAchievementCriterionBodyDto)
   criteria: CreateAchievementCriterionBodyDto[];
+
+  @IsString()
+  mediaId: string;
 }

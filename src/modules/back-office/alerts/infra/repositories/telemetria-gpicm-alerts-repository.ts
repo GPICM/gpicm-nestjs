@@ -12,6 +12,7 @@ import {
 } from "../../domain/entities/alerts";
 import { CivilDefenseAlertsRepository } from "../../domain/interfaces/alerts-repository";
 import { CivilDefenseAlertDtoSchema } from "./utils/telemetria-gpicm-utils";
+import he from "he";
 
 const UFRJ_TELEMETRIA_API_URL =
   "https://telemetria.macae.ufrj.br/Api/obterAlertasDefesaCivil";
@@ -59,12 +60,14 @@ export class TelemetriaGpicmAlertsRepository
             ? AlertStatus.ACTIVE
             : AlertStatus.INACTIVE;
 
-        const plainDescription = alert.description.replace(/<[^>]+>/g, "");
+        const withoutTags = alert.description.replace(/<[^>]+>/g, "");
+
+        const plainText = he.decode(withoutTags).replace(/\s+/g, " ").trim();
 
         return new CivilDefenseAlerts({
           id: -1,
           title: alert.title,
-          description: plainDescription,
+          description: plainText,
           gravityLevel: alert.gravity_level as GravityLevel,
           externalReference: alert.id,
           createdAt: new Date(alert.updated_at ?? Date.now()),
