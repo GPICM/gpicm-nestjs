@@ -19,7 +19,7 @@ export class PrismaProfileRepository implements ProfileRepository {
   public async listTopProfiles() {
     const profiles = await this.prisma.profile.findMany({
       orderBy: {
-        reputation: "asc",
+        reputation: "desc",
       },
       include: profileInclude,
       take: 10,
