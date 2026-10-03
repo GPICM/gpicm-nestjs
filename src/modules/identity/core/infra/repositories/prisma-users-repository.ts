@@ -150,14 +150,6 @@ export class PrismaUserRepository implements UsersRepository {
     lat: number,
     lng: number
   ): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        latitude: lat,
-        longitude: lng,
-        locationUpdatedAt: new Date(),
-      },
-    });
     try {
       await this.prisma.user.update({
         where: { id: userId },

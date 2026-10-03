@@ -49,7 +49,7 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
           where,
           take,
           skip,
-          orderBy: { [sort]: order },
+          orderBy: [{ [sort]: order }, { id: "asc" }],
           include: userAdminInclude,
         }),
         this.prisma.user.count({ where }),

@@ -63,6 +63,10 @@ export class UserAdminAssembler {
       lastLoginAt: prismaData.lastLoginAt,
       avatar,
       bio: prismaData.bio,
+      ipAddress: prismaData.ipAddress,
+      latitude: prismaData.latitude,
+      longitude: prismaData.longitude,
+      locationUpdatedAt: prismaData.locationUpdatedAt,
     });
   }
 }

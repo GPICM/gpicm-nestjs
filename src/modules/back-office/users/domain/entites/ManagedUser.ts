@@ -38,6 +38,14 @@ export class ManagedUser {
 
   public bio: string | null;
 
+  public ipAddress: string | null;
+
+  public latitude: number | null;
+
+  public longitude: number | null;
+
+  public locationUpdatedAt: Date | null;
+
   constructor(args: NonFunctionProperties<ManagedUser>) {
     Object.assign(this, args);
   }
