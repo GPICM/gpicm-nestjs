@@ -1,4 +1,12 @@
-version: '3'
+version: '3.4'
+
+# Limita os logs de cada container a 3 arquivos de 10 MB (30 MB no total).
+# Sem isso o log do metrics-computation chegou a 25 GB e encheu o disco.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 networks:
   gpicm-production:
@@ -10,6 +18,7 @@ services:
     container_name: "gpcim-react-app"
     image: fonsecabarreto/weather-react-app:latest
     restart: always
+    logging: *default-logging
     mem_limit: 128m
     hostname: web
     ports:
@@ -22,6 +31,7 @@ services:
     container_name: gpcim-weather-redis
     command: ["redis-server", "--appendonly", "no", "--save", "", "--dir", "/data"]
     restart: always
+    logging: *default-logging
     ports:
       - 6333:6379
     networks:
@@ -31,6 +41,7 @@ services:
     image: fonsecabarreto/gpicm-nestjs-app:latest
     container_name: gpcim-nestjs-api
     restart: always
+    logging: *default-logging
     env_file:
       - .env.production
     volumes:
@@ -44,6 +55,7 @@ services:
     image: fonsecabarreto/gpicm-metrics-computation:latest
     container_name: gpcim-metrics-computation
     restart: always
+    logging: *default-logging
     env_file:
       - .env.production
     ports:
@@ -55,6 +67,7 @@ services:
     image: fonsecabarreto/gpicm-sync-engine:latest
     container_name: gpicm-sync-engine
     restart: always
+    logging: *default-logging
     env_file:
       - .env.production
     ports:
@@ -68,6 +81,7 @@ services:
     env_file:
       - .env.production
     restart: always
+    logging: *default-logging
     ports:
       - '3003:4500'
     networks:
@@ -81,6 +95,7 @@ services:
     env_file:
       - .env.production
     restart: always
+    logging: *default-logging
     ports:
       - '3004:8081'
     networks:
