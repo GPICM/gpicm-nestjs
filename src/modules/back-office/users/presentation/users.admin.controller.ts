@@ -47,6 +47,12 @@ export class AdminUsersController {
       search: query.search,
       roleIn: query.roles,
       statusIn: query.statuses,
+      sort: query.sort,
+      order: query.order,
+      verified: query.verified,
+      activity: query.activity,
+      createdFrom: query.createdFrom ? new Date(query.createdFrom) : undefined,
+      createdTo: query.createdTo ? new Date(query.createdTo) : undefined,
     });
 
     return new PaginatedResponse(records, total, limit, page, {});

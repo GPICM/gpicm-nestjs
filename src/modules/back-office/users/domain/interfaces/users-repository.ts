@@ -21,6 +21,11 @@ export abstract class UsersAdminRepository {
 export interface UserFindManyFilters extends BaseRepositoryFindManyFilters {
   statusIn?: UserStatus[];
   roleIn?: UserRoles[];
+  verified?: boolean;
+  /** Janela de último acesso: 7d/30d/90d = acessou no período; inactive90 = sem acesso há 90 dias; never = nunca acessou. */
+  activity?: "7d" | "30d" | "90d" | "inactive90" | "never";
+  createdFrom?: Date;
+  createdTo?: Date;
 }
 
 export * from "./dto/base-repository-filters";

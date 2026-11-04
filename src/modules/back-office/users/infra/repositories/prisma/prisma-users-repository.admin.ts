@@ -44,6 +44,57 @@ export class PrismaUserAdminRepository implements UsersAdminRepository {
         where["role"] = { in: filters.roleIn };
       }
 
+      const and: Prisma.UserWhereInput[] = [];
+
+      // MySQL compara sem diferenciar maiúsculas pela collation padrão.
+      const search = filters.search?.trim();
+      if (search) {
+        and.push({
+          OR: [
+            { name: { contains: search } },
+            { Credentials: { some: { email: { contains: search } } } },
+            { Profile: { is: { handle: { contains: search } } } },
+            { Profile: { is: { displayName: { contains: search } } } },
+          ],
+        });
+      }
+
+      if (filters.verified === true) and.push({ isVerified: true });
+      if (filters.verified === false) {
+        and.push({ OR: [{ isVerified: false }, { isVerified: null }] });
+      }
+
+      const daysAgo = (days: number) =>
+        new Date(Date.now() - days * 86_400_000);
+      switch (filters.activity) {
+        case "7d":
+          and.push({ lastLoginAt: { gte: daysAgo(7) } });
+          break;
+        case "30d":
+          and.push({ lastLoginAt: { gte: daysAgo(30) } });
+          break;
+        case "90d":
+          and.push({ lastLoginAt: { gte: daysAgo(90) } });
+          break;
+        case "inactive90":
+          and.push({ lastLoginAt: { lt: daysAgo(90) } });
+          break;
+        case "never":
+          and.push({ lastLoginAt: null });
+          break;
+      }
+
+      if (filters.createdFrom || filters.createdTo) {
+        and.push({
+          createdAt: {
+            ...(filters.createdFrom && { gte: filters.createdFrom }),
+            ...(filters.createdTo && { lte: filters.createdTo }),
+          },
+        });
+      }
+
+      if (and.length) where.AND = and;
+
       const [prismaResult, count] = await Promise.all([
         this.prisma.user.findMany({
           where,
