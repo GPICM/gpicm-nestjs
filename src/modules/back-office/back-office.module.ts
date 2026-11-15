@@ -5,11 +5,14 @@ import { PrismaUserAdminRepository } from "./users/infra/repositories/prisma/pri
 import { IdentityModule } from "../identity/identity.module";
 import { SocialCoreModule } from "../social/core/social-core.module";
 import { AlertsModule } from "./alerts/Alerts.module";
+import { AdminAccessMetricsController } from "./metrics/presentation/access-metrics.admin.controller";
+import { LoginMetricsService } from "./metrics/application/login-metrics.service";
 
 @Module({
   imports: [IdentityModule, SocialCoreModule, AlertsModule],
-  controllers: [AdminUsersController],
+  controllers: [AdminUsersController, AdminAccessMetricsController],
   providers: [
+    LoginMetricsService,
     {
       provide: UsersAdminRepository,
       useClass: PrismaUserAdminRepository,
