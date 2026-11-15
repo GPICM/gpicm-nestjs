@@ -145,6 +145,8 @@ model UserLog {
 
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Métricas de acesso (back-office/metrics): contagens por ação e período.
+  @@index([action, createdAt])
   @@map("user_logs")
 }
 
